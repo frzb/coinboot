@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  coinboot:
+    container_name: coinboot
+    build: ./
+    volumes:
+      - ./conf/dnsmasq:/etc/dnsmasq.d
+      - ./conf/nginx:/etc/nginx/conf.d
+      - ./conf/supervisord:/etc/supervisor
+      - ./conf/pxelinux/:/var/lib/tftpboot/pxelinux.cfg
+      - ./tftpboot:/var/lib/tftpboot
+      - ./plugins:/srv/plugins
+    command: /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
+    ports:
+      - 67:67/udp
+      - 67:67/tcp
+      - 80:80
+    cap_add:
+      - NET_ADMIN
+      - NET_BROADCAST
+    network_mode: "host"
