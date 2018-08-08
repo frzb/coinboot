@@ -3,5 +3,5 @@ DEFAULT PXE_HTTP
 LABEL PXE_HTTP
   SAY Now booting ...
   LINUX http://192.168.1.2/vmlinuz
-  APPEND initrd=http://192.168.1.2:/initramfs console=tty0 console=ttyS0,115200n8 net.ifnames=0 biosdevname=0
+  APPEND initrd=http://192.168.1.2:/initramfs console=ttyS0,115200n8 console=tty0 net.ifnames=0 biosdevname=0
 EOF
