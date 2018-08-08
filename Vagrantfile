@@ -42,7 +42,7 @@ Vagrant.configure(2) do |config|
     # FIXME: Built own empty Vagrantbox
     machine.vm.box = "c33s/empty"
     machine.vm.hostname = "client"
-    machine.ssh.host = "192.168.1.23"
+    machine.ssh.host = "192.168.1.10"
     machine.ssh.port = 22
     machine.ssh.password = "ubuntu"
     machine.ssh.username = "ubuntu"
@@ -89,14 +89,21 @@ Vagrant.configure(2) do |config|
 
    # FIXME: We need to detect if an interface is not only present
    # but also if it is in the state "UP" to avoid false positives.
+   # Also take care that the Coinboot plugin archive for the client
+    # acting as proper VagrantBox is only loaded when we not use a physical client a.k.a.
+    # real hardware.
     if interfaces.uniq.include?('eth1')
       machine.vm.network "public_network", ip: "192.168.1.2",
         bridge: ['eth1']
+      machine.vm.provision "shell", inline: 'rm -fv /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     elsif interfaces.uniq.include?('enx00e04c680379')
       machine.vm.network "public_network", ip: "192.168.1.2",
         bridge: ['enx00e04c680379']
+      machine.vm.provision "shell", inline: 'rm -fv /vagrant/plugins/coinboot-vagrantbox.tar.gz'
+    elsif interfaces.uniq.include?('enx00e04c680379')
     else
       machine.vm.network "private_network", ip: "192.168.1.2"
+      machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     end
         # Using '82540EM' provides 1GBit/s interface not just the default
         # 100MBit/s one.
