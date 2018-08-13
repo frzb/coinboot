@@ -1,6 +1,7 @@
 require 'socket'
 
 $coinboot_docker = <<SCRIPT
+COMPOSEFILE=/vagrant/docker-compose.yml
 
 if ! docker info; then
   curl -fsSL get.docker.com -o get-docker.sh
@@ -8,12 +9,16 @@ if ! docker info; then
   sudo usermod -aG docker vagrant
 fi
 
-if ! docker-compose; then
+if ! which docker-compose; then
   sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-docker-compose -f /vagrant/docker-compose.yml up -d --build --force-recreate
+if ! docker-compose -f $COMPOSEFILE ps | grep -q coinboot; then
+  docker-compose -f $COMPOSEFILE up -d --build --force-recreate
+else
+  docker-compose -f $COMPOSEFILE  restart
+fi
 
 # Configure forwading and NAT cause the DHCP server vagrant box acts currently
 # also as gateway.
