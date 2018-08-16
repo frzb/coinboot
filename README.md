@@ -1,6 +1,6 @@
 ![Logo of Coinboot](coinboot.png)
 
-This repository contains everything to get a Docker container up and running with all services needed to get Coinboot up and running in your environment.
+This repository contains everything to get a Docker container up and running with all services needed to get Coinboot work in your environment.
 
 ## Requierments 
 
