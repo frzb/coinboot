@@ -16,7 +16,9 @@ Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory 
 
 ### Plugins
 
-You Coinboot plugins should be  placed into  the directory `./plugins`
+You Coinboot plugins should be placed into  the directory `./plugins`
+
+You can create your own plugins (see below) or pick these on: https:/coinboot.io/plugins
 
 ### DHCP configuration
 
@@ -44,6 +46,11 @@ $ vagrant up
 ```
 
 ## Pack your own Coinboot plugins
+
+A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.
+
+Basically a Coinboot plugin is just set of file system changes that is applied at boot time.
+
 
 All you need to create your own plugins is:
 
