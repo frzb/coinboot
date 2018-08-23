@@ -2,7 +2,7 @@
 
 This repository contains everything to get a Docker container up and running with all services needed to get Coinboot work in your environment.
 
-## Requierments 
+## Requirements
 
 Docker
 
@@ -11,6 +11,8 @@ Docker Compose
 ## Preparations
 
 ### RootFS and Kernel
+
+You can build your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf) or download a pre-build release at: "https://coinboot.io/releases"
 
 Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory `./tftpboot`.
 
