@@ -1,6 +1,34 @@
 ![Logo of Coinboot](coinboot.png)
 
-This repository contains everything to get a Docker container up and running with all services needed to get Coinboot work in your environment.
+## About Coinboot
+
+Coinboot is a framework for diskless computing. 
+
+
+It's core features are:
+
+* **Running Diskless**
+
+  With Coinboot there is not need to equip machines with storage media like SSDs, HDDs or USB flash drives.  
+  All machines are booting the operating system over network and run completely from memory, in-memory.
+
+
+* **Leightweight Footprint**
+
+  Coinboot has a lightweight footprint.  
+  Driven by the demand to run sufficiently on hundreds of machines with commodity 1 Gbit/s network hardware.
+
+
+* **Familiar Usabillity**
+
+  No bumpy ride.  
+  Coinboot feels just like every other Debian/Ubuntu-based system. 
+
+
+* **Easy Expandability**
+
+  Need to expand your machines with further configuration, software, libraries, proprietary drivers?  
+  By packing them as Coinboot plugin you can use them right after your machines have booted.
 
 ## Requirements
 
