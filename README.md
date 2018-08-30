@@ -5,7 +5,7 @@
 Coinboot is a framework for diskless computing. 
 
 
-It's core features are:
+Its core features are:
 
 * **Running Diskless**
 
@@ -36,33 +36,57 @@ Docker
 
 Docker Compose
 
-## Preparations
+## Usage
 
-### RootFS and Kernel
+### Preparations
 
-You can build your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf) or download a pre-build release at: "https://coinboot.io/releases"
+Clone this repository one the host where you want to execute the Coinboot Docker container.
+
+#### RootFS and Kernel
+
+You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf).   
+Or **download** a pre-build release at: https://coinboot.io/releases.
 
 Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory `./tftpboot`.
 
-### Plugins
+#### Plugins
 
 You Coinboot plugins should be placed into  the directory `./plugins`
 
-You can create your own plugins (see below) or pick these on: https://coinboot.io/plugins
+You can create your own plugins (see below) or pick some at: https://coinboot.io/plugins
 
-### DHCP configuration
+#### DHCP configuration
 
 Put your own `dnsmasq` DHCP server configuration in `./conf/dnsmasq/` or edit the existing configuration file `./conf/dnsmasq/coinboot.conf`.
 
-## Usage
+#### IP address and network
 
-Clone this repository one the host where you want to execute the Coinboot Docker container.
+Take care that your Docker host has assigned an IP address matching to the `dhcp-range` specified at `./conf/dnsmasq/coinboot.conf`. 
+
+For example the Docker host has assigned `192.168.1.2` then a matching DHCP-range configuration is: `dhcp-range=192.168.1.10,192.168.1.100,6h`. 
+
+Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
+
+
+### Start the Coinboot container
 
 Just bring the Coinboot Docker container up with `docker-compose`.
 
 ```
 $ docker-compose up -d
 ```
+
+### Boot your machines with Coinboot
+
+Start your machines.  
+They are booting over network.  
+You can login to your machines over `ssh`.  
+Default credentials are:
+
+* login: `ubuntu`
+* password: `ubuntu`
+  
+Please change the password via creating a Coinboot Plugin.
 
 ## Test and development environment
 
