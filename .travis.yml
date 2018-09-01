@@ -1,0 +1,13 @@
+dist: trusty
+sudo: required
+language: ruby
+rvm:
+ - 2.4.1
+before_install:
+  - sudo echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee -a /etc/apt/sources.list
+  - wget http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add -
+  - sudo apt-get update
+  - sudo apt-get -y install linux-headers-$(uname -r)
+  - sudo apt-get -y install virtualbox-5.2
+  - VBoxManage -v
+
