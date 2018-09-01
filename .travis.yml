@@ -1,13 +1,13 @@
 dist: trusty
 sudo: required
-language: ruby
-rvm:
- - 2.4.1
-before_install:
-  - sudo echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee -a /etc/apt/sources.list
-  - wget http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add -
-  - sudo apt-get update
-  - sudo apt-get -y install linux-headers-$(uname -r)
-  - sudo apt-get -y install virtualbox-5.2
-  - VBoxManage -v
 
+before_install:
+  - apt update
+  - apt install qemu-system-x86
+  - mkdir -p /etc/qemu/
+  - echo 'allow all' > /etc/qemu/bridge.conf
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/initramfs -P ./tftboot
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/vmlinuz -P ./tftboot
+script:
+  - docker-compose -f docker-compose_travisci.yml up -d
+  - sudo qemu-system-x86_64 -m 2048 -boot n -curses -nographic -net nic,model=e100e10000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
