@@ -51,7 +51,7 @@ Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory 
 
 #### Plugins
 
-You Coinboot plugins should be placed into  the directory `./plugins`
+Coinboot plugins should be placed into  the directory `./plugins`
 
 You can create your own plugins (see below) or pick some at: https://coinboot.io/plugins
 
