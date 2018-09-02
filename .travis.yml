@@ -3,7 +3,7 @@ sudo: required
 
 before_install:
   - sudo apt update
-  - sudo apt install --yes qemu-system-x86 sshpass
+  - sudo apt install --yes qemu-system-x86 ipxe-qemu sshpass
   - sudo mkdir -p /etc/qemu/
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
   - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/initramfs -P ./tftboot
