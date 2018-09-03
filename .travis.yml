@@ -10,6 +10,6 @@ before_install:
   - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/vmlinuz -P ./tftboot
 script:
   - sudo docker-compose -f docker-compose_travisci.yml up -d
-  - sudo qemu-system-x86_64 -serial mon:stdio -display none -m 2048 -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  - sudo qemu-system-x86_64 -serial mon:stdio -display none -m 1024 -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
 #  - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
 #  - sshpass -pubuntu ssh ubuntu@192.168.1.10
