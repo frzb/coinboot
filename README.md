@@ -51,7 +51,7 @@ Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory 
 
 #### Plugins
 
-You Coinboot plugins should be placed into  the directory `./plugins`
+Coinboot plugins should be placed into  the directory `./plugins`
 
 You can create your own plugins (see below) or pick some at: https://coinboot.io/plugins
 
@@ -67,6 +67,10 @@ For example the Docker host has assigned `192.168.1.2` then a matching DHCP-rang
 
 Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
 
+#### Environment variables
+
+You can hand over environment variables to the machines booting with Coinboot.  
+Just put these variables in a file in the directoy `./conf/environment/'.
 
 ### Start the Coinboot container
 
