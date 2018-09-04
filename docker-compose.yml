@@ -9,6 +9,7 @@ services:
       - ./conf/nginx:/etc/nginx/conf.d
       - ./conf/supervisord:/etc/supervisor
       - ./conf/pxelinux/:/var/lib/tftpboot/pxelinux.cfg
+      - ./conf/environment/:/srv/environment
       - ./tftpboot:/var/lib/tftpboot
       - ./plugins:/srv/plugins
     command: /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
