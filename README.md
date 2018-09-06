@@ -1,5 +1,7 @@
 ![Logo of Coinboot](coinboot.png)
 
+[![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
+
 ## About Coinboot
 
 Coinboot is a framework for diskless computing. 

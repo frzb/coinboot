@@ -1,0 +1,13 @@
+dist: trusty
+sudo: required
+
+before_install:
+  - apt update
+  - apt install qemu-system-x86
+  - mkdir -p /etc/qemu/
+  - echo 'allow all' > /etc/qemu/bridge.conf
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/initramfs -P ./tftboot
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/vmlinuz -P ./tftboot
+script:
+  - docker-compose -f docker-compose_travisci.yml up -d
+  - sudo qemu-system-x86_64 -m 2048 -boot n -curses -nographic -net nic,model=e100e10000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
