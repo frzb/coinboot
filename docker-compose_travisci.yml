@@ -15,8 +15,8 @@ networks:
         subnet: 192.168.1.0/24
 
 services:
-  coinboot_travisci:
-    container_name: coinboot_travisci
+  coinboot:
+    container_name: coinboot
     build: ./
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
