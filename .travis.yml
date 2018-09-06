@@ -11,7 +11,9 @@ before_install:
   - ls -lah ./tftboot
 script:
   - sudo docker-compose -f docker-compose_travisci.yml up -d
-  - sudo docker-compose exec coinboot ls -l /var/lib/tftboot; ip a
+  - sudo docker-compose exec coinboot ls -l /var/lib/tftpboot
+  - sudo docker-compose exec coinboot ip a
+  - ip a
   - sudo docker-compose exec coinboot apk add wget
   - sudo docker-compose exec coinboot wget http://192.168.1.2/vmlinuz
     #- sudo qemu-system-x86_64 -m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
