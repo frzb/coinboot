@@ -1,5 +1,7 @@
 ![Logo of Coinboot](coinboot.png)
 
+[![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
+
 ## About Coinboot
 
 Coinboot is a framework for diskless computing. 
@@ -67,6 +69,10 @@ For example the Docker host has assigned `192.168.1.2` then a matching DHCP-rang
 
 Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
 
+#### Environment variables
+
+You can hand over environment variables to the machines booting with Coinboot.  
+Just put these variables in a file in the directoy `./conf/environment/'.
 
 ### Start the Coinboot container
 
