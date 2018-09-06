@@ -6,9 +6,9 @@ before_install:
   - sudo apt install --yes qemu-system-x86 ipxe-qemu sshpass
   - sudo mkdir -p /etc/qemu/
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
-  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/initramfs -P ./tftboot
-  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/vmlinuz -P ./tftboot
-  - ls -lah ./tftboot
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/initramfs -P ./tftpboot
+  - wget https://coinboot.io/releases/20180816_4.4.0-133-generic/vmlinuz -P ./tftpboot
+  - ls -lah ./tftpboot
 script:
   - sudo docker-compose -f docker-compose_travisci.yml up -d
   - sudo docker-compose exec coinboot ls -l /var/lib/tftpboot
