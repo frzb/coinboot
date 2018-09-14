@@ -6,8 +6,8 @@ before_install:
   - sudo apt install --yes qemu-system-x86 ipxe-qemu sshpass
   - sudo mkdir -p /etc/qemu/
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
-  - wget https://coinboot.io/releases/20180906_4.4.0-133-generic/initramfs -P ./tftpboot
-  - wget https://coinboot.io/releases/20180906_4.4.0-133-generic/vmlinuz -P ./tftpboot
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/20180914/coinboot-vmlinuz-4.4.0-133-generic -P ./tftpboot
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/20180914/coinboot-initramfs-4.4.0-133-generic -P ./tftpboot
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d
     # This line can be used for debugging Qemu iPXE purposes.
