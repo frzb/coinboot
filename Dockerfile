@@ -1,13 +1,11 @@
-FROM nginx:1.14.0-alpine
+FROM alpine:3.8
 
 #TODO add syslinux/pxelinux files
-RUN apk --no-cache add supervisor dnsmasq syslinux\
+RUN apk --no-cache add nginx supervisor dnsmasq alpine-ipxe\
     && echo "conf-dir=/etc/dnsmasq.d" > /etc/dnsmasq.conf
 
-RUN mkdir -p /var/lib/tftpboot/pxelinux.cfg /etc/dnsmasq.d /etc/supervisor /srv/plugins \
-    && ln -vfs /usr/share/syslinux/lpxelinux.0 /var/lib/tftpboot/lpxelinux.0 \
-    && ln -vfs /usr/share/syslinux/ldlinux.c32 /var/lib/tftpboot/ldlinux.c32 \
-    && ln -vfs /usr/share/syslinux/efi64/syslinux.efi /var/lib/tftpboot/syslinux.efi \
-    && ln -vfs /usr/share/syslinux/efi64/ldlinux.e64 /var/lib/tftpboot/ldlinux.e64
-
-#CMD ["dnsmasq"]
+RUN mkdir -p /run/nginx /var/lib/tftpboot/pxelinux.cfg /etc/dnsmasq.d /etc/supervisor /srv/plugins \
+    #&& ln -vfs /usr/share/alpine-ipxe/undionly.kpxe /var/lib/tftpboot/undionly.kpxe \
+   # && ln -vfs /usr/share/alpine-ipxe/ipxe.efi /var/lib/tftpboot/ipxe.efi
+     && wget http://boot.ipxe.org/ipxe.efi -P /var/lib/tftpboot \
+     && wget http://boot.ipxe.org/undionly.kpxe -P /var/lib/tftpboot
