@@ -1,0 +1,7 @@
+#!ipxe
+
+#set base-url http://192.168.1.2
+
+kernel http://192.168.1.2/vmlinuz initrd=http://192.168.1.2/initramfs console=ttyS0,115200n8 net.ifnames=0 biosdevname=0
+initrd http://192.168.1.2/initramfs
+boot
