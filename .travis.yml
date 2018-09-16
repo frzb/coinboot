@@ -18,7 +18,8 @@ script:
     -m 2048
     -smp 2
     -display none
-    -daemonize -boot n
+    -daemonize 
+    -boot n
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
@@ -29,8 +30,9 @@ script:
     sudo qemu-system-x86_64
     -m 2048
     -smp 2
-    -display none
-    -daemonize -boot n
+    -serial mon:stdio
+    -curses
+    -boot n
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
     -bios /usr/share/ovmf/OVMF.fd
