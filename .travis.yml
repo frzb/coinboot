@@ -41,6 +41,6 @@ script:
     -boot n
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
-    -bios /usr/share/OVMF/OVMF_CODE.fd
+    -bios /usr/share/ovmf/OVMF.fd
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
   - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 20180906 /etc/motd
