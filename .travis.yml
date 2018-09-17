@@ -30,7 +30,8 @@ script:
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
   - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 20180906 /etc/motd
-  - sudo killall qemu-system-x86_64
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 sudo shutdown -h now
+  #- sudo killall qemu-system-x86_64
   # Boot with UEFI/OVMF
   - >
     sudo qemu-system-x86_64
