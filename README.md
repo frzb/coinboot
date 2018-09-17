@@ -10,7 +10,7 @@ Its core features are:
 
 * **Running Diskless**
 
-  With Coinboot there is not need to equip machines with storage media like SSDs, HDDs or USB flash drives.  
+  With Coinboot there is no need to equip machines with storage media like SSDs, HDDs or USB flash drives.  
   All machines are booting the operating system over network and run completely from memory, in-memory.
 
 
