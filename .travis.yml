@@ -48,8 +48,8 @@ script:
     sudo /usr/local/bin/qemu-system-x86_64
     -m 2048
     -smp 2
-    -serial mon:stdio
-    -curses
+    -display none
+    -daemonize
     -boot n
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
