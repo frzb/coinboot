@@ -4,9 +4,8 @@ language: c
 cache: ccache
 before_install:
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config ccache
+  - sudo apt install --yes sshpass build-essential pkg-config
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
-  - export PATH=/usr/lib/ccache:$PATH
   - echo $PATH
   - which gcc
   - sudo apt-get install -y dpkg
