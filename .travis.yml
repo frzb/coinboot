@@ -21,7 +21,7 @@ before_install:
   - tar xJf qemu-3.0.0.tar.xz
   - sudo apt-get build-dep qemu
   - cd qemu-3.0.0
-  - ./configure --target-list=x86_64-softmmu --enable-curses
+  - ./configure --target-list=x86_64-softmmu --enable-curses --disable-docs
   - sudo make -j4
   - sudo make -j4 install
   - cd ..
