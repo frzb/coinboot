@@ -1,6 +1,7 @@
 ist: trusty
 sudo: required
-
+language: c
+cache: ccache
 before_install:
   - sudo apt update
   - sudo apt install --yes sshpass build-essential pkg-config ccache
