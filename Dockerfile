@@ -1,7 +1,7 @@
 FROM alpine:3.8
 
 #TODO add syslinux/pxelinux files
-RUN apk --no-cache add nginx supervisor dnsmasq alpine-ipxe\
+RUN apk --no-cache add nginx supervisor dnsmasq \
     && echo "conf-dir=/etc/dnsmasq.d" > /etc/dnsmasq.conf
 
 RUN mkdir -p /run/nginx /var/lib/tftpboot/pxelinux.cfg \

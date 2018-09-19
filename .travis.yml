@@ -3,7 +3,7 @@ sudo: required
 
 before_install:
   - sudo apt update
-  - sudo apt install --yes qemu-system-x86 sshpass build-essential pkg-config
+  - sudo apt install --yes sshpass build-essential pkg-config
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
   -  sudo apt-get purge --yes ovmf
   -  sudo apt-get install -y dpkg
@@ -46,7 +46,7 @@ script:
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
   - >
-    sudo /usr/local/bin/qemu-system-x86_64
+    sudo qemu-system-x86_64
     -m 2048
     -smp 2
     -display none
