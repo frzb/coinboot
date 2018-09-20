@@ -10,17 +10,17 @@ Its core features are:
 
 * **Running Diskless**
 
-  With Coinboot there is not need to equip machines with storage media like SSDs, HDDs or USB flash drives.  
+  With Coinboot there is no need to equip machines with storage media like SSDs, HDDs or USB flash drives.  
   All machines are booting the operating system over network and run completely from memory, in-memory.
 
 
-* **Leightweight Footprint**
+* **Lightweight Footprint**
 
   Coinboot has a lightweight footprint.  
   Driven by the demand to run sufficiently on hundreds of machines with commodity 1 Gbit/s network hardware.
 
 
-* **Familiar Usabillity**
+* **Familiar Usability**
 
   No bumpy ride.  
   Coinboot feels just like every other Debian/Ubuntu-based system. 
@@ -71,7 +71,7 @@ Also verify that the network adapter you assigned this IP address on your Docker
 #### Environment variables
 
 You can hand over environment variables to the machines booting with Coinboot.  
-Just put these variables in a file in the directoy `./conf/environment/`.
+Just put these variables in a file in the directory `./conf/environment/`.
 
 ### Start the Coinboot container
 
@@ -138,5 +138,5 @@ gm@coinboot.io
 
 ## Contribution
 
-Fork this repo. Use the test- and development enviroment provided.
+Fork this repo. Use the test- and development environment provided.
 Make a pull request to this repo. 

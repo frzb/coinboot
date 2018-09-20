@@ -1,17 +1,59 @@
-dist: trusty
+ist: trusty
 sudo: required
-
+language: c
+cache: ccache
 before_install:
   - sudo apt update
-  - sudo apt install --yes qemu-system-x86 ipxe-qemu sshpass
-  - sudo mkdir -p /etc/qemu/
-  - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
-  - wget https://coinboot.io/releases/20180906_4.4.0-133-generic/initramfs -P ./tftpboot
-  - wget https://coinboot.io/releases/20180906_4.4.0-133-generic/vmlinuz -P ./tftpboot
+  - sudo apt install --yes sshpass build-essential pkg-config
+  # Update 'dpkg' to get xz support which is needed for the following Bionic package.
+  - echo $PATH
+  - which gcc
+  - sudo apt-get install -y dpkg
+  # The 'ovmf' package of Trusty is outdated and leads to 'Error 0x040ee106' during boot.
+  # Downloading the 'ovmf' package form Bionic instead.
+  - wget http://mirrors.kernel.org/ubuntu/pool/universe/e/edk2/ovmf_0~20180205.c0d9813c-2_all.deb -P /tmp
+  - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
+  - sudo mkdir -p /usr/local/etc/qemu
+  - echo 'allow all' | sudo tee /usr/local/etc/qemu/bridge.conf
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/20180915/coinboot-vmlinuz-4.4.0-133-generic -P ./tftpboot
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/20180915/coinboot-initramfs-4.4.0-133-generic -P ./tftpboot
+  - wget https://download.qemu.org/qemu-3.0.0.tar.xz
+  - tar xJf qemu-3.0.0.tar.xz
+  - sudo apt-get build-dep qemu
+  - cd qemu-3.0.0
+  - ./configure --target-list=x86_64-softmmu --enable-curses --disable-docs
+  - sudo make -j4
+  - sudo make -j4 install
+  - cd ..
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d
     # This line can be used for debugging Qemu iPXE purposes.
     # - sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
-  - sudo qemu-system-x86_64 -m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
-  - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
+  # Boot with legacy BIOS
+  - >
+    sudo qemu-system-x86_64
+    -m 2048
+    -smp 2
+    -display none
+    -daemonize
+    -boot n
+    -net nic,model=e1000
+    -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 5; done
   - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 20180906 /etc/motd
+  #- sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 'sudo shutdown -h +1; exit'
+  - sudo killall qemu-system-x86_64
+  - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
+  # Boot with UEFI/OVMF
+  - >
+    sudo qemu-system-x86_64
+    -m 2048
+    -smp 2
+    -display none
+    -daemonize
+    -boot n
+    -net nic,model=e1000
+    -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+    -bios /usr/share/OVMF/OVMF_CODE.fd
+  - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 'grep -C 10 20180906 /etc/motd && ls -la /sys/firmware/efi'
