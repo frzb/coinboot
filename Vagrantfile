@@ -105,7 +105,6 @@ Vagrant.configure(2) do |config|
       machine.vm.network "public_network", ip: "192.168.1.2",
         bridge: ['enx00e04c680379']
       machine.vm.provision "shell", inline: 'rm -fv /vagrant/plugins/coinboot-vagrantbox.tar.gz'
-    elsif interfaces.uniq.include?('enx00e04c680379')
     else
       machine.vm.network "private_network", ip: "192.168.1.2"
       machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
