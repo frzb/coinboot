@@ -1,8 +1,7 @@
 FROM alpine:3.8
 
 #TODO add syslinux/pxelinux files
-RUN apk --no-cache add nginx supervisor dnsmasq cups-client \
-    && echo "conf-dir=/etc/dnsmasq.d" > /etc/dnsmasq.conf
+RUN apk --no-cache add nginx supervisor dnsmasq
 
 RUN mkdir -p /run/nginx /var/lib/tftpboot \
      etc/dnsmasq.d /etc/supervisor /srv/plugins /opt/ipxe \
@@ -11,8 +10,9 @@ RUN mkdir -p /run/nginx /var/lib/tftpboot \
      && ln -vfs /opt/ipxe/ipxe.efi /var/lib/tftpboot/ipxe.efi \
      && ln -vfs /opt/ipxe/undionly.kpxe /var/lib/tftpboot/undionly.kpxe
 
-COPY ./conf/nginx /etc/nginx/conf.d
-COPY ./conf/supervisord /etc/supervisor
+COPY ./dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
+COPY ./nginx /etc/nginx/conf.d
+COPY ./supervisor /etc/supervisor
 
 CMD /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
 

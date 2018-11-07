@@ -3,11 +3,11 @@ version: '3'
 services:
   coinboot:
     container_name: coinboot
-    build: ./
+    build: ./docker/
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
       - ./conf/environment/:/srv/environment
-      - ./tftpboot:/var/lib/tftpboot
+      - ./boot:/var/lib/tftpboot
       - ./plugins:/srv/plugins
     cap_add:
       - NET_ADMIN

@@ -46,9 +46,10 @@ Clone this repository one the host where you want to execute the Coinboot Docker
 #### RootFS and Kernel
 
 You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf).   
-Or **download** a pre-build release at: https://coinboot.io/releases.
+Or **download** a pre-build daily release at: https://github.com/frzb/coinboot-debirf/releases  
+These builds are made daily to contain all current packages updates and security fixes.
 
-Put the Coinboot RootFS (`initramfs`) and Kernel (`vmlinuz`) into the directory `./tftpboot`.
+Put the Coinboot RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use into the directory `./boot`.
 
 #### Plugins
 
@@ -59,6 +60,13 @@ You can create your own plugins (see below) or pick some at: https://coinboot.io
 #### DHCP configuration
 
 Put your own `dnsmasq` DHCP server configuration in `./conf/dnsmasq/` or edit the existing configuration file `./conf/dnsmasq/coinboot.conf`.
+
+In the most  cases you should only need  to configure: 
+
+* DHCP lease range
+* DNS server
+* Default network gateway
+
 
 #### IP address and network
 
@@ -71,7 +79,10 @@ Also verify that the network adapter you assigned this IP address on your Docker
 #### Environment variables
 
 You can hand over environment variables to the machines booting with Coinboot.  
+This is the way to keep the configuration for your machines at one point.  
 Just put these variables in a file in the directory `./conf/environment/`.
+These varibales are added to `/etc/environment` on your machines and are exported  and available for login shells.
+If these variables are no exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
 
 ### Start the Coinboot container
 
@@ -92,6 +103,15 @@ Default credentials are:
 * password: `ubuntu`
   
 Please change the password via creating a Coinboot Plugin.
+
+### Logfiles
+
+To see what's currently going on you can look at the logfiles of the Coinboot Docer container.  
+For instance to see the DHCP lease hand-shakes happen or what plugins are delivered.
+
+```
+$ docker-compose logs -f
+```
 
 ## Test and development environment
 
