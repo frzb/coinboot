@@ -12,7 +12,7 @@ networks:
 services:
   coinboot:
     container_name: coinboot
-    build: ./
+    build: .docker/
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
       - ./conf/environment/:/srv/environment
