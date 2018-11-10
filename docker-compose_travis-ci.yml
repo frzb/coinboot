@@ -1,10 +1,5 @@
 version: '3'
 
-#networks:
-#  bridge:
-#    external: true
-
-
 networks:
   coinboot:
     driver: bridge
@@ -17,20 +12,15 @@ networks:
 services:
   coinboot:
     container_name: coinboot
-    build: ./
+    build: ./docker/
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
-      - ./conf/nginx:/etc/nginx/conf.d
-      - ./conf/supervisord:/etc/supervisor
-      - ./conf/pxelinux/:/var/lib/tftpboot/pxelinux.cfg
       - ./conf/environment/:/srv/environment
-      - ./tftpboot:/var/lib/tftpboot
+      - ./boot:/var/lib/tftpboot
       - ./plugins:/srv/plugins
-    command: /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
     cap_add:
       - NET_ADMIN
       - NET_BROADCAST
-    #network_mode: bridge
     networks:
       coinboot:
         ipv4_address: 192.168.1.2
