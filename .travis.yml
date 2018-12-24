@@ -2,6 +2,8 @@ ist: trusty
 sudo: required
 language: c
 cache: ccache
+env:
+  RELEASE: 20181223
 before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
@@ -17,8 +19,8 @@ before_install:
   - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
   - sudo mkdir -p /usr/local/etc/qemu
   - echo 'allow all' | sudo tee /usr/local/etc/qemu/bridge.conf
-  - wget https://github.com/frzb/coinboot-debirf/releases/download/20181223/coinboot-vmlinuz-4.4.0-139-generic -P ./boot
-  - wget https://github.com/frzb/coinboot-debirf/releases/download/20181223/coinboot-initramfs-4.4.0-139-generic -P ./boot
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}/coinboot-vmlinuz-4.4.0-139-generic -P ./boot
+  - wget https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}/coinboot-initramfs-4.4.0-139-generic -P ./boot
   - wget https://download.qemu.org/qemu-3.0.0.tar.xz
   - tar xJf qemu-3.0.0.tar.xz
   - sudo apt-get build-dep qemu
@@ -42,7 +44,7 @@ script:
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 5; done
-  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 20181223 /etc/motd
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 ${RELEASE} /etc/motd
   - sudo killall qemu-system-x86_64
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
@@ -60,4 +62,4 @@ script:
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
     -bios /usr/share/OVMF/OVMF_CODE.fd
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
-  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 'grep -C 10 20181223 /etc/motd && ls -la /sys/firmware/efi'
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 'grep -C 10 ${RELEASE} /etc/motd && ls -la /sys/firmware/efi'
