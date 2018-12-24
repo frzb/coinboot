@@ -4,7 +4,7 @@ language: c
 cache: ccache
 before_install:
   # always quit the build something fails with a non-zero return value
-  - set -e
+  #- set -e
   - sudo apt update
   - sudo apt install --yes sshpass build-essential pkg-config
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
