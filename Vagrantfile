@@ -42,7 +42,7 @@ Vagrant.configure(2) do |config|
     vb.customize ["modifyvm", :id, "--memory", 2048]
   end
 
-  config.vm.define "client" do |machine|
+  config.vm.define "worker" do |machine|
     # machine.vm.box = "bento/ubuntu-16.04"
     # FIXME: Built own empty Vagrantbox
     machine.vm.box = "c33s/empty"
