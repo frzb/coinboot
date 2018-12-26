@@ -2,8 +2,6 @@ ist: trusty
 sudo: required
 language: c
 cache: ccache
-env:
-  RELEASE: 20181223
 before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e

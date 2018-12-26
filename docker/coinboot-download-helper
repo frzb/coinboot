@@ -19,6 +19,11 @@
 
 BOOTDIR=/var/lib/tftpboot
 # RELEASE is set via an environment variable under ./conf/environment
+# If the value is 'latest' we determine the latest release, else we use the set value.
+if [ $RELEASE = latest ]; then
+RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
+echo "Using latest release: $RELEASE"
+fi
 URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
 VMLINUZ=coinboot-vmlinuz-4.4.0-139-generic
 INITRAMFS=coinboot-initramfs-4.4.0-139-generic

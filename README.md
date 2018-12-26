@@ -61,7 +61,7 @@ If these variables are not exported and available, e.g. in Systemd units, just s
 
 #### RootFS and Kernel
 
-The RootFS and Kernel are downloaded autmatically when the Coinboot Server Docker container 4is started based on the `RELEASE`set at `./conf/environment/default.env`.
+The RootFS and Kernel are downloaded autmatically when the Coinboot Server Docker container is started based on the `RELEASE`set at `./conf/environment/default.env`. Out of the box the latest available release is used.
 
 You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf).   
 Or **download** a pre-build daily release at: https://github.com/frzb/coinboot-debirf/releases  
