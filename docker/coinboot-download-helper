@@ -18,7 +18,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 BOOTDIR=/var/lib/tftpboot
-RELEASE=latest
+RELEASE=20181223
 URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
 VMLINUZ=coinboot-vmlinuz-4.4.0-139-generic
 INITRAMFS=coinboot-initramfs-4.4.0-139-generic
