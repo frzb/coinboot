@@ -13,6 +13,7 @@ RUN mkdir -p /run/nginx /var/lib/tftpboot \
 COPY ./dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
 COPY ./nginx /etc/nginx/conf.d
 COPY ./supervisor /etc/supervisor
+COPY ./coinboot-download-helper /usr/local/bin/coinboot-download-helper
 
 CMD /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
 
