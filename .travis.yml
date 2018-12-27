@@ -3,12 +3,12 @@ sudo: required
 language: c
 cache: ccache
 env:
-  RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
 before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config
+  - sudo apt install --yes sshpass build-essential pkg-config jq
+  - export RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
   - echo $PATH
   - which gcc
