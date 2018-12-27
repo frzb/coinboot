@@ -8,7 +8,7 @@ before_install:
   #- set -e
   - sudo apt update
   - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86
-  - export RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
+  - export RELEASE=$(curl --silent --connect-timeout 5 --max-time 5 "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
   - echo $PATH
   - which gcc
