@@ -7,7 +7,7 @@ before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config jq
+  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86
   - export RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
   # Update 'dpkg' to get xz support which is needed for the following Bionic package.
   - echo $PATH
@@ -19,14 +19,6 @@ before_install:
   - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
   - sudo mkdir -p /usr/local/etc/qemu
   - echo 'allow all' | sudo tee /usr/local/etc/qemu/bridge.conf
-  - wget https://download.qemu.org/qemu-3.0.0.tar.xz
-  - tar xJf qemu-3.0.0.tar.xz
-  - sudo apt-get build-dep qemu
-  - cd qemu-3.0.0
-  - ./configure --target-list=x86_64-softmmu --enable-curses --disable-docs
-  - sudo make -j4
-  - sudo make -j4 install
-  - cd ..
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d 
   # This line can be used for debugging Qemu iPXE purposes.
