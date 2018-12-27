@@ -4,7 +4,7 @@ set base-url http://${dhcp-server}
 
 echo Welcome to Coinboot at ${hostname}.
 echo Proceeding with booting right now...
-kernel ${base-url}/vmlinuz coinboot-server=${base-url} initrd=initramfs console=tty0 ignore_loglevel net.ifnames=0 biosdevname=0
+kernel ${base-url}/vmlinuz coinboot-server=${base-url} initrd=initramfs console=ttyS1 console=tty0 ignore_loglevel net.ifnames=0 biosdevname=0
 initrd ${base-url}/initramfs
 boot ||
 # If everything failed, give the user some options.
