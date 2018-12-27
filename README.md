@@ -5,7 +5,6 @@
 
 Coinboot is a framework for diskless computing. 
 
-
 Its core features are:
 
 * **Running Diskless**
@@ -31,6 +30,9 @@ Its core features are:
   Need to expand your machines with further configuration, software, libraries, proprietary drivers?  
   By packing them as Coinboot plugin you can use them right after your machines have booted.
 
+This repository contains the Coinboot Server Docker container.                 
+This container includes all services to get Coinboot up and running and boot diskless Coinboot Worker nodes over network.
+
 ## Requirements
 
 Docker
@@ -39,17 +41,32 @@ Docker Compose
 
 ## Usage
 
-### Preparations
+### Quickstart
 
-Clone this repository one the host where you want to execute the Coinboot Docker container.
+Clone this repository on the host where you want to execute the Coinboot Docker container.
+
+#### IP address and network
+
+Take care that your Docker host has assigned an IP address matching to the `dhcp-range` specified at `./conf/dnsmasq/coinboot.conf`.  
+For example the Docker host has assigned `192.168.1.2` then a matching DHCP-range configuration is: `dhcp-range=192.168.1.10,192.168.1.100,6h`.  
+Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.  
+
+#### Environment variables
+
+You can hand over environment variables to the worker nodes booting with Coinboot.  
+This way you can keep the configuration of your Coinboot Worker nodes at one point.  
+Just put these variables in a file in the directory `./conf/environment/`.  
+These variables are added to `/etc/environment` on the worker nodes during boot and are exported and available for login shells on these nodes.  
+If these variables are not exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
 
 #### RootFS and Kernel
+
+The RootFS and Kernel are downloaded autmatically when the Coinboot Server Docker container is started based on the `RELEASE`set at `./conf/environment/default.env`. Out of the box the latest available release is used.
 
 You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf).   
 Or **download** a pre-build daily release at: https://github.com/frzb/coinboot-debirf/releases  
 These builds are made daily to contain all current packages updates and security fixes.
-
-Put the Coinboot RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use into the directory `./boot`.
+The RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use are to be placed in the directory `./boot`.
 
 #### Plugins
 
@@ -84,19 +101,18 @@ Just put these variables in a file in the directory `./conf/environment/`.
 These varibales are added to `/etc/environment` on your machines and are exported  and available for login shells.
 If these variables are no exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
 
-### Start the Coinboot container
+### Start the Coinboot Server Docker container
 
-Just bring the Coinboot Docker container up with `docker-compose`.
+Just bring the Coinboot Server Docker container up with `docker-compose`.
 
 ```
 $ docker-compose up -d
 ```
 
-### Boot your machines with Coinboot
+### Boot your worker nodes with Coinboot
 
-Start your machines.  
-They are booting over network.  
-You can login to your machines over `ssh`.  
+Start your worker nodes.  
+After they have booted Coinboot over network you can login to your machines over `ssh`.  
 Default credentials are:
 
 * login: `ubuntu`
@@ -116,7 +132,7 @@ $ docker-compose logs -f
 ## Test and development environment
 
 There is Vagrant environment for developing purposes.
-It consists of two Vagrant machines: One with the the Coinboot Docker container and one acting as client, which boots over PXE.
+It consists of two Vagrant machines: One with the the Coinboot Server Docker container and one machine acting as worker node, which boots over PXE.
 
 To spin up the Vagrant machines execute:
 

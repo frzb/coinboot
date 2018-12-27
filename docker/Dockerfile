@@ -1,7 +1,7 @@
 FROM alpine:3.8
 
 #TODO add syslinux/pxelinux files
-RUN apk --no-cache add nginx supervisor dnsmasq
+RUN apk --no-cache add nginx supervisor dnsmasq jq curl
 
 RUN mkdir -p /run/nginx /var/lib/tftpboot \
      etc/dnsmasq.d /etc/supervisor /srv/plugins /opt/ipxe \
@@ -13,6 +13,7 @@ RUN mkdir -p /run/nginx /var/lib/tftpboot \
 COPY ./dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
 COPY ./nginx /etc/nginx/conf.d
 COPY ./supervisor /etc/supervisor
+COPY ./coinboot-download-helper /usr/local/bin/coinboot-download-helper
 
 CMD /usr/bin/supervisord -c /etc/supervisor/coinboot.ini
 

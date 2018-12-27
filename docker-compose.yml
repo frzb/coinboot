@@ -3,6 +3,8 @@ version: '3'
 services:
   coinboot:
     container_name: coinboot
+    env_file:
+      - ./conf/environment/default.env
     build: ./docker/
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d

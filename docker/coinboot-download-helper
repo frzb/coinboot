@@ -1,0 +1,45 @@
+#!/bin/sh -e
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+BOOTDIR=/var/lib/tftpboot
+# RELEASE is set via an environment variable under ./conf/environment
+# If the value is 'latest' we determine the latest release, else we use the set value.
+if [ $RELEASE = latest ]; then
+RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
+echo "Using latest release: $RELEASE"
+fi
+URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
+VMLINUZ=coinboot-vmlinuz-4.4.0-139-generic
+INITRAMFS=coinboot-initramfs-4.4.0-139-generic
+
+if ! [ -f $BOOTDIR/$VMLINUZ ]; then
+wget $URL/$VMLINUZ -P $BOOTDIR
+fi
+
+if ! [ -f $BOOTDIR/$INITRAMFS ]; then
+wget $URL/$INITRAMFS -P $BOOTDIR
+fi
+
+if ! [ -e $BOOTDIR/vmlinuz ]; then
+  ln -sfv $BOOTDIR/$VMLINUZ $BOOTDIR/vmlinuz
+fi
+
+if ! [ -e $BOOTDIR/initramfs ]; then
+  ln -sfv $BOOTDIR/$INITRAMFS $BOOTDIR/initramfs
+fi
