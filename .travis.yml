@@ -18,7 +18,7 @@ before_install:
   - wget http://mirrors.kernel.org/ubuntu/pool/universe/e/edk2/ovmf_0~20180205.c0d9813c-2_all.deb -P /tmp
   - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
   - sudo mkdir -p /usr/local/etc/qemu
-  - echo 'allow all' | sudo tee /usr/local/etc/qemu/bridge.conf
+  - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d 
   # This line can be used for debugging Qemu iPXE purposes.
