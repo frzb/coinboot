@@ -1,4 +1,4 @@
-ist: trusty
+dist: xenial
 sudo: required
 language: c
 cache: ccache
@@ -7,30 +7,20 @@ before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config jq
-  - export RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
-  # Update 'dpkg' to get xz support which is needed for the following Bionic package.
+  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf
+  - >
+    while [[ -z $RELEASE ]]; do
+      export RELEASE=$(curl --connect-timeout 5 --max-time 5 --silent "https://api.github.com/repos/frzb/coinboot-debirf/releases/latest" | jq -r '.tag_name')
+      sleep 3
+      echo $RELEASE
+    done
   - echo $PATH
-  - which gcc
-  - sudo apt-get install -y dpkg
-  # The 'ovmf' package of Trusty is outdated and leads to 'Error 0x040ee106' during boot.
-  # Downloading the 'ovmf' package form Bionic instead.
-  - wget http://mirrors.kernel.org/ubuntu/pool/universe/e/edk2/ovmf_0~20180205.c0d9813c-2_all.deb -P /tmp
-  - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
-  - sudo mkdir -p /usr/local/etc/qemu
-  - echo 'allow all' | sudo tee /usr/local/etc/qemu/bridge.conf
-  - wget https://download.qemu.org/qemu-3.0.0.tar.xz
-  - tar xJf qemu-3.0.0.tar.xz
-  - sudo apt-get build-dep qemu
-  - cd qemu-3.0.0
-  - ./configure --target-list=x86_64-softmmu --enable-curses --disable-docs
-  - sudo make -j4
-  - sudo make -j4 install
-  - cd ..
+  - sudo mkdir -p /etc/qemu
+  - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
-  - sudo docker-compose -f docker-compose_travis-ci.yml up -d 
+  - sudo docker-compose -f docker-compose_travis-ci.yml up -d
   # This line can be used for debugging Qemu iPXE purposes.
-  #- sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  #- sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # Boot with legacy BIOS
   - >
     sudo qemu-system-x86_64
@@ -47,7 +37,6 @@ script:
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
   # This line can be used for debugging Qemu iPXE purposes.
-  # - sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # - sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*) -bios /usr/share/OVMF/OVMF_CODE.fd
   - >
     sudo qemu-system-x86_64
