@@ -7,7 +7,7 @@ before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86
+  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf
   - >
     while [[ -z $RELEASE ]]; do
       export RELEASE=$(curl --connect-timeout 5 --max-time 5 --silent "https://api.github.com/repos/frzb/coinboot-debirf/releases/latest" | jq -r '.tag_name')
@@ -16,10 +16,6 @@ before_install:
     done
   - echo $PATH
   - which gcc
-  # The 'ovmf' package of Trusty is outdated and leads to 'Error 0x040ee106' during boot.
-  # Downloading the 'ovmf' package form Bionic instead.
-  - wget http://mirrors.kernel.org/ubuntu/pool/universe/e/edk2/ovmf_0~20180205.c0d9813c-2_all.deb -P /tmp
-  - sudo dpkg -i /tmp/ovmf_0~20180205.c0d9813c-2_all.deb
   - sudo mkdir -p /etc/qemu
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
