@@ -15,7 +15,6 @@ before_install:
       echo $RELEASE
     done
   - echo $PATH
-  - which gcc
   - sudo mkdir -p /etc/qemu
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
@@ -38,7 +37,6 @@ script:
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
   # This line can be used for debugging Qemu iPXE purposes.
-  # - sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # - sudo qemu-system-x86_64 -m 2048 -smp 2 -serial mon:stdio -curses -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*) -bios /usr/share/OVMF/OVMF_CODE.fd
   - >
     sudo qemu-system-x86_64
