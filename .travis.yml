@@ -14,10 +14,8 @@ before_install:
       sleep 3
       echo $RELEASE
     done
-  # Update 'dpkg' to get xz support which is needed for the following Bionic package.
   - echo $PATH
   - which gcc
-  - sudo apt-get install -y dpkg
   # The 'ovmf' package of Trusty is outdated and leads to 'Error 0x040ee106' during boot.
   # Downloading the 'ovmf' package form Bionic instead.
   - wget http://mirrors.kernel.org/ubuntu/pool/universe/e/edk2/ovmf_0~20180205.c0d9813c-2_all.deb -P /tmp
