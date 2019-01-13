@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+echo '--- Configured environment ---'
+env
+echo '------------------------------'
+
 BOOTDIR=/var/lib/tftpboot
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
