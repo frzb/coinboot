@@ -1,5 +1,4 @@
 #!/bin/sh -e
-set -x
 
 # Copyright (C) 2018 Gunter Miegel coinboot.io
 #
