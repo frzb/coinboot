@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+echo '--- Configured environment ---'
+env
+echo '------------------------------'
+
 BOOTDIR=/var/lib/tftpboot
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
@@ -25,8 +29,11 @@ RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags"
 echo "Using latest release: $RELEASE"
 fi
 URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
-VMLINUZ=coinboot-vmlinuz-4.4.0-139-generic
-INITRAMFS=coinboot-initramfs-4.4.0-139-generic
+if [ -z $KERNEL ]; then
+  KERNEL=4.4.0-139
+fi
+VMLINUZ=coinboot-vmlinuz-$KERNEL
+INITRAMFS=coinboot-initramfs-$KERNEL
 
 if ! [ -f $BOOTDIR/$VMLINUZ ]; then
 wget $URL/$VMLINUZ -P $BOOTDIR

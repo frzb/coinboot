@@ -3,6 +3,8 @@ sudo: required
 language: c
 cache: ccache
 env:
+  - KERNEL=4.4.0-139-generic
+  - KERNEL=4.15.0-39-generic
 before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
@@ -19,6 +21,7 @@ before_install:
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d
+  - sudo docker-compose exec coinboot env
   # This line can be used for debugging Qemu iPXE purposes.
   #- sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # Boot with legacy BIOS
@@ -32,7 +35,7 @@ script:
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 5; done
-  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 grep -C 10 ${RELEASE} /etc/motd
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && uname -a"
   - sudo killall qemu-system-x86_64
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
@@ -49,4 +52,4 @@ script:
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
     -bios /usr/share/OVMF/OVMF_CODE.fd
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
-  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && ls -la /sys/firmware/efi"
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && ls -la /sys/firmware/efi && uname -a"
