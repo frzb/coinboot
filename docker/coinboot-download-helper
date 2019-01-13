@@ -34,7 +34,7 @@ if [ -z $KERNEL ]; then
   KERNEL=4.4.0-139
 fi
 VMLINUZ=coinboot-vmlinuz-$KERNEL
-INITRAMFS=coinboot-initramfs-KERNEL
+INITRAMFS=coinboot-initramfs-$KERNEL
 
 if ! [ -f $BOOTDIR/$VMLINUZ ]; then
 wget $URL/$VMLINUZ -P $BOOTDIR
