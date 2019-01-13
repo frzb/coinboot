@@ -43,10 +43,10 @@ if ! [ -f $BOOTDIR/$INITRAMFS ]; then
 wget $URL/$INITRAMFS -P $BOOTDIR
 fi
 
-if ! [ -e $BOOTDIR/vmlinuz ]; then
+if ! [ $(readlink $BOOTDIR/vmlinuz) == $VMLINUZ ]; then
   ln -sfv $BOOTDIR/$VMLINUZ $BOOTDIR/vmlinuz
 fi
 
-if ! [ -e $BOOTDIR/initramfs ]; then
+if ! [ $(readlink $BOOTDIR/initramfs) == $INITRAMFS ]; then
   ln -sfv $BOOTDIR/$INITRAMFS $BOOTDIR/initramfs
 fi
