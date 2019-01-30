@@ -22,15 +22,16 @@ env
 echo '------------------------------'
 
 BOOTDIR=/var/lib/tftpboot
+## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
 if [ $RELEASE = latest ]; then
 RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
-echo "Using latest release: $RELEASE"
+echo "Using latest coinboot-debirf release: $RELEASE"
 fi
 URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
 if [ -z $KERNEL ]; then
-  KERNEL=4.4.0-139
+  KERNEL=4.15.0-43-generic
 fi
 VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
@@ -50,3 +51,24 @@ fi
 if ! [ $(readlink $BOOTDIR/initramfs) == $INITRAMFS ]; then
   ln -sfv $BOOTDIR/$INITRAMFS $BOOTDIR/initramfs
 fi
+
+## iPXE network bootloader for BIOS and UEFI ##
+# We use a customised build with remote logging
+if [ $RELEASE = latest ]; then
+RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-ipxe/tags" | jq -r '.[0].name')
+echo "Using latest coinboot-ipxe release: $RELEASE"
+fi
+URL=https://github.com/frzb/coinboot-ipxe/releases/download/${RELEASE}
+BIOS=undionly.kpxe
+UEFI=ipxe.efi
+
+if ! [ -f $BOOTDIR/$BIOS ]; then
+  wget $URL/$BIOS -P /opt/ipxe
+fi
+
+if ! [ -f $BOOTDIR/$UEFI ]; then
+  wget $URL/$UEFI -P /opt/ipxe
+fi
+
+ln -vfs /opt/ipxe/ipxe.efi /var/lib/tftpboot/ipxe.efi 
+ln -vfs /opt/ipxe/undionly.kpxe /var/lib/tftpboot/undionly.kpxe
