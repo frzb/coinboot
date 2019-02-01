@@ -25,6 +25,7 @@ BOOTDIR=/var/lib/tftpboot
 ## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
+
 if [ $RELEASE = latest ]; then
 RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags" | jq -r '.[0].name')
 echo "Using latest coinboot-debirf release: $RELEASE"
@@ -63,12 +64,9 @@ BIOS=undionly.kpxe
 UEFI=ipxe.efi
 
 if ! [ -f $BOOTDIR/$BIOS ]; then
-  wget $URL/$BIOS -P /opt/ipxe
+  wget $URL/$BIOS -P $BOOTDIR
 fi
 
 if ! [ -f $BOOTDIR/$UEFI ]; then
-  wget $URL/$UEFI -P /opt/ipxe
+  wget $URL/$UEFI -P $BOOTDIR
 fi
-
-ln -vfs /opt/ipxe/ipxe.efi /var/lib/tftpboot/ipxe.efi 
-ln -vfs /opt/ipxe/undionly.kpxe /var/lib/tftpboot/undionly.kpxe
