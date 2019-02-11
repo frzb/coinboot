@@ -33,7 +33,12 @@ services:
   graylog:
     #image: graylog/graylog:3.0.0-rc.2-2
     image: graylog/graylog:2.5
+    volumes:
+      - ./graylog/contentpacks:/usr/share/graylog/data/contentpacks
     environment:
+      - GRAYLOG_CONTENT_PACKS_AUTO_LOAD coinboot-remote-logging.json
+      - GRAYLOG_CONTENT_PACKS_DIR data/contentpacks
+      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED true
       # CHANGE ME!
       - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
       # Password: admin
