@@ -55,11 +55,8 @@ fi
 
 ## iPXE network bootloader for BIOS and UEFI ##
 # We use a customised build with remote logging
-if [ $RELEASE = latest ]; then
-RELEASE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-ipxe/tags" | jq -r '.[0].name')
-echo "Using latest coinboot-ipxe release: $RELEASE"
-fi
-URL=https://github.com/frzb/coinboot-ipxe/releases/download/${RELEASE}
+IPXE_RELEASE=20190130
+URL=https://github.com/frzb/coinboot-ipxe/releases/download/${IPXE_RELEASE}
 BIOS=undionly.kpxe
 UEFI=ipxe.efi
 
