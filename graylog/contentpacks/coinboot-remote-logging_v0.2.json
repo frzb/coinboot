@@ -1,0 +1,125 @@
+{
+  "v": "1",
+  "id": "6f68bcf2-eea5-4d04-9053-095726b91815",
+  "rev": 2,
+  "name": "Coinboot_remote_logging_v0.2",
+  "summary": "Coinboot remote logging",
+  "description": "iPXE(Raw/Plaintext UDP on 0.0.0.0 port 514) and Netconsole(Syslog UDP on 0.0.0.0 port 5555)",
+  "vendor": "Coinboot",
+  "url": "coinboot.io",
+  "parameters": [],
+  "entities": [
+    {
+      "v": "1",
+      "type": {
+        "name": "input",
+        "version": "1"
+      },
+      "id": "ec04e58f-07d8-4442-a714-6bcd62151a61",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "Netconsole"
+        },
+        "configuration": {
+          "recv_buffer_size": {
+            "@type": "integer",
+            "@value": 262144
+          },
+          "bind_address": {
+            "@type": "string",
+            "@value": "0.0.0.0"
+          },
+          "port": {
+            "@type": "integer",
+            "@value": 5555
+          },
+          "number_worker_threads": {
+            "@type": "integer",
+            "@value": 4
+          }
+        },
+        "static_fields": {},
+        "type": {
+          "@type": "string",
+          "@value": "org.graylog2.inputs.raw.udp.RawUDPInput"
+        },
+        "global": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "extractors": []
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=3.0.0-rc.2+2667ff2"
+        }
+      ]
+    },
+    {
+      "v": "1",
+      "type": {
+        "name": "input",
+        "version": "1"
+      },
+      "id": "5f45b54f-50c4-4d49-bf05-3346038523e5",
+      "data": {
+        "title": {
+          "@type": "string",
+          "@value": "iPXE"
+        },
+        "configuration": {
+          "expand_structured_data": {
+            "@type": "boolean",
+            "@value": false
+          },
+          "recv_buffer_size": {
+            "@type": "integer",
+            "@value": 262144
+          },
+          "port": {
+            "@type": "integer",
+            "@value": 514
+          },
+          "number_worker_threads": {
+            "@type": "integer",
+            "@value": 4
+          },
+          "force_rdns": {
+            "@type": "boolean",
+            "@value": false
+          },
+          "allow_override_date": {
+            "@type": "boolean",
+            "@value": true
+          },
+          "bind_address": {
+            "@type": "string",
+            "@value": "0.0.0.0"
+          },
+          "store_full_message": {
+            "@type": "boolean",
+            "@value": false
+          }
+        },
+        "static_fields": {},
+        "type": {
+          "@type": "string",
+          "@value": "org.graylog2.inputs.syslog.udp.SyslogUDPInput"
+        },
+        "global": {
+          "@type": "boolean",
+          "@value": true
+        },
+        "extractors": []
+      },
+      "constraints": [
+        {
+          "type": "server-version",
+          "version": ">=3.0.0-rc.2+2667ff2"
+        }
+      ]
+    }
+  ]
+}
