@@ -32,7 +32,7 @@ echo "Using latest coinboot-debirf release: $RELEASE"
 fi
 URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
 if [ -z $KERNEL ]; then
-  KERNEL=4.15.0-43-generic
+  KERNEL=4.15.0-45-generic
 fi
 VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
