@@ -1,0 +1,6 @@
+boot/vmlinuz
+boot/initramfs
+boot/undionly.kpxe
+boot/ipxe.efi
+bott/coinboot-initramfs*
+boot/coinboot-vmlinuz*
