@@ -57,7 +57,16 @@ You can hand over environment variables to the worker nodes booting with Coinboo
 This way you can keep the configuration of your Coinboot Worker nodes at one point.  
 Just put these variables in a file in the directory `./conf/environment/`.  
 These variables are added to `/etc/environment` on the worker nodes during boot and are exported and available for login shells on these nodes.  
-If these variables are not exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
+If these variables are not exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.  
+
+There are also mandatory environment variables which are required to be configured.
+
+#### Mandatory environment variables
+
+| Variable             | Default       | Description                                                            |
+| -------------------- |:-------------:| -----------------------------------------------------------------------|
+| `COINBOOT_SERVER_IP` | `192.168.1.2` | IP address at which the services of the Coinboot server should listen. |
+
 
 #### RootFS and Kernel
 
@@ -93,17 +102,9 @@ For example the Docker host has assigned `192.168.1.2` then a matching DHCP-rang
 
 Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
 
-#### Environment variables
-
-You can hand over environment variables to the machines booting with Coinboot.  
-This is the way to keep the configuration for your machines at one point.  
-Just put these variables in a file in the directory `./conf/environment/`.
-These varibales are added to `/etc/environment` on your machines and are exported  and available for login shells.
-If these variables are no exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
-
 ### Start the Coinboot Server Docker container
 
-Just bring the Coinboot Server Docker container up with `docker-compose`.
+Just bring the Coinboot Server Docker and Graylog containers up with `docker-compose`.
 
 ```
 $ docker-compose up -d
@@ -126,7 +127,7 @@ To see what's currently going on you can look at the logfiles of the Coinboot Do
 For instance to see the DHCP lease hand-shakes happen or what plugins are delivered.
 
 ```
-$ docker-compose logs -f
+$ docker-compose logs -f coinboot
 ```
 
 ### Centralized log managment with Graylog
@@ -137,9 +138,9 @@ Coinboot comes with Graylog as centralized log management collecting iPXE bootlo
 
 Login with your web browser at: http://<your-Docker-host-IP:9000>`
   
-User: `admin`    
+* login `admin`    
 
-Password: `admin`
+* password: `admin`
 
 
 ## Test and development environment
