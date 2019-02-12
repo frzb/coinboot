@@ -32,7 +32,7 @@ services:
   graylog:
     image: graylog/graylog:2.5
     volumes:
-      - ./graylog/contentpacks:/usr/share/graylog/data/contentpacks
+      - ./conf/graylog/contentpacks:/usr/share/graylog/data/contentpacks
     env_file:
       - ./conf/environment/default.env
     environment:
