@@ -30,6 +30,11 @@ Its core features are:
   Need to expand your machines with further configuration, software, libraries, proprietary drivers?  
   By packing them as Coinboot plugin you can use them right after your machines have booted.
 
+* **Insights out of the box**  
+
+  Coinboot comes with Graylog integrated for log managment.   
+  Providing the log files of your worker nodes at a glance.
+
 This repository contains the Coinboot Server Docker container.                 
 This container includes all services to get Coinboot up and running and boot diskless Coinboot Worker nodes over network.
 
