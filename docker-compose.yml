@@ -28,24 +28,24 @@ services:
       memlock:
         soft: -1
         hard: -1
+        #mem_limit: 1g
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
-    #image: graylog/graylog:2.5
-    image: graylog/graylog:3.0.0-rc.2-2
+    #image: graylog/graylog:3.0.0-rc.2-2
+    image: graylog/graylog:2.5
     volumes:
       - ./graylog/contentpacks:/usr/share/graylog/data/contentpacks
     environment:
-      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED true
-      - GRAYLOG_CONTENT_PACKS_DIR data/contentpacks
       - GRAYLOG_CONTENT_PACKS_AUTO_LOAD coinboot-remote-logging.json
+      - GRAYLOG_CONTENT_PACKS_DIR data/contentpacks
+      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED true
       # CHANGE ME!
       - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
       # Password: admin
       - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-        #- GRAYLOG_HTTP_BIND_ADDRESS=192.168.1.2:9000
-      - GRAYLOG_HTTP_PUBLISH_URI=http://192.168.1.2:9000/
-        #- GRAYLOG_WEB_LISTEN_URI=192.168.1.2:9000
-      - GRAYLOG_HTTTP_EXTERNAL_URI=http://192.168.1.2:9000/
+      - GRAYLOG_WEB_ENDPOINT_URI=http://192.168.1.2:9000/api
+        #- GRAYLOG_REST_LISTEN_URI=http://192.168.1.2:19000/api/
+        #- GRAYLOG_REST_TRANSPORT_URI=http://192.168.1.2:19000/api/
     links:
       - mongodb:mongo
       - elasticsearch

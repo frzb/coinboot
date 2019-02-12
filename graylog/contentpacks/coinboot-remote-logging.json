@@ -1,1 +1,46 @@
-{"name":"Coinboot_remote_logging_v0.1","description":"iPXE(Raw/Plaintext UDP on 0.0.0.0 port 514)\nNetconsole(Syslog UDP on 0.0.0.0 port 5555)\n","category":"Coinboot remote logging","inputs":[{"id":"5c5f107b2ab79c000995f30d","title":"Netconsole","configuration":{"expand_structured_data":false,"recv_buffer_size":262144,"port":5555,"override_source":null,"force_rdns":false,"allow_override_date":true,"bind_address":"0.0.0.0","store_full_message":true},"static_fields":{},"type":"org.graylog2.inputs.syslog.udp.SyslogUDPInput","global":true,"extractors":[]},{"id":"5c6128872ab79c000a64229b","title":"iPXE","configuration":{"override_source":null,"recv_buffer_size":262144,"bind_address":"0.0.0.0","port":514},"static_fields":{},"type":"org.graylog2.inputs.raw.udp.RawUDPInput","global":true,"extractors":[]}],"streams":[],"outputs":[],"dashboards":[],"grok_patterns":[],"lookup_tables":[],"lookup_caches":[],"lookup_data_adapters":[]}
+{
+   "lookup_data_adapters" : [],
+   "outputs" : [],
+   "dashboards" : [],
+   "name" : "Coinboot_remote_logging_v0.1",
+   "inputs" : [
+      {
+         "type" : "org.graylog2.inputs.syslog.udp.SyslogUDPInput",
+         "configuration" : {
+            "allow_override_date" : true,
+            "expand_structured_data" : false,
+            "recv_buffer_size" : 262144,
+            "bind_address" : "0.0.0.0",
+            "override_source" : null,
+            "force_rdns" : false,
+            "port" : 5555,
+            "store_full_message" : true
+         },
+         "extractors" : [],
+         "global" : true,
+         "id" : "5c5f107b2ab79c000995f30d",
+         "static_fields" : {},
+         "title" : "Netconsole"
+      },
+      {
+         "extractors" : [],
+         "configuration" : {
+            "recv_buffer_size" : 262144,
+            "bind_address" : "0.0.0.0",
+            "override_source" : null,
+            "port" : 514
+         },
+         "type" : "org.graylog2.inputs.raw.udp.RawUDPInput",
+         "global" : true,
+         "id" : "5c6128872ab79c000a64229b",
+         "static_fields" : {},
+         "title" : "iPXE"
+      }
+   ],
+   "streams" : [],
+   "description" : "iPXE(Raw/Plaintext UDP on 0.0.0.0 port 514)\nNetconsole(Syslog UDP on 0.0.0.0 port 5555)\n",
+   "lookup_caches" : [],
+   "grok_patterns" : [],
+   "category" : "Coinboot remote logging",
+   "lookup_tables" : []
+}
