@@ -1,4 +1,4 @@
-![Logo of Coinboot](coinboot.png)
+![Logo of Coinboot](img/coinboot.png)
 
 
 ## Coinboot [![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
@@ -122,12 +122,25 @@ Please change the password via creating a Coinboot Plugin.
 
 ### Logfiles
 
-To see what's currently going on you can look at the logfiles of the Coinboot Docer container.  
+To see what's currently going on you can look at the logfiles of the Coinboot Docker container.  
 For instance to see the DHCP lease hand-shakes happen or what plugins are delivered.
 
 ```
 $ docker-compose logs -f
 ```
+
+### Centralized log managment with Graylog
+
+Coinboot comes with Graylog as centralized log management collecting iPXE bootloader and Kernel message of all your worker nodes.  
+
+![Screenshot of Graylog](img/graylog.png)
+
+Login with your web browser at: http://<your-Docker-host-IP:9000>`
+  
+User: `admin`    
+
+Password: `admin`
+
 
 ## Test and development environment
 
@@ -142,27 +155,47 @@ $ vagrant up
 
 ## Pack your own Coinboot plugins
 
-A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.
+A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.  
+Basically a Coinboot plugin is just set of file system changes that is applied at boot time.  
 
-Basically a Coinboot plugin is just set of file system changes that is applied at boot time.
+Clone the https://github.com/frzb/coinboot-plugins repository to get `coinbootmaker`.
 
+```
+$ git clone git@github.com:frzb/coinboot-plugins.git
+``` 
+### `coinbootmaker`
 
-All you need to create your own plugins is:
+```
+Usage: coinbootmaker [-i] -p <file name> <path to initramfs>
 
-* Boot the Coinboot base image
+-i              Interactive mode - opens a shell in the build environment
+-p <file name>  Plugin to build
+-h              Display this help
+``` 
 
-* Execute `$ create_plugin start`
+### Example
+
+Run `coinbootmaker` interactivly (`-i`)
+
+```
+$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
+```
+
+* You are entering the build environment
+
+* Execute `$ create_plugin.py start `
 
 * Do your changes to the system - e.g. install packages and edit configuration files.
 
-* When your are done: Execute `$ create_plugin finish <name-of-your-plugin>`
+* When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
 
 * Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
 
 Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
 
-Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin start` and `$ create_plugin finish <name-of-your-plugin>`.
+Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin.py start` and `$ create_plugin.py finish <name-of-your-plugin>`.
 
+For more details about creating plugins and example plugins please refer to https://github.com/frzb/coinboot-plugins .
 ## License
 
 GNU GPLv3 
