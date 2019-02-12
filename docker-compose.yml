@@ -16,9 +16,9 @@ services:
       - NET_BROADCAST
     network_mode: "host"
   mongodb:
-    image: mongo:3
+    image: mongo:4.0.6
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.5.4
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
     environment:
       - http.host=0.0.0.0
       - transport.host=localhost
@@ -28,10 +28,8 @@ services:
       memlock:
         soft: -1
         hard: -1
-        #mem_limit: 1g
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
-    #image: graylog/graylog:3.0.0-rc.2-2
     image: graylog/graylog:2.5
     volumes:
       - ./graylog/contentpacks:/usr/share/graylog/data/contentpacks
@@ -44,8 +42,6 @@ services:
       # Password: admin
       - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
       - GRAYLOG_WEB_ENDPOINT_URI=http://192.168.1.2:9000/api
-        #- GRAYLOG_REST_LISTEN_URI=http://192.168.1.2:19000/api/
-        #- GRAYLOG_REST_TRANSPORT_URI=http://192.168.1.2:19000/api/
     links:
       - mongodb:mongo
       - elasticsearch
