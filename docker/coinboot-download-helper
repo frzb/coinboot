@@ -35,10 +35,10 @@ if [ $RELEASE = latest ]; then
     echo "Github API is not returing an response, repeat ..."
     sleep 5
   done
-  echo $RESPONSE| jq -r '.[0].name'
-  echo "Using latest coinboot-debirf release: $RELEASE"
+  TAG=$RESPONSE| jq -r '.[0].name'
+  echo "Using latest coinboot-debirf release: $TAG"
 fi
-URL=https://github.com/frzb/coinboot-debirf/releases/download/${RELEASE}
+URL=https://github.com/frzb/coinboot-debirf/releases/download/${TAG}
 if [ -z $KERNEL ]; then
   KERNEL=4.15.0-45-generic
 fi
