@@ -22,6 +22,7 @@ echo '--- Configured environment ---'
 env
 echo '------------------------------'
 
+WGET='wget --retry-connrefused --waitretry=1 --read-timeout=20 --timeout=15 -t 0'
 BOOTDIR=/var/lib/tftpboot
 ## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
@@ -39,11 +40,11 @@ VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
 
 if ! [ -f $BOOTDIR/$VMLINUZ ]; then
-wget $URL/$VMLINUZ -P $BOOTDIR
+$WGET $URL/$VMLINUZ -P $BOOTDIR
 fi
 
 if ! [ -f $BOOTDIR/$INITRAMFS ]; then
-wget $URL/$INITRAMFS -P $BOOTDIR
+$WGET $URL/$INITRAMFS -P $BOOTDIR
 fi
 
 if ! [ -h $BOOTDIR/vmlinuz ] || [ $(readlink $BOOTDIR/vmlinuz) = $BOOTDIR/$VMLINUZ ]; then
@@ -62,9 +63,9 @@ BIOS=undionly.kpxe
 UEFI=ipxe.efi
 
 if ! [ -f $BOOTDIR/$BIOS ]; then
-  wget $URL/$BIOS -P $BOOTDIR
+  $WGET $URL/$BIOS -P $BOOTDIR
 fi
 
 if ! [ -f $BOOTDIR/$UEFI ]; then
-  wget $URL/$UEFI -P $BOOTDIR
+  $WGET $URL/$UEFI -P $BOOTDIR
 fi
