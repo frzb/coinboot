@@ -1,4 +1,5 @@
 #!/bin/sh -e
+set -x
 
 # Copyright (C) 2018 Gunter Miegel coinboot.io
 #
@@ -45,11 +46,11 @@ if ! [ -f $BOOTDIR/$INITRAMFS ]; then
 wget $URL/$INITRAMFS -P $BOOTDIR
 fi
 
-if ! [ $(readlink $BOOTDIR/vmlinuz) == $VMLINUZ ]; then
+if ! [ $(basename $(readlink $BOOTDIR/vmlinuz)) == $VMLINUZ ]; then
   ln -sfv $BOOTDIR/$VMLINUZ $BOOTDIR/vmlinuz
 fi
 
-if ! [ $(readlink $BOOTDIR/initramfs) == $INITRAMFS ]; then
+if ! [ $(basename $(readlink $BOOTDIR/initramfs)) == $INITRAMFS ]; then
   ln -sfv $BOOTDIR/$INITRAMFS $BOOTDIR/initramfs
 fi
 
