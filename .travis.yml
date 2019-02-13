@@ -20,7 +20,7 @@ before_install:
   - sudo mkdir -p /etc/qemu
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
-  - sudo docker-compose -f docker-compose_travis-ci.yml up -d
+  - sudo docker-compose -f docker-compose_travis-ci.yml up coinboot -d
   - sudo docker-compose exec coinboot env
   - sudo docker-compose ps
   - sudo docker-compose logs -f coinboot
