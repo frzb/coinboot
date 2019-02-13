@@ -9,7 +9,7 @@ before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf
+  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf iputils-ping
   - >
     while [[ -z $RELEASE ]]; do
       export RELEASE=$(curl --connect-timeout 5 --max-time 5 --silent "https://api.github.com/repos/frzb/coinboot-debirf/releases/latest" | jq -r '.tag_name')
