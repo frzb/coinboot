@@ -23,6 +23,7 @@ script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d
   - sudo docker-compose exec coinboot env
   - sudo docker-compose ps
+  - sudo docker-compose logs -f coinboot
   - while ! [ $(curl --silent http://192.168.1.2 | jq length) -gt 4 ]; do curl --silent http://192.168.1.2 | jq '.[].name'; sleep 10; done
   #- sudo docker-compose logs -f coinboot
   # This line can be used for debugging Qemu iPXE purposes.
