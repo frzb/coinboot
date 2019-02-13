@@ -53,6 +53,7 @@ script:
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
     -bios /usr/share/OVMF/OVMF_CODE.fd
+  - which ping  
   - while ! ping -c 1 192.168.1.10; do echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'; sleep 10; done
   - ping -c 10 192.168.1.10
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
