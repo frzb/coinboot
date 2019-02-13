@@ -9,7 +9,7 @@ set base-url http://${dhcp-server}
 echo Welcome to Coinboot at ${ip}.
 echo Logs are send to ${dhcp-server} on port 514/UDP.
 echo Proceeding with booting right now...
-kernel ${base-url}/vmlinuz coinboot-server=${base-url} initrd=initramfs ignore_loglevel netconsole=5555@${ip}/eth0,5555@${dhcp-server} net.ifnames=0 biosdevname=0 
+kernel ${base-url}/vmlinuz coinboot-server=${base-url} initrd=initramfs ignore_loglevel netconsole=5555@${ip}/eth0,5555@${dhcp-server} console=ttyS0 console=tty0 net.ifnames=0 biosdevname=0 
 initrd ${base-url}/initramfs
 boot ||
 # If everything failed, give the user some options.

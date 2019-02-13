@@ -25,7 +25,7 @@ script:
   - sudo docker-compose ps
   #- sudo docker-compose logs -f coinboot
   # This line can be used for debugging Qemu iPXE purposes.
-  - sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  - sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -serial mon:stdio -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # Boot with legacy BIOS
   - >
     sudo qemu-system-x86_64
