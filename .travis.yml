@@ -3,27 +3,35 @@ sudo: required
 language: c
 cache: ccache
 env:
-  - KERNEL=4.4.0-139-generic
-  - KERNEL=4.15.0-39-generic
+  - KERNEL=4.15.0-43-generic
+  - KERNEL=4.15.0-45-generic
 before_install:
   # always quit the build something fails with a non-zero return value
   #- set -e
   - sudo apt update
-  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf
+  - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf iputils-ping
+  - CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
+  - RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+  - sleep 5
   - >
-    while [[ -z $RELEASE ]]; do
-      export RELEASE=$(curl --connect-timeout 5 --max-time 5 --silent "https://api.github.com/repos/frzb/coinboot-debirf/releases/latest" | jq -r '.tag_name')
-      sleep 3
-      echo $RELEASE
+    while ! RELEASE=$(echo $RESPONSE | jq -r '.[0].name'); do
+      echo "Calling the Github API has failed, repeat ..."
+      RESPONSE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+      sleep 5
     done
+  - echo "Latest release is $RELEASE"
   - echo $PATH
   - sudo mkdir -p /etc/qemu
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 script:
   - sudo docker-compose -f docker-compose_travis-ci.yml up -d
   - sudo docker-compose exec coinboot env
+  - sudo docker-compose ps
+  #- sudo docker-compose logs -f coinboot
+  - while ! [ $(curl --silent http://192.168.1.2 | jq length) -gt 4 ]; do curl --silent http://192.168.1.2 | jq '.[].name'; echo '------------'; sleep 10; done
+  #- sudo docker-compose logs -f coinboot
   # This line can be used for debugging Qemu iPXE purposes.
-  #- sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  #- sudo qemu-system-x86_64 -m 2048 -smp 2 -nographic -serial mon:stdio -boot n -net nic,model=e1000 -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
   # Boot with legacy BIOS
   - >
     sudo qemu-system-x86_64
@@ -34,6 +42,8 @@ script:
     -boot n
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+  - while ! ping -c 1 192.168.1.10; do echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'; sleep 10; done
+  - ping -c 10 192.168.1.10
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 5; done
   - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && uname -a"
   - sudo killall qemu-system-x86_64
@@ -51,5 +61,7 @@ script:
     -net nic,model=e1000
     -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
     -bios /usr/share/OVMF/OVMF_CODE.fd
+  - while ! ping -c 1 192.168.1.10; do echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'; sleep 10; done
+  - ping -c 10 192.168.1.10
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 10; done
   - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && ls -la /sys/firmware/efi && uname -a"

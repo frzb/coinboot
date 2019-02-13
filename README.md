@@ -1,4 +1,4 @@
-![Logo of Coinboot](coinboot.png)
+![Logo of Coinboot](img/coinboot.png)
 
 
 ## Coinboot [![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
@@ -30,6 +30,11 @@ Its core features are:
   Need to expand your machines with further configuration, software, libraries, proprietary drivers?  
   By packing them as Coinboot plugin you can use them right after your machines have booted.
 
+* **Insights out of the box**  
+
+  Coinboot comes with Graylog integrated for log managment.   
+  Providing the log files of your worker nodes at a glance.
+
 This repository contains the Coinboot Server Docker container.                 
 This container includes all services to get Coinboot up and running and boot diskless Coinboot Worker nodes over network.
 
@@ -57,7 +62,16 @@ You can hand over environment variables to the worker nodes booting with Coinboo
 This way you can keep the configuration of your Coinboot Worker nodes at one point.  
 Just put these variables in a file in the directory `./conf/environment/`.  
 These variables are added to `/etc/environment` on the worker nodes during boot and are exported and available for login shells on these nodes.  
-If these variables are not exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
+If these variables are not exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.  
+
+There are also mandatory environment variables which are required to be configured.
+
+#### Mandatory environment variables
+
+| Variable             | Default       | Description                                                            |
+| -------------------- |:-------------:| -----------------------------------------------------------------------|
+| `COINBOOT_SERVER_IP` | `192.168.1.2` | IP address at which the services of the Coinboot server should listen. |
+
 
 #### RootFS and Kernel
 
@@ -93,17 +107,9 @@ For example the Docker host has assigned `192.168.1.2` then a matching DHCP-rang
 
 Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
 
-#### Environment variables
-
-You can hand over environment variables to the machines booting with Coinboot.  
-This is the way to keep the configuration for your machines at one point.  
-Just put these variables in a file in the directory `./conf/environment/`.
-These varibales are added to `/etc/environment` on your machines and are exported  and available for login shells.
-If these variables are no exported and available, e.g. in Systemd units, just source the file `/etc/environment` to make them available.
-
 ### Start the Coinboot Server Docker container
 
-Just bring the Coinboot Server Docker container up with `docker-compose`.
+Just bring the Coinboot Server Docker and Graylog containers up with `docker-compose`.
 
 ```
 $ docker-compose up -d
@@ -122,12 +128,25 @@ Please change the password via creating a Coinboot Plugin.
 
 ### Logfiles
 
-To see what's currently going on you can look at the logfiles of the Coinboot Docer container.  
+To see what's currently going on you can look at the logfiles of the Coinboot Docker container.  
 For instance to see the DHCP lease hand-shakes happen or what plugins are delivered.
 
 ```
-$ docker-compose logs -f
+$ docker-compose logs -f coinboot
 ```
+
+### Centralized log managment with Graylog
+
+Coinboot comes with Graylog as centralized log management collecting iPXE bootloader and Kernel message of all your worker nodes.  
+
+![Screenshot of Graylog](img/graylog.png)
+
+Login with your web browser at: http://<your-Docker-host-IP:9000>`
+  
+* login `admin`    
+
+* password: `admin`
+
 
 ## Test and development environment
 
@@ -142,27 +161,47 @@ $ vagrant up
 
 ## Pack your own Coinboot plugins
 
-A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.
+A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.  
+Basically a Coinboot plugin is just set of file system changes that is applied at boot time.  
 
-Basically a Coinboot plugin is just set of file system changes that is applied at boot time.
+Clone the https://github.com/frzb/coinboot-plugins repository to get `coinbootmaker`.
 
+```
+$ git clone git@github.com:frzb/coinboot-plugins.git
+``` 
+### `coinbootmaker`
 
-All you need to create your own plugins is:
+```
+Usage: coinbootmaker [-i] -p <file name> <path to initramfs>
 
-* Boot the Coinboot base image
+-i              Interactive mode - opens a shell in the build environment
+-p <file name>  Plugin to build
+-h              Display this help
+``` 
 
-* Execute `$ create_plugin start`
+### Example
+
+Run `coinbootmaker` interactivly (`-i`)
+
+```
+$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
+```
+
+* You are entering the build environment
+
+* Execute `$ create_plugin.py start `
 
 * Do your changes to the system - e.g. install packages and edit configuration files.
 
-* When your are done: Execute `$ create_plugin finish <name-of-your-plugin>`
+* When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
 
 * Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
 
 Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
 
-Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin start` and `$ create_plugin finish <name-of-your-plugin>`.
+Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin.py start` and `$ create_plugin.py finish <name-of-your-plugin>`.
 
+For more details about creating plugins and example plugins please refer to https://github.com/frzb/coinboot-plugins .
 ## License
 
 GNU GPLv3 
