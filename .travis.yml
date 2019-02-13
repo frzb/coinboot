@@ -41,8 +41,7 @@ script:
   - while ! ping -c 1 192.168.1.10; do echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'; sleep 10; done
   - ping -c 10 192.168.1.10
   - while ! nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'; sleep 5; done
-    #- sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && uname -a"
-  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "cat /etc/motd && uname -a"
+  - sshpass -p ubuntu ssh -v -o StrictHostKeyChecking=no ubuntu@192.168.1.10 "grep -C 10 ${RELEASE} /etc/motd && uname -a"
   - sudo killall qemu-system-x86_64
   - while nc -z 192.168.1.10 22; do echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'; sleep 5; done
   # Boot with UEFI/OVMF
