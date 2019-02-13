@@ -10,12 +10,16 @@ before_install:
   #- set -e
   - sudo apt update
   - sudo apt install --yes sshpass build-essential pkg-config jq qemu-system-x86 ovmf iputils-ping
+  - CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
+  - RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+  - sleep 5
   - >
-    while [[ -z $RELEASE ]]; do
-      export RELEASE=$(curl --connect-timeout 5 --max-time 5 --silent "https://api.github.com/repos/frzb/coinboot-debirf/releases/latest" | jq -r '.tag_name')
-      sleep 3
-      echo $RELEASE
+    while ! RELEASE=$(echo $RESPONSE | jq -r '.[0].name'); do
+      echo "Calling the Github API has failed, repeat ..."
+      RESPONSE=$(curl --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+      sleep 5
     done
+  - echo "Latest release is $RELEASE"
   - echo $PATH
   - sudo mkdir -p /etc/qemu
   - echo 'allow all' | sudo tee /etc/qemu/bridge.conf
