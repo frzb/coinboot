@@ -30,7 +30,7 @@ BOOTDIR=/var/lib/tftpboot
 # If the value is 'latest' we determine the latest release, else we use the set value.
 
 if [ $RELEASE = latest ]; then
-  while ! [ -z RESPONSE ]; do
+  while [ -z RESPONSE ]; do
     RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
     echo "Github API is not returing an response, repeat ..."
     sleep 5
