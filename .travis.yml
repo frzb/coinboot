@@ -46,7 +46,7 @@ jobs:
           branch: master
         draft: false
 
-    - run coinboot
+      stage: run coinboot
       env:
         - KERNEL=4.15.0-43-generic
         - KERNEL=4.15.0-45-generic
