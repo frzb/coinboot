@@ -1,0 +1,80 @@
+#!/bin/bash -e
+# debirf module: clean-root
+# clean up debirf root
+#
+# *** REQUIRED MODULE ***
+# WARNING: this module is necessary for proper functioning of debirf.
+#
+# The debirf scripts were written by
+# Jameson Rollins <jrollins@fifthhorseman.net>
+# and
+# Daniel Kahn Gillmor <dkg@fifthhorseman.net>.
+#
+# They are Copyright 2007, and are all released under the GPL,
+# version 3 or later.
+#
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+
+# Additional packages which can be removed to save space.
+#debirf_exec apt-get purge --yes linux-headers-* libgcc1 gcc cpp-5 libgcc-5-dev cpp-6 cpp-8 libc6-dev gcc-8 libgcc-8-dev file libmagic1
+debirf_exec apt-get purge --yes linux-headers-* gcc cpp* libgcc-*-dev lib*dev file libmagic1 | grep -v 'is not installed, so not removed'
+
+# Do the autoremove dance
+debirf_exec apt-get --yes --purge autoremove | grep -v 'is not installed, so not removed'
+
+# remove all cached apt information
+debirf_exec apt-get clean
+
+# Remove documentation and take care the dpkg is excluding handling
+# of any documentation files.
+# https://askubuntu.com/questions/129566/remove-documentation-to-save-hard-drive-space/401144#401144
+tee "$DEBIRF_ROOT/etc/dpkg/dpkg.cfg.d/01_nodoc" << EOF
+path-exclude /usr/share/doc/*
+# We need to keep copyright files for legal reasons
+path-include /usr/share/doc/*/copyright
+path-exclude /usr/share/man/*
+path-exclude /usr/share/groff/*
+path-exclude /usr/share/info/*
+# Lintian stuff is small, but really unnecessary
+path-exclude /usr/share/lintian/*
+path-exclude /usr/share/linda/*
+EOF
+
+# Remove documentation. (~6MB)
+# We need to keep copyright files for legal reasons
+debirf_exec find /usr/share/doc -depth -type f ! -name copyright -delete #-print
+debirf_exec find /usr/share/doc -empty -delete #-print
+debirf_exec rm -rf /usr/share/man/* /usr/share/groff/* /usr/share/info/*
+debirf_exec rm -rf /usr/share/lintian/* /usr/share/linda/* /var/cache/man/*
+
+# Remove Python object bytecode cache.
+rm  -rf "$DEBIRF_ROOT/usr/lib/python*/__pycache__"
+
+rm -f "$DEBIRF_ROOT"/var/cache/apt/*.bin
+rm -rf "$DEBIRF_ROOT"/var/lib/apt/lists/*
+mkdir "$DEBIRF_ROOT/var/lib/apt/lists/partial"
+
+# remake proc directory
+# (originally made as symlink by debootstrap with fakechroot)
+rm -rf "$DEBIRF_ROOT/proc"
+mkdir "$DEBIRF_ROOT/proc"
+
+# setup dynamically updated /etc/mtab
+ln -sf /proc/mounts "$DEBIRF_ROOT/etc/mtab"
+
+# ldconfig can't work in a fakechroot environment (see fakechroot(1))
+# So we use the build host ldconfig to setup ld.so cache
+/sbin/ldconfig -r "$DEBIRF_ROOT"
+
+# debootstrap's variant 'fakechroot' replaced ldconfig with a dummy
+# version, and ldd with a script devised for a fakechroot environment.
+# At this point we restore the original ldconfig and ldd in the final
+# debirf image, and remove diversions added by debootstrap
+# (see debootstrap 1.0.60, function install_fakechroot_tools,
+# file /usr/share/debootstrap/functions lines 1397-1582 )
+if [ "$ROOT_BUILD" != 'true' ]; then
+    debirf_exec dpkg-divert --remove /sbin/ldconfig
+    mv -f "$DEBIRF_ROOT/sbin/ldconfig.REAL" "$DEBIRF_ROOT/sbin/ldconfig"
+    debirf_exec dpkg-divert --remove /usr/bin/ldd
+    mv -f "$DEBIRF_ROOT/usr/bin/ldd.REAL" "$DEBIRF_ROOT/usr/bin/ldd"
+fi

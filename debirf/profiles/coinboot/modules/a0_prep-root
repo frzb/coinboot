@@ -1,0 +1,86 @@
+#!/bin/bash -e
+
+# debirf module: a0_prep-root
+# prep the debirf root with various needed files and info
+#
+# *** REQUIRED MODULE ***
+# WARNING: this module is necessary for proper functioning of debirf.
+#
+# The debirf scripts were written by
+# Jameson Rollins <jrollins@fifthhorseman.net>
+# and
+# Daniel Kahn Gillmor <dkg@fifthhorseman.net>.
+#
+# They are Copyright 2007-2011, and are all released under the GPL,
+# version 3 or later.
+#
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+
+# output info to the debirf.info file on the initramfs
+mkdir -p "${DEBIRF_ROOT}/etc/debirf"
+cat <<EOF > "${DEBIRF_ROOT}/etc/debirf/debirf.info"
+# debirf.info
+#
+# $DEBIRF_LABEL
+#
+# debirf version: $(dpkg-query --show debirf | awk '{ print $2 }')
+#     build host: $(hostname -f)
+#     build arch: $(dpkg --print-architecture)
+#     build date: $(date -R)
+
+# the following config variables were set during build:
+EOF
+for var in ${!DEBIRF_*}; do
+    debirf_info_sh "${var}=${!var}"
+done
+
+# initialize /etc/fstab
+echo proc /proc proc defaults 0 0 > "${DEBIRF_ROOT}/etc/fstab"
+
+# write /etc/hostname
+echo "$DEBIRF_LABEL" > "${DEBIRF_ROOT}/etc/hostname"
+
+# write /etc/hosts
+cat <<EOF > "${DEBIRF_ROOT}/etc/hosts"
+127.0.0.1	localhost
+127.0.1.1       $DEBIRF_LABEL
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts
+EOF
+
+# purge root password
+debirf_exec passwd -d root
+
+# set debconf to noninteractive
+debirf_exec debconf-set-selections <<EOF
+# Interface to use:
+# Choices: Dialog, Readline, Gnome, Kde, Editor, Noninteractive
+debconf debconf/frontend select Noninteractive
+EOF
+
+# Extend sources list to get access to 16.03.4 updates.
+# Like e.g. kernel, kernel headers.
+cat <<EOF >> "${DEBIRF_ROOT}/etc/apt/sources.list"
+deb http://de.archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-updates main
+deb http://de.archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-security main
+EOF
+
+# Add components for restricted, universe and multiverse.
+sed -i 's/main/main restricted universe multiverse/g' "${DEBIRF_ROOT}/etc/apt/sources.list"
+
+# update/upgrade
+debirf_exec apt-get --yes --force-yes update
+debirf_exec apt-get --yes --force-yes dist-upgrade
+
+
+# FIXME: Guess - debootstrap detects in newer version if it is running
+# inside a container and is skipping the creation of /dev/console
+# which leads to a kernel panic during boot
+# Related to?: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=872059
+[[ -c ${DEBIRF_ROOT}/dev/console ]] || mknod -m 600 ${DEBIRF_ROOT}/dev/console c 5 1

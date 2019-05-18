@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+# debirf module: create_user
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+# Create a user and take care that one can rule with the help of sudo.
+
+NAME=ubuntu
+PASSWORD=ubuntu
+HASH=$(openssl passwd -1 $PASSWORD)
+
+debirf_exec useradd -s /bin/bash -G sudo -p "$HASH" -m -d /home/"$NAME" "$NAME"
+
+debirf_exec apt install --yes sudo
+
+# debirf_exec seems not to work with tee so using real chroot.
+# FIXME: Use the $NAME variable.
+sudo chroot $DEBIRF_ROOT /bin/bash -c 'echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/90-coinboot'

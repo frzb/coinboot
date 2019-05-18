@@ -1,0 +1,105 @@
+#!/bin/bash -e
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+EXCLUDE='^\/(proc|sys|dev|run|tmp|vagrant|var\/log|usr\/share\/dbus-1\/system-services|var\/lib/\dpkg\/[^info]|var\/cache).*'
+OUTFILE=/tmp/plugin_file_list
+OUTFILE_FINAL=/tmp/plugin_file_list_final
+DPKG_STATUS=/var/lib/dpkg/status
+INITIAL_DPKG_STATUS=/tmp/initial_status
+FINAL_DPKG_STATUS=/tmp/dpkg_status
+PID_FILE=/tmp/plugin_create_pid
+
+function start {
+  # Inside a Docker/runc container '/proc' is read-only, so we are skipping this step.
+  # Running outside a container can be identified by the entries of /proc/1/cgroup ending with plain ':/'.
+  if grep -qP 'cpu.*:\/$' /proc/1/cgroup; then
+    echo "200000" | sudo tee /proc/sys/fs/inotify/max_user_watches
+  fi
+
+  sudo rm -fv $OUTFILE $OUTFILE_FINAL $INITIAL_DPKG_STATUS $FINAL_DPKG_STATUS $PID_FILE
+
+  # TODO Also track deleted files
+  # According to strace is looks like --exclude is not preventing building the
+  # "watches" for the excluded directories but filters all file system events on them.
+  if [ $(which inotifywait) ]; then
+    sudo rm -f $OUTFILE
+    nohup sudo inotifywait -m -r --format '%w%f' -e create -e attrib -e moved_from -e moved_to -e modify --exclude $EXCLUDE -o $OUTFILE / > /tmp/plugin.log 2>&1 &
+  else
+    echo 'inotifywait is missing.'
+    echo 'Please install the package inotify-tools'
+    exit
+  fi
+
+  PID=$!
+
+  echo "PID of the process watch for file changes is: $PID"
+
+  echo $PID > $PID_FILE
+
+  # Inotifywait takes some time to build up the recursive file watching on
+  # / - so we have to wait and verify that we only proceed after the prepations
+  # are done.
+  while ! grep -q 'Watches established.' /tmp/plugin.log; do
+    echo -ne 'Waiting for file watching to be established...\r'
+    sleep 0.2
+  done
+
+  cp $DPKG_STATUS $INITIAL_DPKG_STATUS
+}
+
+function finish {
+  plugin_name=$1
+
+  sudo kill $(cat /tmp/plugin_create_pid)
+
+  dpkg_status.py --old $INITIAL_DPKG_STATUS --new $DPKG_STATUS --diff > $FINAL_DPKG_STATUS
+
+  # Test all collected files if they really exists and if so write them
+  # to a final file list.
+  # Finally add the dpkg_status file we create beforehand.
+  while read path; do
+    if [ -f "$path" ]; then
+      echo $path
+      echo $path >> "$OUTFILE_FINAL"
+    fi
+  done < <(sort -u $OUTFILE)
+
+  echo $FINAL_DPKG_STATUS >> $OUTFILE_FINAL
+
+  tar -czvf $plugin_name.tar.gz -P -T $OUTFILE_FINAL
+}
+
+function upload {
+  filepath=$1
+  url=$2
+  filename=$(basename $filepath)
+  curl -F "file=@$filepath;filename=$filename" $url
+}
+
+case "$1" in
+  'start')
+  start
+  ;;
+  'finish')
+  finish $2
+  ;;
+  'upload')
+  upload $2 $3
+  ;;
+esac

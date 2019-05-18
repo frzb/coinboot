@@ -1,0 +1,10 @@
+
+We got a regression in the image size in the branch
+
+Obvious are some things like:
+
+/usr/lib/x86_64-linux-gnu/perl/5.22.1 19MB
+
+vs.
+
+/usr/lib/x86_64-linux-gnu/perl-base 4.2MB
