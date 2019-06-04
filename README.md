@@ -6,7 +6,8 @@
 Coinboot is a framework for **diskless** computing.   
 
 Coinboot was initially made to run **GPU**-based **blockchain hashing** on mining farms with a **minimal TCO**.  
-Coinboot can also run workloads like  **video rendering** or **machine learning**  with a **minimal TCO**.  
+Coinboot can also be used to run various other number crunching workloads like  
+**video rendering** or **machine learning**  with a **minimal TCO**.  
 
 
 Its core features are:
