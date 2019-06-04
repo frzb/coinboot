@@ -3,7 +3,11 @@
 
 ## Coinboot [![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
 
-Coinboot is a framework for diskless computing. 
+Coinboot is a framework for **diskless** computing.   
+
+Coinboot was initially made to run **GPU**-based **blockchain hashing** on mining farms with a **minimal TCO**.  
+Coinboot can also run workloads like  **video rendering** or **machine learning**  with a **minimal TCO**.  
+
 
 Its core features are:
 
@@ -27,8 +31,10 @@ Its core features are:
 
 * **Easy Expandability**
 
-  Need to expand your machines with further configuration, software, libraries, proprietary drivers?  
-  By packing them as Coinboot plugin you can use them right after your machines have booted.
+  Need to expand your worker nodes with further configuration, software, libraries, proprietary drivers?  
+  By packing them as Coinboot plugin you can use them right after your machines have booted.  
+  Without the overhead caused by configuration managment or running complex orchestration infrastructure.  
+
 
 * **Insights out of the box**  
 
