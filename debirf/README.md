@@ -1,3 +1,4 @@
+Change for testing conditional builds
 
 ![Logo of Coinboot](https://raw.githubusercontent.com/frzb/coinboot/master/img/coinboot.png)
 
