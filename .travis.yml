@@ -3,13 +3,14 @@ jobs:
   include:
     - &build_and_run
       # Only run this job when there are changes in the subdir 'debirf'
+      # Attention: Travis CI is only parsing this file if the condition is met.
       if: git diff --name-only $TRAVIS_BRANCH HEAD | grep -qP '^debirf/'
       env: KERNEL=4.15.0-43-generic SUITE=xenial
       stage: build and run images
       dist: xenial
       sudo: required
       language: bash
-      script: .debirf/build_and_run_images
+      script: ./debirf/build_and_run_images
       after_success:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
