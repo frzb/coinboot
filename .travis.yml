@@ -27,3 +27,9 @@ jobs:
         on:
           branch: master
         draft: true
+
+    - <<: *build_and_run
+      env: KERNEL=4.15.0-45-generic SUITE=xenial
+
+    - <<: *build_and_run
+      env: KERNEL=5.0.0-13-generic SUITE=disco
