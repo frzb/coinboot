@@ -4,7 +4,7 @@ jobs:
     - &build_and_run
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
-      git diff --name-only $TRAVIS_BRANCH HEAD | grep -qP '^debirf/'
+      before: git diff --name-only $TRAVIS_BRANCH HEAD | grep -qP '^debirf/'
       env: KERNEL=4.15.0-43-generic SUITE=xenial
       stage: build and run images
       dist: xenial
