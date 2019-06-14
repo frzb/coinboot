@@ -22,6 +22,11 @@ set -e -o pipefail
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 
+change_to_buildir {
+if ! [[ $(basename $PWD) != debirf ]]; then
+  cd debirf
+fi
+
 run_qemu() {
   zram=$1
   qemu-system-x86_64 \
@@ -64,6 +69,8 @@ verify_over_ssh() {
 sudo apt-get update
 
 sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
+
+change_to_buildir
 
 docker-compose up
 
