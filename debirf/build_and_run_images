@@ -22,10 +22,11 @@ set -e -o pipefail
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 
-change_to_buildir {
+change_to_buildir (){
 if ! [[ $(basename $PWD) != debirf ]]; then
   cd debirf
 fi
+}
 
 run_qemu() {
   zram=$1
