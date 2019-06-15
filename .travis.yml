@@ -1,5 +1,6 @@
 ---
-env: FOOBAR=$(hostname)
+env:
+  global: FOOBAR=$(hostname)
 
 jobs:
   include:
