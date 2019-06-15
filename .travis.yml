@@ -1,7 +1,7 @@
 ---
 env:
   global:
-    - TO_BUILD=$(git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -P '^debirf/' | uniq | tr -s '/\n' ':')
+    - TO_BUILD=$(git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^[^\/]+' | uniq | tr -s '\n' ':')
 
 jobs:
   include:
