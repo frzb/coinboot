@@ -1,6 +1,9 @@
 ---
 env:
   global:
+    # We use backticks in favor of the proper $() subshell call to cope with the
+    # evaluation of Travis CI. Else we had trouble with the braces of the regex.
+    # The regex matches on subdirectories only - identified by the trailing /.
     - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":"`
 
 jobs:
@@ -9,7 +12,7 @@ jobs:
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
-      # if: env(BUILD) = debirf
+      if: env(TO_BUILD) = debirf
       env: KERNEL=4.15.0-43-generic SUITE=xenial
       stage: build and run images
       dist: xenial
