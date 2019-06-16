@@ -4,7 +4,7 @@ env:
     # We use backticks in favor of the proper $() subshell call to cope with the
     # evaluation of Travis CI. Else we had trouble with the braces of the regex.
     # The regex matches on subdirectories only - identified by the trailing /.
-    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":"`
+    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
 
 jobs:
   include:
