@@ -13,8 +13,7 @@ jobs:
       # Attention: Travis CI is only parsing this file if the condition is met.
       before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
       before_script:
-         - exit 0
-         - if [[ "$TO_BUILD" != *"debirf"* ]] then; exit 0; fi
+         - test "$TO_BUILD" != *"debirf"* || exit 0
       env: KERNEL=4.15.0-43-generic SUITE=xenial
       stage: build and run images
       dist: xenial
