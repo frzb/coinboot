@@ -97,7 +97,7 @@ sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
 
 change_to_buildir
 
-docker-compose -f docker_compose_travis-ci.yml up #-d
+docker-compose -f docker-compose_travis-ci.yml up #-d
 
 run_qemu
 
