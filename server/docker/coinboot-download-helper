@@ -1,0 +1,77 @@
+#!/bin/sh -e
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+echo '--- Configured environment ---'
+env
+echo '------------------------------'
+
+WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
+CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
+BOOTDIR=/var/lib/tftpboot
+## initramfs and kernel vmlinuz ##
+# RELEASE is set via an environment variable under ./conf/environment
+# If the value is 'latest' we determine the latest release, else we use the set value.
+
+if [ $RELEASE = latest ]; then
+    RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+    sleep 5
+    while ! TAG=$(echo $RESPONSE | jq -r '.[0].name'); do
+      echo "Calling the Github API has failed, repeat ..."
+      RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+      sleep 5
+    done
+  echo "Using latest coinboot-debirf release: $TAG"
+fi
+URL=https://github.com/frzb/coinboot-debirf/releases/download/${TAG}
+if [ -z $KERNEL ]; then
+  KERNEL=4.15.0-45-generic
+fi
+VMLINUZ=coinboot-vmlinuz-$KERNEL
+INITRAMFS=coinboot-initramfs-$KERNEL
+
+if ! [ -f $BOOTDIR/$VMLINUZ ]; then
+$WGET $URL/$VMLINUZ -P $BOOTDIR
+fi
+
+if ! [ -f $BOOTDIR/$INITRAMFS ]; then
+$WGET $URL/$INITRAMFS -P $BOOTDIR
+fi
+
+if ! [ -h $BOOTDIR/vmlinuz ] || [ $(readlink $BOOTDIR/vmlinuz) = $BOOTDIR/$VMLINUZ ]; then
+  ln -sfv $BOOTDIR/$VMLINUZ $BOOTDIR/vmlinuz
+fi
+
+if ! [ -h $BOOTDIR/initramfs ] || [ $(readlink $BOOTDIR/initramfs) = $BOOTDIR/$INITRAMFS ]; then
+  ln -sfv $BOOTDIR/$INITRAMFS $BOOTDIR/initramfs
+fi
+
+## iPXE network bootloader for BIOS and UEFI ##
+# We use a customised build with remote logging
+IPXE_RELEASE=20190130
+URL=https://github.com/frzb/coinboot-ipxe/releases/download/${IPXE_RELEASE}
+BIOS=undionly.kpxe
+UEFI=ipxe.efi
+
+if ! [ -f $BOOTDIR/$BIOS ]; then
+  $WGET $URL/$BIOS -P $BOOTDIR
+fi
+
+if ! [ -f $BOOTDIR/$UEFI ]; then
+  $WGET $URL/$UEFI -P $BOOTDIR
+fi

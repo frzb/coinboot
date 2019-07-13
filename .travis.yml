@@ -9,6 +9,7 @@ env:
 jobs:
   include:
     - &build_and_run
+      stage: build and run images
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
@@ -16,7 +17,6 @@ jobs:
       # Verbose if conditional instead  pure [[ ]] - else this won't work in this YAML file.
       before_script: if ! [[ "$TO_BUILD" = *"debirf"* ]]; then exit 0; fi
       env: KERNEL=4.15.0-43-generic SUITE=xenial
-      stage: build and run images
       dist: xenial
       sudo: required
       language: bash
@@ -43,3 +43,12 @@ jobs:
 
     - <<: *build_and_run
       env: KERNEL=5.0.0-13-generic SUITE=disco
+
+    - &run_coinboot 
+      stage: run coinboot 
+      before_script: if ! [[ "$TO_BUILD" = *"server"* ]]; then exit 0; fi
+      env: KERNEL=4.15.0-43-generic SUITE=xenial
+      dist: xenial
+      sudo: required
+      language: bash
+      script: ./server/run_coinboot

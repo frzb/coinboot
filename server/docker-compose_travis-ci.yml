@@ -1,0 +1,77 @@
+version: '3'
+
+networks:
+  coinboot:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: 192.168.1.0/24
+services:
+  coinboot:
+    container_name: coinboot
+    env_file:
+      - ./conf/environment/default.env
+    environment:
+      KERNEL: $KERNEL
+    build: ./docker/
+    volumes:
+      - ./conf/dnsmasq:/etc/dnsmasq.d
+      - ./conf/environment/:/srv/environment
+      - ./boot:/var/lib/tftpboot
+      - ./plugins:/srv/plugins
+    cap_add:
+      - NET_ADMIN
+      - NET_BROADCAST
+    networks:
+      coinboot:
+        ipv4_address: 192.168.1.2
+  mongodb:
+    image: mongo:4.0.6
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  # Graylog: https://hub.docker.com/r/graylog/graylog/
+  graylog:
+    image: graylog/graylog:2.5
+    volumes:
+      - ./conf/graylog/contentpacks:/usr/share/graylog/data/contentpacks
+    env_file:
+      - ./conf/environment/default.env
+    environment:
+      - GRAYLOG_CONTENT_PACKS_AUTO_LOAD=coinboot-remote-logging.json
+      - GRAYLOG_CONTENT_PACKS_DIR=data/contentpacks
+      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED=true
+      # CHANGE ME!
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      # Password: admin
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_WEB_ENDPOINT_URI=http://${COINBOOT_SERVER_IP}:9000/api
+    links:
+      - mongodb:mongo
+      - elasticsearch
+    depends_on:
+      - mongodb
+      - elasticsearch
+    ports:
+      # Graylog web interface and REST API
+      - 9000:9000
+      # Syslog TCP
+      - 514:514
+      # Syslog UDP
+      - 514:514/udp
+      # Netconsole raw UDP
+      - 5555:5555/udp
+      # GELF TCP
+      - 12201:12201
+      # GELF UDP
+      - 12201:12201/udp
