@@ -16,7 +16,7 @@ jobs:
       before_install: env
       # Verbose if conditional instead  pure [[ ]] - else this won't work in this YAML file.
       before_script: if ! [[ "$TO_BUILD" = *"debirf"* ]]; then exit 0; fi
-      env: KERNEL=4.15.0-43-generic SUITE=xenial
+      env: KERNEL=4.15.0-45-generic SUITE=xenial
       dist: xenial
       sudo: required
       language: bash
@@ -44,10 +44,10 @@ jobs:
     - <<: *build_and_run
       env: KERNEL=5.0.0-13-generic SUITE=disco
 
-    - &run_coinboot 
-      stage: run coinboot 
+    - &run_coinboot
+      stage: run coinboot
       before_script: if ! [[ "$TO_BUILD" = *"server"* ]]; then exit 0; fi
-      env: KERNEL=4.15.0-43-generic SUITE=xenial
+      env: KERNEL=4.15.0-45-generic SUITE=xenial
       dist: xenial
       sudo: required
       language: bash
