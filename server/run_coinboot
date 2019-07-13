@@ -99,6 +99,8 @@ sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
 pwd
 change_to_build_dir
 
+ls -la 
+
 docker-compose -f docker-compose_travis-ci.yml up -d
 
 docker ps
