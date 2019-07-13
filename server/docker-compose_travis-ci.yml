@@ -17,7 +17,7 @@ services:
       - ./conf/environment/default.env
     environment:
       KERNEL: $KERNEL
-    build: ./docker/
+    build: ./docker
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
       - ./conf/environment/:/srv/environment
