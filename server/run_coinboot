@@ -22,9 +22,10 @@ set -e -o pipefail
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 
-change_to_buildir (){
+change_to_build_dir (){
 if [[ $(basename $PWD) != server ]]; then
   cd server
+  pwd
 fi
 }
 
@@ -95,7 +96,8 @@ sudo apt-get update
 
 sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
 
-change_to_buildir
+pwd
+change_to_build_dir
 
 docker-compose -f docker-compose_travis-ci.yml up -d
 
