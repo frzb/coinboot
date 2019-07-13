@@ -44,7 +44,9 @@ services:
         hard: -1
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
-    image: graylog/graylog:2.5
+    # We have to use 2.5.1-4 to get around this issue:
+    # https://github.com/Graylog2/graylog-docker/issues/62
+    image: graylog/graylog:2.5.1-4
     volumes:
       - ./conf/graylog/contentpacks:/usr/share/graylog/data/contentpacks
     env_file:
