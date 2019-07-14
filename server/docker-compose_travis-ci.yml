@@ -13,7 +13,7 @@ networks:
 services:
   coinboot:
     container_name: coinboot
-    build: ./docker
+    build: ./server/docker
     env_file:
       - ./conf/environment/default.env
     environment:
