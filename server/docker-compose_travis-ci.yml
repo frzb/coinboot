@@ -13,11 +13,11 @@ networks:
 services:
   coinboot:
     container_name: coinboot
+    build: ./docker
     env_file:
       - ./conf/environment/default.env
     environment:
       KERNEL: $KERNEL
-     #build: ./docker
     volumes:
       - ./conf/dnsmasq:/etc/dnsmasq.d
       - ./conf/environment/:/srv/environment
