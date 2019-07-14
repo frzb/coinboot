@@ -106,6 +106,7 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 
 ls -la 
 
+docker-compose -f docker-compose_travis-ci.yml config
 docker-compose -f docker-compose_travis-ci.yml up -d
 
 docker ps
