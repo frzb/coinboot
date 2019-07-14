@@ -91,20 +91,18 @@ verify_over_ssh() {
   done
  }
 
-# We also need to load the environment before calling docker-compose:
-# https://github.com/docker/compose/issues/3435
-#export $(grep -v '^#' ./conf/environment | xargs)
-source ./conf/environment/*
-
-
-
 
 sudo apt-get update
 
 sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
 
 pwd
+
 change_to_build_dir
+# We also need to load the environment before calling docker-compose:
+# https://github.com/docker/compose/issues/3435
+#export $(grep -v '^#' ./conf/environment | xargs)
+source ./conf/environment/*
 
 ls -la 
 
