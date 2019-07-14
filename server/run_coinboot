@@ -101,8 +101,8 @@ pwd
 change_to_build_dir
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
-#export $(grep -v '^#' ./conf/environment | xargs)
-source ./conf/environment/*
+export $(grep -v '^#' ./conf/environment | xargs)
+#source ./conf/environment/*
 
 ls -la 
 
