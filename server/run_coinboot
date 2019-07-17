@@ -29,20 +29,13 @@ if [[ $(basename $PWD) != server ]]; then
 fi
 }
 
-build_images_docker_compose() {
-  pwd
-  ls -la
-  docker-compose -f docker-compose_travis-ci.yml build
-}
-
-
 run_docker_compose() {
   echo 'Debug inside run_docker_compose()'
   pwd
   ls -la
   docker-compose -f docker-compose_travis-ci.yml up -d
-  docker-compose exec coinboot env
-  docker-compose ps
+  docker-compose -f docker-compose_travis-ci.yml exec coinboot env
+  docker-compose -f docker-compose_travis-ci.yml ps
   echo 'Debug inside run_docker_compose()'
 }
 
@@ -115,8 +108,6 @@ change_to_build_dir
 export $(grep -v '^#' ./conf/environment/* | xargs)
 #source ./conf/environment/*
 
-build_images_docker_compose
-
 run_docker_compose
 
 run_qemu
@@ -126,3 +117,5 @@ verify_over_ssh
 run_qemu zram
 
 verify_over_ssh
+
+set +x
