@@ -22,7 +22,7 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 
-change_to_build_dir (){
+change_to_build_dir() {
 if [[ $(basename $PWD) != server ]]; then
   cd server
   pwd
@@ -115,7 +115,7 @@ change_to_build_dir
 export $(grep -v '^#' ./conf/environment/* | xargs)
 #source ./conf/environment/*
 
-build_images_docker_compose^
+build_images_docker_compose
 
 run_docker_compose
 
