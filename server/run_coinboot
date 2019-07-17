@@ -110,7 +110,8 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 
 run_docker_compose
 
-run_qemu
+run_qemu_bios
+run_qemu_uefi
 
 verify_over_ssh
 
