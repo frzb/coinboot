@@ -30,9 +30,13 @@ fi
 }
 
 run_docker_compose() {
+  echo 'Debug inside run_docker_compose()'
+  pwd
+  ls -la
   docker-compose -f docker-compose_travis-ci.yml up -d
   docker-compose exec coinboot env
   docker-compose ps
+  echo 'Debug inside run_docker_compose()'
 }
 
 wait_for_server_to_ready() {
