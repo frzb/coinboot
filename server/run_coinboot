@@ -104,13 +104,7 @@ change_to_build_dir
 export $(grep -v '^#' ./conf/environment/* | xargs)
 #source ./conf/environment/*
 
-ls -la 
-
-docker-compose -f docker-compose_travis-ci.yml config
-docker-compose -f docker-compose_travis-ci.yml up -d
-
-docker ps
-docker-compose ps
+run_docker_compose
 
 run_qemu
 
