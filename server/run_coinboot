@@ -51,7 +51,8 @@ run_qemu_bios() {
  qemu-system-x86_64
  -m 2048
  -smp 2
- -display none
+ -nographic
+ -serial mon:stdio
  -daemonize
  -boot n
  -net nic,model=e1000
@@ -62,7 +63,8 @@ run_qemu_uefi() {
  qemu-system-x86_64
  -m 2048
  -smp 2
- -display none
+ -nographic
+ -serial mon:stdio
  -daemonize
  -boot n
  -net nic,model=e1000
