@@ -21,7 +21,7 @@ set -x
 
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
-QEMU_PARAMETERS="-m 2048 \
+QEMU_PARAMETERS='-m 2048 \
  -smp 2 \
  -display none \
  -nographic \
@@ -29,7 +29,7 @@ QEMU_PARAMETERS="-m 2048 \
  -daemonize \
  -boot n \
  -net nic,model=e1000 \
- -net bridge,br=$(ip a|grep '192.168.1.1/24' | grep -oP 'br-.*')"
+ -net bridge,br=$(ip a|grep '192.168.1.1/24' | grep -oP 'br-.*')'
 MACHINE_IP='192.168.1.10'
 
 change_to_build_dir() {
