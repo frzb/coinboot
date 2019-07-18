@@ -21,11 +21,20 @@ set -x
 
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
+QEMU_PARAMETERS="-m 2048 \
+ -smp 2 \
+ -display none \
+ -nographic \
+ -serial mon:stdio \
+ -daemonize \
+ -boot n \
+ -net nic,model=e1000 \
+ -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)"
+MACHINE_IP=192.168.1.10
 
 change_to_build_dir() {
 if [[ $(basename $PWD) != server ]]; then
   cd server
-  pwd
 fi
 }
 
@@ -39,7 +48,8 @@ run_docker_compose() {
   echo 'Debug inside run_docker_compose()'
 }
 
-wait_for_server_to_ready() {
+# TODO: Refactor this - should be possible with one curl call
+wait_for_server_to_be_ready() {
   while ! [ $(curl --silent http://192.168.1.2 | jq length) -gt 4 ]; do
     curl --silent http://192.168.1.2 | jq '.[].name'
     echo '------------'
@@ -47,78 +57,59 @@ wait_for_server_to_ready() {
   done
 }
 
-run_qemu_bios() {
- qemu-system-x86_64
- -m 2048
- -smp 2
- -nographic
- -serial mon:stdio
- -daemonize
- -boot n
- -net nic,model=e1000
- -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
+ run_qemu_bios() {
+ qemu-system-x86_64 $QEMU_PARAMETERS
 }
 
 run_qemu_uefi() {
- qemu-system-x86_64
- -m 2048
- -smp 2
- -nographic
- -serial mon:stdio
- -daemonize
- -boot n
- -net nic,model=e1000
- -net bridge,br=$(ip a|grep 192.168.1.1/24 | grep -oP br-.*)
- -bios /usr/share/OVMF/OVMF_CODE.fd
+ # Load a UEFI firmware as "bios".
+ qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
 }
 
-
 verify_over_ssh() {
-  while ! ping -c 1 192.168.1.10; do
+  while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
     sleep 10
   done
 
-  while ! nc -z 192.168.1.10 22; do
-    echo 'Waiting for Coinboot machine to listen on port 2222/SSH ...'
+  while ! nc -z $MACHINE_IP 22; do
+    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
   sleep 10
   done
 
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 2222 localhost "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
 
   killall qemu-system-x86_64
 
-  while nc -z 192.168.1.10 22; do
+  while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
     sleep 10
   done
  }
 
+# ------------- main -------------
 
 sudo apt-get update
 
 sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
 
-pwd
-
 change_to_build_dir
+
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
-#source ./conf/environment/*
 
 run_docker_compose
 
-run_qemu_bios
-run_qemu_uefi
+wait_for_server_to_be_ready
 
+run_qemu_bios
 verify_over_ssh
 
-run_qemu zram
-
+run_qemu_uefi
 verify_over_ssh
 
 set +x
