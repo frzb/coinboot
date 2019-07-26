@@ -98,6 +98,8 @@ verify_over_ssh() {
 sudo apt-get update
 
 sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass
+sudo mkdir -p /etc/qemu
+echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
 
