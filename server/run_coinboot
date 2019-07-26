@@ -61,12 +61,12 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios() {
- qemu-system-x86_64 $QEMU_PARAMETERS
+ sudo qemu-system-x86_64 $QEMU_PARAMETERS
 }
 
 run_qemu_uefi() {
  # Load a UEFI firmware as "bios".
- qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
+ sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
 }
 
 verify_over_ssh() {
