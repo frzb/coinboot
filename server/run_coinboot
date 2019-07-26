@@ -24,7 +24,6 @@ export VERSION='0.98 Beta'
 QEMU_PARAMETERS='-m 2048 \
  -smp 2 \
  -display none \
- -nographic \
  -serial mon:stdio \
  -daemonize \
  -boot n \
