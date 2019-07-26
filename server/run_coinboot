@@ -29,8 +29,12 @@ QEMU_PARAMETERS='-m 2048 \
  -daemonize \
  -boot n \
  -net nic,model=e1000 \
- -net bridge,br=$(ip a|grep '192.168.1.1/24' | grep -oP 'br-.*')'
+ -net bridge,br=$(get_bridge_interface)
 MACHINE_IP='192.168.1.10'
+
+get_bridge_interface() {
+  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+}
 
 change_to_build_dir() {
 if [[ $(basename $PWD) != server ]]; then
