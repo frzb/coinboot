@@ -44,7 +44,7 @@ run_docker_compose() {
   echo 'Debug inside run_docker_compose()'
   pwd
   ls -la
-  docker-compose -f docker-compose_travis-ci.yml up -d
+  docker-compose -f docker-compose_travis-ci.yml up #-d
   docker-compose -f docker-compose_travis-ci.yml exec coinboot env
   docker-compose -f docker-compose_travis-ci.yml ps
   echo 'Debug inside run_docker_compose()'
