@@ -52,3 +52,9 @@ jobs:
       sudo: required
       language: bash
       script: ./server/run_coinboot
+
+    - <<: *run_coinboot
+      env: KERNEL=4.15.0-45-generic SUITE=xenial
+
+    - <<: *run_coinboot
+      env: KERNEL=5.0.0-13-generic SUITE=disco
