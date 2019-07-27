@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+set -x
 
 echo '--- Configured environment ---'
 env
@@ -75,3 +76,5 @@ fi
 if ! [ -f $BOOTDIR/$UEFI ]; then
   $WGET $URL/$UEFI -P $BOOTDIR
 fi
+
+set -x
