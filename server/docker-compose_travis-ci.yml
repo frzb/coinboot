@@ -11,8 +11,8 @@ networks:
       config:
       -
         subnet: 192.168.1.0/24
-      driver_opts:
-        com.docker.network.bridge.name: br-travis-coinboot
+    driver_opts:
+      com.docker.network.bridge.name: br-travis-coinboot
 services:
   coinboot:
     container_name: coinboot
