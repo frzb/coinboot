@@ -78,7 +78,7 @@ verify_over_ssh() {
     echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
   sleep 10
   done
-  
+
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
   # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
   while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && zramctl" ; do
@@ -86,7 +86,7 @@ verify_over_ssh() {
   sleep 10
   done
 
-  killall qemu-system-x86_64
+  sudo killall qemu-system-x86_64
 
   while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
