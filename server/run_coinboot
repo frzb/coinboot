@@ -28,8 +28,10 @@ QEMU_PARAMETERS='-m 2048
  -boot n
  -net nic,model=e1000
  -net bridge,br=br-travis'
+# These are just for debugging
 QEMU_PARAMETERS_DEBUG='-m 2048
  -smp 2
+ -nographic
  -serial mon:stdio
  -boot n
  -net nic,model=e1000
