@@ -30,7 +30,6 @@ QEMU_PARAMETERS='-m 2048
  -net bridge,br=br-travis'
 QEMU_PARAMETERS_DEBUG='-m 2048
  -smp 2
- -display none
  -serial mon:stdio
  -boot n
  -net nic,model=e1000
