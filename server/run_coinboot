@@ -28,7 +28,7 @@ QEMU_PARAMETERS='-m 2048 \
  -daemonize \
  -boot n \
  -net nic,model=e1000 \
- -net bridge,br=br-travis-coinboot'
+ -net bridge,br=br-travis'
 MACHINE_IP='192.168.1.10'
 
 get_bridge_interface() {

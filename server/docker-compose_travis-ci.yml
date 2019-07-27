@@ -9,10 +9,10 @@ networks:
     ipam:
       driver: default
       config:
-      -
-        subnet: 192.168.1.0/24
+      - subnet: 192.168.1.0/24
     driver_opts:
-      com.docker.network.bridge.name: br-travis-coinboot
+      # com.docker.network.bridge.name length is limited to 15 characters.
+      com.docker.network.bridge.name: br-travis
 services:
   coinboot:
     container_name: coinboot
