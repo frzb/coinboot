@@ -111,6 +111,8 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
+ip a
+
 run_qemu_bios
 verify_over_ssh
 
