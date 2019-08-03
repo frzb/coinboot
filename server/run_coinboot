@@ -76,6 +76,21 @@ run_qemu_uefi() {
  sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
 }
 
+verify_via_tty() {
+ spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
+ expect "login: "
+ send "ubuntu\n"
+
+ expect "Password: "
+ send "ubuntu\n"
+
+ expect "# "
+ send "ip a; sudo shutdown -h now"
+}
+
+
+
+
 verify_over_ssh() {
   while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
@@ -106,7 +121,7 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf
+sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect
 sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
@@ -121,6 +136,8 @@ run_docker_compose
 wait_for_server_to_be_ready
 
 ip a
+
+verify_via_tty
 
 run_qemu_bios
 verify_over_ssh
