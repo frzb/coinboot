@@ -59,6 +59,10 @@ wait_for_server_to_be_ready() {
  sudo qemu-system-x86_64 $QEMU_PARAMETERS
 }
 
+ run_qemu_bios_debug() {
+ sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
+}
+
 run_qemu_uefi() {
  # Load a UEFI firmware as "bios".
  sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
@@ -71,7 +75,7 @@ verify_via_tty() {
  send "ubuntu\n"
 
  expect "Password: "
- send "ubuntu\n" 
+ send "ubuntu\n"
 
  expect "# "
  send "ip a; sudo shutdown -h now"
@@ -126,6 +130,8 @@ run_docker_compose
 wait_for_server_to_be_ready
 
 ip a
+
+run_qemu_bios_debug
 
 verify_via_tty
 
