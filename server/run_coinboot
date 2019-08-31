@@ -70,7 +70,7 @@ run_qemu_uefi() {
 
 verify_via_tty() {
  expect <<- EOF
- spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG -bios /usr/share/OVMF/OVMF_CODE.fd
+ spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 
  expect "192-168-1-10 login: "
  send "ubuntu\n"
 
