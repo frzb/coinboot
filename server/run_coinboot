@@ -77,15 +77,17 @@ run_qemu_uefi() {
 }
 
 verify_via_tty() {
+ expect <<- EOF
  spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
  expect "login: "
  send "ubuntu\n"
 
  expect "Password: "
- send "ubuntu\n"
+ send "ubuntu\n" 
 
  expect "# "
  send "ip a; sudo shutdown -h now"
+ EOF
 }
 
 
