@@ -87,7 +87,7 @@ verify_via_tty() {
 
  expect "# "
  send "ip a; sudo shutdown -h now"
- EOF
+EOF
 }
 
 
