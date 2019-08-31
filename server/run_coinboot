@@ -21,12 +21,12 @@ set -x
 
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
-QEMU_PARAMETERS='-m 2048
- -smp 2
- -display none
- -daemonize
- -boot n
- -net nic,model=e1000
+QEMU_PARAMETERS='-m 2048 \
+ -smp 2 \
+ -display none \
+ -daemonize \
+ -boot n \
+ -net nic,model=e1000 \
  -net bridge,br=br-travis'
 # These are just for debugging
 QEMU_PARAMETERS_DEBUG='-m 2048
