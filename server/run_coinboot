@@ -82,9 +82,6 @@ verify_via_tty() {
 EOF
 }
 
-
-
-
 verify_over_ssh() {
   while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
@@ -129,16 +126,12 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
-ip a
-
-#run_qemu_bios_debug
-
 verify_via_tty
 
 run_qemu_bios
+
 verify_over_ssh
 
 run_qemu_uefi
-verify_over_ssh
 
-set +x
+verify_over_ssh
