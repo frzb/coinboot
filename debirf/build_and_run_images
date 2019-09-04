@@ -53,7 +53,7 @@ verify_over_ssh() {
   sleep 10
   done
 
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 2222 localhost "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && free -m && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 2222 localhost "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
   echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
