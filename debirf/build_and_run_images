@@ -33,8 +33,8 @@ run_qemu() {
   qemu-system-x86_64 \
   -kernel build/coinboot-vmlinuz-${KERNEL} \
   -initrd build/coinboot-initramfs-${KERNEL} \
-  -m 2048 \
-  -smp 4 \
+  -m 4096 \
+  -smp 2 \
   -display none \
   -daemonize \
   -net user,hostfwd=tcp::2222-:22 \
