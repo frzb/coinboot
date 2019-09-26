@@ -15,7 +15,7 @@ networks:
       com.docker.network.bridge.name: br-travis
 services:
   coinboot:
-    image: coinboot:coinboot
+    image: coinboot/coinboot
     container_name: coinboot
     env_file:
       - ./conf/environment/default.env
