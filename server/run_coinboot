@@ -37,7 +37,7 @@ get_interface_for_bridge() {
 
 add_macvtap_interface() {
   ip a
-  ip link add link ens4 name macvtap0 type macvtap mode bridge
+  sudo ip link add link ens4 name macvtap0 type macvtap mode bridge
   ip a
 }
 
