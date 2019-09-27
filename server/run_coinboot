@@ -26,9 +26,22 @@ QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=
 QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=br-travis'
 MACHINE_IP='192.168.1.10'
 
-get_bridge_interface() {
-  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+#get_bridge_interface() {
+#  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+#}
+
+
+get_interface_for_bridge() {
+  ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
 }
+
+add_interface_to_bridge() {
+  brctl show
+  brctl addbr br-travis
+  brctl addif get_interface_for_bridge br-travis
+  brctl show
+}
+
 
 change_to_build_dir() {
 if [[ $(basename $PWD) != server ]]; then
@@ -40,9 +53,9 @@ run_docker_compose() {
   echo 'Debug inside run_docker_compose()'
   pwd
   ls -la
-  docker-compose -f docker-compose_travis-ci.yml up -d
-  docker-compose -f docker-compose_travis-ci.yml exec coinboot env
-  docker-compose -f docker-compose_travis-ci.yml ps
+  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml up -d
+  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml exec coinboot env
+  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml ps
   echo 'Debug inside run_docker_compose()'
 }
 
@@ -117,6 +130,8 @@ sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
+
+
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
