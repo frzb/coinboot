@@ -35,6 +35,12 @@ get_interface_for_bridge() {
   ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
 }
 
+add_macvlan_interface() {
+  ip a
+  ip link add link eth0 name macvtap0 type macvtap mode bridge
+  ip a
+}
+
 add_interface_to_bridge() {
   brctl show
   brctl addbr br-travis
@@ -131,7 +137,7 @@ echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
 
-
+add_macvlan_interface
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
