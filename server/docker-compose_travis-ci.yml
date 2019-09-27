@@ -3,16 +3,16 @@ version: '3'
 
 # Change for triggering build 3
 
-networks:
-  coinboot:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 192.168.1.0/24
-    driver_opts:
-      # com.docker.network.bridge.name length is limited to 15 characters.
-      com.docker.network.bridge.name: br-travis
+#networks:
+#  coinboot:
+#    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#      - subnet: 192.168.1.0/24
+#    driver_opts:
+#      # com.docker.network.bridge.name length is limited to 15 characters.
+#      com.docker.network.bridge.name: br-travis
 services:
   coinboot:
     environment:
