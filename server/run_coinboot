@@ -26,9 +26,9 @@ QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=
 QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=br-travis'
 MACHINE_IP='192.168.1.10'
 
-#get_bridge_interface() {
-#  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
-#}
+get_bridge_interface() {
+  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+}
 
 
 get_interface_for_bridge() {
