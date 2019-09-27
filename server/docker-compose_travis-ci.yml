@@ -17,10 +17,6 @@ services:
   coinboot:
     environment:
       KERNEL: $KERNEL
-    network_mode: bridge
-    networks:
-      coinboot:
-        ipv4_address: 192.168.1.2
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
     # We have to use 2.5.1-4 to get around this issue:
