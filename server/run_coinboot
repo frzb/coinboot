@@ -23,7 +23,7 @@ export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=br-travis'
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3 3<>/dev/tap4'
-QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3 3<> /dev/tap4'
+QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3'
 #QEMU_PARAMETERS=-m\ 2048\ -smp\ 2\ -display\ none\ -daemonize\ -boot\ n\ -net\ nic\,model=e1000\ -net\ tap\,fd=3\ 3\<\>/dev/tap4
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -netdev tap,id=mynet0,ifname=macvtap0,script=no,downscript=no -device e1000,netdev=mynet0'
 # These are just for debugging
@@ -86,6 +86,7 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios() {
+ sudo exec 3<>/dev/tap4
  sudo qemu-system-x86_64 $QEMU_PARAMETERS
 }
 
