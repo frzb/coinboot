@@ -44,7 +44,8 @@ add_macvtap_interface() {
   sudo ip addr add 192.168.1.2/24 dev macvtap0
   sudo ip link set up dev macvtap0
   ip a
-  ls /dev/tap*
+  ls -la /dev/tap*
+  sudo chgrp -v netdev /dev/tap*
 }
 
 add_interface_to_bridge() {
