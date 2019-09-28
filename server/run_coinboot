@@ -40,6 +40,7 @@ add_macvtap_interface() {
   ip a
   sudo ip link add link ens4 name macvtap0 type macvtap mode bridge
   sudo ip addr add 192.168.1.2/24 dev macvtap0
+  sudo ip link set up dev macvtap0
   ip a
   ls /dev/tap*
 }
