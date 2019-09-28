@@ -22,7 +22,7 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=br-travis'
-QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3 3<>/dev/tap4'
+QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3\ 3<>/dev/tap4'
 # These are just for debugging
 QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net bridge,br=br-travis'
 MACHINE_IP='192.168.1.10'
@@ -36,6 +36,7 @@ get_interface_for_bridge() {
   ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
 }
 
+#/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
 add_macvtap_interface() {
   ip a
   sudo ip link add link ens4 name macvtap0 type macvtap mode bridge
