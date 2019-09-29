@@ -86,7 +86,7 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios() {
- sudo exec 3<>/dev/tap4
+ #sudo exec 3<>/dev/tap4
  sudo qemu-system-x86_64 $QEMU_PARAMETERS
 }
 
