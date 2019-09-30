@@ -46,7 +46,7 @@ add_macvtap_interface() {
   sudo ip link set up dev macvtap0
   ip a
   sudo chgrp -v netdev /dev/tap*
-  sudo chmod -v 660 /dev/tap*
+  sudo chmod -v 777 /dev/tap*
   ls -la /dev/tap*
 }
 
