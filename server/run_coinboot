@@ -24,7 +24,7 @@ export VERSION='0.98 Beta'
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=br-travis'
 QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3 3<>/dev/tap4'
 # These are just for debugging
-QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -nic,sock=/tmp/myswitch'
+QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -nic vde,sock=/tmp/myswitch'
 MACHINE_IP='192.168.1.10'
 
 get_bridge_interface() {
