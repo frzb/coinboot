@@ -227,7 +227,7 @@ run_docker_compose
 wait_for_server_to_be_ready
 
 #verify_via_tty
-qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net tap,fd=3 3<>/dev/tap4
+qemu-system-x86_64 -m 2048 -smp 2 -nographic -boot n -net nic,model=e1000 -net tap,fd=30 30<>/dev/tap4
 run_qemu_bios_debug
 
 verify_over_ssh
