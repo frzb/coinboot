@@ -90,7 +90,7 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios_debug() {
-  qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG  3<>/dev/tap4
+  qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 3<>/dev/tap4
 }
 
 run_qemu_uefi() {
@@ -160,6 +160,81 @@ wait_for_server_to_be_ready
 
 #verify_via_tty
 
+qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 3<>/dev/tap4
+run_qemu_uefi() {
+ # Load a UEFI firmware as "bios".
+ sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
+}
+
+verify_via_tty() {
+ expect <<- EOF
+ spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 
+ expect "192-168-1-10 login: "
+ send "ubuntu\n"
+
+ expect "Password: "
+ send "ubuntu\n"
+
+ expect "# "
+ send "ip a; sudo shutdown -h now"
+EOF
+}
+
+verify_over_ssh() {
+  while ! ping -c 1 $MACHINE_IP; do
+    echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
+    sleep 10
+  done
+
+  while ! nc -z $MACHINE_IP 22; do
+    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
+  sleep 10
+  done
+
+  # FIXME: RELEASE does not expanse to date string when 'latest' is specified
+  # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
+    echo 'Waiting for SSH login to succeed...'
+  sleep 10
+  done
+
+  sudo killall qemu-system-x86_64
+
+  while nc -z $MACHINE_IP 22; do
+    echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
+    sleep 10
+  done
+ }
+
+# ------------- main -------------
+
+sudo apt-get update
+
+sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect
+sudo mkdir -p /etc/qemu
+echo 'allow all' | sudo tee /etc/qemu/bridge.conf
+
+change_to_build_dir
+
+add_macvtap_interface
+
+# We also need to load the environment before calling docker-compose:
+# https://github.com/docker/compose/issues/3435
+export $(grep -v '^#' ./conf/environment/* | xargs)
+
+run_docker_compose
+
+wait_for_server_to_be_ready
+
+#verify_via_tty
+
+run_qemu_bios_debug
+
+verify_over_ssh
+
+run_qemu_uefi
+
+verify_over_ssh
 run_qemu_bios_debug
 
 verify_over_ssh
