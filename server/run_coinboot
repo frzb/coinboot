@@ -90,7 +90,7 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios_debug() {
- sudo eval qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
+ sudo -s eval qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
 }
 
 run_qemu_uefi() {
