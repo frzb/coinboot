@@ -146,7 +146,7 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect vde vde2
+sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect vde2
 sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
