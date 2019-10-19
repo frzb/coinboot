@@ -90,8 +90,7 @@ wait_for_server_to_be_ready() {
 }
 
  run_qemu_bios_debug() {
-  3<>/dev/tap4
-  qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
+  qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG  3<>/dev/tap4
 }
 
 run_qemu_uefi() {
