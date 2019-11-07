@@ -102,9 +102,14 @@ run_qemu_uefi() {
  sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
 }
 
+
+run_with_libvirt() {
+  virt-install --name coinboot-bios --memory 2048 --import --pxe --network type=direct,source=ens4,source_mode=bridge --graphics none
+}
+
 verify_via_tty() {
  expect <<- EOF
- spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 
+ spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
  expect "192-168-1-10 login: "
  send "ubuntu\n"
 
@@ -146,7 +151,7 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect vde2
+sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect vde2 virtinst libvirt-bin
 sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
@@ -172,7 +177,7 @@ run_qemu_uefi() {
 
 verify_via_tty() {
  expect <<- EOF
- spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 
+ spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
  expect "192-168-1-10 login: "
  send "ubuntu\n"
 
@@ -230,11 +235,9 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
-#verify_via_tty
+run_with_libvirt 
 
-setup_vde_switch 
-
-run_qemu_bios_debug
+virsh list --all 
 
 verify_over_ssh
 
