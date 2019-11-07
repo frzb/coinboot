@@ -239,15 +239,3 @@ run_with_libvirt
 
 virsh list --all 
 
-verify_over_ssh
-
-run_qemu_uefi
-
-verify_over_ssh
-run_qemu_bios_debug
-
-verify_over_ssh
-
-run_qemu_uefi
-
-verify_over_ssh
