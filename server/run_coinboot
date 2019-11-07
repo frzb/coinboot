@@ -225,8 +225,6 @@ echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
 
-add_macvtap_interface
-
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
@@ -235,7 +233,6 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
-run_with_libvirt 
+run_with_libvirt
 
-virsh list --all 
-
+virsh list --all
