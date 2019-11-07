@@ -147,29 +147,6 @@ verify_over_ssh() {
   done
  }
 
-# ------------- main -------------
-
-sudo apt-get update
-
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect vde2 virtinst libvirt-bin
-sudo mkdir -p /etc/qemu
-echo 'allow all' | sudo tee /etc/qemu/bridge.conf
-
-change_to_build_dir
-
-add_macvtap_interface
-
-# We also need to load the environment before calling docker-compose:
-# https://github.com/docker/compose/issues/3435
-export $(grep -v '^#' ./conf/environment/* | xargs)
-
-run_docker_compose
-
-wait_for_server_to_be_ready
-
-#verify_via_tty
-
-qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG 3<>/dev/tap4
 run_qemu_uefi() {
  # Load a UEFI firmware as "bios".
  sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
