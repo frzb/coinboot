@@ -202,7 +202,7 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect virtinst
+sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect libvirt-bin virtinst
 sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
