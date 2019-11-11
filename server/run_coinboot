@@ -110,7 +110,7 @@ run_qemu_uefi() {
 
 
 run_with_libvirt() {
-  sudo virt-install --name coinboot-bios --memory 2048 --disk none --import --pxe --network type=direct,source=ens4,source_mode=bridge --graphics none
+  sudo virt-install --name coinboot-bios --memory 2048 --disk none --pxe --network type=direct,source=ens4,source_mode=bridge --graphics none
 }
 
 verify_via_tty() {
