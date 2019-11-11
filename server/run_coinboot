@@ -48,6 +48,12 @@ add_macvtap_interface() {
   ls -la /dev/tap*
 }
 
+add_address_to_ens4() {
+  ip a
+  sudo ip addr add 192.168.1.2/24 dev ens4
+  ip a
+}
+
 add_interface_to_bridge() {
   brctl show
   brctl addbr br-travis
@@ -201,6 +207,8 @@ sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
+
+add_address_to_ens4
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
