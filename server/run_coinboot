@@ -220,4 +220,6 @@ wait_for_server_to_be_ready
 
 run_with_libvirt
 
-virsh list --all
+sudo virsh list --all
+
+verify_over_ssh
