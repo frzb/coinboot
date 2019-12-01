@@ -54,10 +54,13 @@ ip route
 }
 
 update_default_route() {
+  ip route
+  sudo ip route add 10.30.0.1 dev br0 metric 100
+  sudo ip route add default via 10.30.0.1 dev br0 metric 100
+  ip route
   sudo ip route del default via 10.30.0.1 dev ens4
-  sudo ip route add default via 10.30.0.1 dev br0
   sudo ip route del 10.30.0.1 dev ens4
-  sudo ip route add 10.30.0.1 dev br0
+  ip route
 }
 
 
