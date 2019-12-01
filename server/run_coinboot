@@ -41,6 +41,16 @@ get_interface_for_bridge() {
   ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
 }
 
+migrate_ips_to_bridge_interface() {
+while ! ip -4 addr show dev $BRIDGE | grep inet; do
+ IP=$(ip -4 a show dev $BRIDGE | grep -m 1 inet | cut -d ' ' -f6)
+ sudo ip addr del $IP $BRIDGE
+ sudo ip addr add $IP br0
+ ip a show dev $BRIDGE
+ ip a show dev br0
+done
+}
+
 #/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
 # https://superuser.com/a/368023
 add_macvlan_interface() {
@@ -72,13 +82,8 @@ move_interface_to_bridge() {
   if [[ -z  $(get_bridge_interface) ]]; then
     sudo brctl addbr br0
     sudo brctl addif br0 $BRIDGE
-    sudo ip addr add 192.168.1.2/24 dev br0
     sudo ip link set br0 up
   fi 
-  if [[ -n $(get_interface_for_bridge) ]] && [[ $(get_interface_for_bridge) != 'br0' ]]; then
-    sudo ip addr del 192.168.1.2/24 dev $BRIDGE
-  fi
-  ip a
   brctl show
 }
 
@@ -234,6 +239,7 @@ echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 change_to_build_dir
 
 move_interface_to_bridge
+migrate_ips_to_bridge_interface
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
