@@ -53,6 +53,14 @@ ip a
 ip route
 }
 
+update_default_route() {
+  sudo ip route del default via 10.30.0.1 dev ens4
+  sudo ip route add default via 10.30.0.1 dev br0
+  sudo ip route del 10.30.0.1 dev ens4
+  sudo ip route add 10.30.0.1 dev br0
+}
+
+
 #/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
 # https://superuser.com/a/368023
 add_macvlan_interface() {
@@ -242,6 +250,7 @@ change_to_build_dir
 
 move_interface_to_bridge
 migrate_ips_to_bridge_interface
+update_default_route
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
