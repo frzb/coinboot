@@ -255,6 +255,8 @@ move_interface_to_bridge
 migrate_ips_to_bridge_interface
 update_default_route
 add_address_to_br0
+sudo ip link set dev br0 up 
+sudo ip a
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
