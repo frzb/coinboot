@@ -49,6 +49,8 @@ while ! ip -4 addr show dev $BRIDGE | grep inet; do
  ip a show dev $BRIDGE
  ip a show dev br0
 done
+ip a 
+ip route
 }
 
 #/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
