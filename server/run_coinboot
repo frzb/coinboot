@@ -42,12 +42,12 @@ get_interface_for_bridge() {
 }
 
 #/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
-# https://superuser.com/a/368023 
+# https://superuser.com/a/368023
 add_macvlan_interface() {
   ip a
   sudo ip link add link $BRIDGE name macvlan0 type macvlan mode bridge
   sudo ip addr add 192.168.1.2/24 dev macvlan0
-  sudo ip link set up dev macvlan0 
+  sudo ip link set up dev macvlan0
   ip a
   ip route flush dev $BRIDGE
   ip route add 192.168.1.1 dev macvlan0 proto static
@@ -68,11 +68,11 @@ add_interface_to_bridge() {
 
 move_interface_to_bridge() {
   brctl show
-  brctl addbr br0
-  brctl addif br0 $BRIDGE
+  sudo brctl addbr br0
+  sudo brctl addif br0 $BRIDGE
   sudo ip addr del 192.168.1.2/24 dev $BRIDGE
   sudo ip addr add 192.168.1.2/24 dev br0
-  sudo ip link set br0 up 
+  sudo ip link set br0 up
   ip a
   brctl show
 }
@@ -129,7 +129,7 @@ run_with_libvirt_bios() {
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole 
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
 verify_via_tty() {
