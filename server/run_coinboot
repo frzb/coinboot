@@ -69,15 +69,15 @@ add_interface_to_bridge() {
 move_interface_to_bridge() {
   brctl show
   ip a
-  if [[ -n  $(get_bridge_interface) ]]; then
+  if [[ -z  $(get_bridge_interface) ]]; then
     sudo brctl addbr br0
     sudo brctl addif br0 $BRIDGE
     sudo ip addr add 192.168.1.2/24 dev br0
+    sudo ip link set br0 up
   fi 
   if [[ -n $(get_interface_for_bridge) ]] && [[ $(get_interface_for_bridge) != 'br0' ]]; then
     sudo ip addr del 192.168.1.2/24 dev $BRIDGE
   fi
-  sudo ip link set br0 up
   ip a
   brctl show
 }
