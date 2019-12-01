@@ -76,9 +76,9 @@ add_macvlan_interface() {
   ip route add 192.168.1.1 dev macvlan0 proto static
 }
 
-add_address_to_ens4() {
+add_address_to_br0() {
   ip a
-  sudo ip addr add 192.168.1.2/24 dev $BRIDGE
+  sudo ip addr add 192.168.1.2/24 dev br0
   ip a
 }
 
@@ -254,6 +254,7 @@ change_to_build_dir
 move_interface_to_bridge
 migrate_ips_to_bridge_interface
 update_default_route
+add_address_to_br0
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
