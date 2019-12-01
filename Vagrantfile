@@ -14,12 +14,6 @@ if ! which docker-compose; then
   sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-if ! docker-compose -f $COMPOSEFILE ps | grep -q coinboot; then
-  docker-compose -f $COMPOSEFILE up -d --build --force-recreate
-else
-  docker-compose -f $COMPOSEFILE  restart
-fi
-
 # Configure forwading and NAT cause the DHCP server vagrant box acts currently
 # also as gateway.
 # Ignore the masquerading set up for Docker (destination 172.17.0.0/16).
@@ -86,6 +80,8 @@ Vagrant.configure(2) do |config|
   config.vm.define "coinboot-server" do |machine|
     machine.vm.box = "bento/ubuntu-16.04"
     machine.vm.provision "shell", inline: $coinboot_docker
+    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
+    machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
     Socket.getifaddrs.each do |addr_info|
@@ -107,7 +103,8 @@ Vagrant.configure(2) do |config|
       machine.vm.provision "shell", inline: 'rm -fv /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     else
       machine.vm.network "private_network", ip: "192.168.1.2"
-      machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
+      # FIXME: Path has changed in monorepo
+      # machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     end
         # Using '82540EM' provides 1GBit/s interface not just the default
         # 100MBit/s one.

@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 set -e -o pipefail
 set -x
 # Copyright (C) 2019 Gunter Miegel coinboot.io
@@ -18,7 +18,6 @@ set -x
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 #QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=br-travis'
@@ -26,6 +25,12 @@ QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=
 # These are just for debugging
 QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -net nic,vlan=0,model=e1000 -net vde,sock=/tmp/myswitch'
 MACHINE_IP='192.168.1.10'
+
+if [ -d "/vagrant" ]; then
+  BRIDGE='eth1'
+else
+  BRIDGE='ens4'
+fi
 
 get_bridge_interface() {
   ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
@@ -37,20 +42,20 @@ get_interface_for_bridge() {
 }
 
 #/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
-add_macvtap_interface() {
+# https://superuser.com/a/368023 
+add_macvlan_interface() {
   ip a
-  sudo ip link add link ens4 name macvtap0 type macvtap mode bridge
-  sudo ip addr add 192.168.1.2/24 dev macvtap0
-  sudo ip link set up dev macvtap0
+  sudo ip link add link $BRIDGE name macvlan0 type macvlan mode bridge
+  sudo ip addr add 192.168.1.2/24 dev macvlan0
+  sudo ip link set up dev macvlan0 
   ip a
-  sudo chgrp -v netdev /dev/tap*
-  sudo chmod -v 777 /dev/tap*
-  ls -la /dev/tap*
+  ip route flush dev $BRIDGE
+  ip route add 192.168.1.1 dev macvlan0 proto static
 }
 
 add_address_to_ens4() {
   ip a
-  sudo ip addr add 192.168.1.2/24 dev ens4
+  sudo ip addr add 192.168.1.2/24 dev $BRIDGE
   ip a
 }
 
@@ -61,10 +66,23 @@ add_interface_to_bridge() {
   brctl show
 }
 
+move_interface_to_bridge() {
+  brctl show
+  brctl addbr br0
+  brctl addif br0 $BRIDGE
+  sudo ip addr del 192.168.1.2/24 dev $BRIDGE
+  sudo ip addr add 192.168.1.2/24 dev br0
+  sudo ip link set br0 up 
+  ip a
+  brctl show
+}
+
 
 change_to_build_dir() {
-if [[ $(basename $PWD) != server ]]; then
+if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
   cd server
+else
+  cd /vagrant/server
 fi
 }
 
@@ -73,9 +91,6 @@ run_docker_compose() {
   pwd
   ls -la
   docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml up -d
-  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml exec coinboot env
-  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml exec coinboot ip a
-  docker-compose -f ../docker-compose.yml -f docker-compose_travis-ci.yml ps
   echo 'Debug inside run_docker_compose()'
 }
 
@@ -109,8 +124,12 @@ run_qemu_uefi() {
 }
 
 
-run_with_libvirt() {
-  sudo virt-install --pxe --name coinboot-bios --memory 2048 --disk none --network type=direct,source=ens4,source_mode=bridge --nographics --boot menu=on,useserial=on --noautoconsole
+run_with_libvirt_bios() {
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot menu=on,useserial=on --noautoconsole
+}
+
+run_with_libvirt_uefi() {
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole 
 }
 
 verify_via_tty() {
@@ -202,14 +221,14 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes qemu-system-x86 ipxe-qemu sshpass ovmf expect libvirt-bin virtinst
+# TODO remove virt-viewer when done with debugging.
+sudo apt-get  install --yes --no-install-recommends jq qemu-system-x86 ipxe-qemu sshpass ovmf expect libvirt-bin virtinst virt-viewer
 sudo mkdir -p /etc/qemu
 echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
 
-add_address_to_ens4
-
+move_interface_to_bridge
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
@@ -218,8 +237,12 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
-run_with_libvirt
+run_with_libvirt_bios
+sudo virsh list --all
 
+verify_over_ssh
+
+run_with_libvirt_uefi
 sudo virsh list --all
 
 verify_over_ssh
