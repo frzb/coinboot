@@ -233,7 +233,7 @@ verify_over_ssh() {
   sleep 10
   done
 
-  DOMAIN=$(virsh list --name)
+  DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
   sudo virsh undefine $DOMAIN
   sudo virsh list --all
