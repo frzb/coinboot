@@ -42,27 +42,19 @@ while ip -4 addr show dev $BRIDGE | grep inet; do
  echo "Migrating $IP to br0 now"
  sudo ip addr del $IP dev $BRIDGE
  sudo ip addr add $IP dev br0
- ip a show dev $BRIDGE
- ip a show dev br0
 done
-ip a
-ip route
 }
 
 update_default_route() {
-  ip route
   sudo ip route add 10.30.0.1 dev br0 metric 100
   sudo ip route add default via 10.30.0.1 dev br0 metric 100
-  ip route
   sudo ip route del default via 10.30.0.1 dev ens4
   sudo ip route del 10.30.0.1 dev ens4
   ip route
 }
 
 add_address_to_br0() {
-  ip a
   sudo ip addr add 192.168.1.2/24 dev br0
-  ip a
 }
 
 add_interface_to_bridge() {
@@ -73,8 +65,6 @@ add_interface_to_bridge() {
 }
 
 move_interface_to_bridge() {
-  brctl show
-  ip a
   if [[ -z  $(get_bridge_interface) ]]; then
     sudo brctl addbr br0
     sudo brctl addif br0 $BRIDGE
@@ -116,20 +106,6 @@ run_with_libvirt_uefi() {
   sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
-verify_via_tty() {
- expect <<- EOF
- spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
- expect "192-168-1-10 login: "
- send "ubuntu\n"
-
- expect "Password: "
- send "ubuntu\n"
-
- expect "# "
- send "ip a; sudo shutdown -h now"
-EOF
-}
-
 verify_over_ssh() {
   while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
@@ -163,17 +139,17 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-# TODO remove virt-viewer when done with debugging.
-sudo apt-get  install --yes --no-install-recommends jq qemu-system-x86 ipxe-qemu sshpass ovmf expect libvirt-bin virtinst virt-viewer
+sudo apt-get  install --yes --no-install-recommends jq sshpass libvirt-bin virtinst
 
 change_to_build_dir
 
 move_interface_to_bridge
 update_default_route
+
 migrate_ips_to_bridge_interface
+
 add_address_to_br0
-sudo ip link set dev br0 up
-sudo ip a
+
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
