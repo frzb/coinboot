@@ -50,7 +50,7 @@ while ip -4 addr show dev $BRIDGE | grep inet; do
  ip a show dev $BRIDGE
  ip a show dev br0
 done
-ip a 
+ip a
 ip route
 }
 
@@ -97,7 +97,7 @@ move_interface_to_bridge() {
     sudo brctl addbr br0
     sudo brctl addif br0 $BRIDGE
     sudo ip link set br0 up
-  fi 
+  fi
   brctl show
 }
 
@@ -233,9 +233,9 @@ verify_over_ssh() {
   sleep 10
   done
 
-  sudo virsh shutdown 1
-  sudo virsh undefine 1 
-
+  DOMAIN=(virsh list --name)
+  sudo virsh shutdown $DOMAIN
+  sudo virsh undefine $DOMAIN
   sudo virsh list --all
 
   while nc -z $MACHINE_IP 22; do
@@ -259,7 +259,7 @@ move_interface_to_bridge
 update_default_route
 migrate_ips_to_bridge_interface
 add_address_to_br0
-sudo ip link set dev br0 up 
+sudo ip link set dev br0 up
 sudo ip a
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
