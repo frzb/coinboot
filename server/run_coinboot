@@ -153,7 +153,7 @@ run_with_libvirt_bios() {
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
 verify_via_tty() {
@@ -233,7 +233,10 @@ verify_over_ssh() {
   sleep 10
   done
 
-  sudo killall qemu-system-x86_64
+  sudo virsh shutdown 1
+  sudo virsh undefine 1 
+
+  sudo virsh list --all
 
   while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
