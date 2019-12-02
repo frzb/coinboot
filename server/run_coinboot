@@ -1,6 +1,6 @@
 !/bin/bash
 set -e -o pipefail
-set -x
+# set -x
 # Copyright (C) 2019 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
@@ -20,10 +20,6 @@ set -x
 
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
-#QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net bridge,br=br-travis'
-QEMU_PARAMETERS='-m 2048 -smp 2 -display none -daemonize -boot n -net nic,model=e1000 -net tap,fd=3 3<>/dev/tap4'
-# These are just for debugging
-QEMU_PARAMETERS_DEBUG='-m 2048 -smp 2 -nographic -boot n -net nic,vlan=0,model=e1000 -net vde,sock=/tmp/myswitch'
 MACHINE_IP='192.168.1.10'
 
 if [ -d "/vagrant" ]; then
@@ -35,7 +31,6 @@ fi
 get_bridge_interface() {
   ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
 }
-
 
 get_interface_for_bridge() {
   ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
@@ -64,19 +59,6 @@ update_default_route() {
   ip route
 }
 
-
-#/dev/tap$(cat /sys/class/net/macvtap0/ifindex)
-# https://superuser.com/a/368023
-add_macvlan_interface() {
-  ip a
-  sudo ip link add link $BRIDGE name macvlan0 type macvlan mode bridge
-  sudo ip addr add 192.168.1.2/24 dev macvlan0
-  sudo ip link set up dev macvlan0
-  ip a
-  ip route flush dev $BRIDGE
-  ip route add 192.168.1.1 dev macvlan0 proto static
-}
-
 add_address_to_br0() {
   ip a
   sudo ip addr add 192.168.1.2/24 dev br0
@@ -100,7 +82,6 @@ move_interface_to_bridge() {
   fi
   brctl show
 }
-
 
 change_to_build_dir() {
 if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
@@ -127,78 +108,12 @@ wait_for_server_to_be_ready() {
   done
 }
 
- run_qemu_bios() {
- #sudo exec 3<>/dev/tap4
- eval sudo qemu-system-x86_64 $QEMU_PARAMETERS
-}
-
- run_qemu_bios_debug() {
-  vdeq qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
-}
-
-setup_vde_switch() {
-  vde_switch -F -sock /tmp/myswitch -tap tap4
-
-}
-
-
-run_qemu_uefi() {
- # Load a UEFI firmware as "bios".
- sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
-}
-
-
 run_with_libvirt_bios() {
   sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot menu=on,useserial=on --noautoconsole
 }
 
 run_with_libvirt_uefi() {
   sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
-}
-
-verify_via_tty() {
- expect <<- EOF
- spawn sudo qemu-system-x86_64 $QEMU_PARAMETERS_DEBUG
- expect "192-168-1-10 login: "
- send "ubuntu\n"
-
- expect "Password: "
- send "ubuntu\n"
-
- expect "# "
- send "ip a; sudo shutdown -h now"
-EOF
-}
-
-verify_over_ssh() {
-  while ! ping -c 1 $MACHINE_IP; do
-    echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
-    sleep 10
-  done
-
-  while ! nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
-  sleep 10
-  done
-
-  # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
-    echo 'Waiting for SSH login to succeed...'
-  sleep 10
-  done
-
-  sudo killall qemu-system-x86_64
-
-  while nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
-    sleep 10
-  done
- }
-
-run_qemu_uefi() {
- # Load a UEFI firmware as "bios".
- sudo qemu-system-x86_64 $QEMU_PARAMETERS -bios /usr/share/OVMF/OVMF_CODE.fd
 }
 
 verify_via_tty() {
@@ -250,8 +165,6 @@ sudo apt-get update
 
 # TODO remove virt-viewer when done with debugging.
 sudo apt-get  install --yes --no-install-recommends jq qemu-system-x86 ipxe-qemu sshpass ovmf expect libvirt-bin virtinst virt-viewer
-sudo mkdir -p /etc/qemu
-echo 'allow all' | sudo tee /etc/qemu/bridge.conf
 
 change_to_build_dir
 
@@ -270,11 +183,9 @@ run_docker_compose
 wait_for_server_to_be_ready
 
 run_with_libvirt_bios
-sudo virsh list --all
 
 verify_over_ssh
 
 run_with_libvirt_uefi
-sudo virsh list --all
 
 verify_over_ssh
