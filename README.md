@@ -42,7 +42,7 @@ This container includes all services to get Coinboot up and running and boot dis
 
 #### Coinboot - Cost effective, diskless GPU clusters for blockchain hashing and beyond
 
-[![](http://img.youtube.com/vi/6T9pBa9I_AQ/0.jpg)](http://www.youtube.com/watch?v=6T9pBa9I_AQ "Coinboot - Cost effective, diskless GPU clusters for blockchain hashing and beyond")
+[![](img/preview_talk_asg19.png)](http://www.youtube.com/watch?v=6T9pBa9I_AQ "Coinboot - Cost effective, diskless GPU clusters for blockchain hashing and beyond")
 
 ## Requirements
 
