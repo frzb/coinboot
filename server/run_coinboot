@@ -1,6 +1,6 @@
 !/bin/bash
 set -e -o pipefail
-# set -x
+set -x
 # Copyright (C) 2019 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
@@ -82,11 +82,9 @@ fi
 }
 
 run_docker_compose() {
-  echo 'Debug inside run_docker_compose()'
   pwd
   ls -la
   docker-compose -f ../docker-compose.yml 
-  echo 'Debug inside run_docker_compose()'
 }
 
 # TODO: Refactor this - should be possible with one curl call
