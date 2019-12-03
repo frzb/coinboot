@@ -1,0 +1,96 @@
+#!/bin/bash -e
+set -x
+
+# debirf module: a1_install-kernel
+
+# install a kernel package, indicated by the expected environment
+# variables:
+#  DEBIRF_PATH
+#  DEBIRF_ROOT
+#  DEBIRF_KERNEL_PACKAGE
+#  DEBIRF_KERNEL_FLAVOR
+#
+# *** REQUIRED MODULE ***
+# WARNING: this module is necessary for proper functioning of debirf.
+#
+# The debirf scripts were written by
+# Jameson Rollins <jrollins@fifthhorseman.net>
+# and
+# Daniel Kahn Gillmor <dkg@fifthhorseman.net>.
+#
+# They are Copyright 2007, and are all released under the GPL,
+# version 3 or later.
+#
+# Copyright (C) 2018, 2019 Gunter Miegel coinboot.io
+
+# clear out old modules if they exist, to avoid confusion
+rm -rf "$DEBIRF_ROOT/lib/modules"
+
+# download/copy in kernel package
+if [ -z "$DEBIRF_KERNEL_PACKAGE" ] ; then
+  if [ -n "$DEBIRF_KERNEL" ]; then
+    KNAME=linux-image-$DEBIRF_KERNEL
+  else
+    # determine kernel to install. assume arch of build host.
+
+    # determine kernel arch.  need everything after the kernel version
+    # and debian version
+    KARCH=${DEBIRF_KERNEL_FLAVOR:-$(uname -r | cut -d- -f3-)}
+
+    # determine the full kernel version from the dependency of the
+    # generic linux-image-ARCH package in the debirf root (since it
+    # may be different than what is installed on the build host)
+    # Use sort -V for natural sorting of version numbers.
+    KNAME=$(debirf_exec apt-cache show linux-image-"$KARCH" | grep '^Depends: ' | sed 's/^Depends: //' | tr ',' '\n' | tr -d ' ' | grep ^linux-image | sort -Vr | head -n1)
+    # download only the desired kernel package for later dpkg
+    # extraction.  this also downloads the kernel dependencies, but
+    # they will not be installed, and the downloaded packages will all
+    # be purged in the end by the clean-root module.  it would be nice
+    # to just use "apt-get download", but that's only supported since
+    # wheezy.
+  fi
+  #debirf_exec apt-get install -d -y "$KNAME"
+  debirf_exec apt-get install -d -y --no-install-recommends "$KNAME"
+  # Attention: For a Kernel > 4.4 Ubuntu kernel and modules are in separate packages.
+  if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
+   debirf_exec apt-get install -d -y --no-install-recommends  linux-modules-$DEBIRF_KERNEL
+  fi
+
+else
+  # install kernel deb if given at command line
+  cp "$DEBIRF_KERNEL_PACKAGE" "$DEBIRF_ROOT"/var/cache/apt/archives/
+fi
+
+KPKG=$(basename "$DEBIRF_ROOT"/var/cache/apt/archives/linux-image-*)
+
+# Before cosmic 'dpkg --extract <pkg> /' was used instead of '--unpkack'.
+# But at cosmic it changed its behavior to cleanup destination directories 
+# before extracting data to them which breaks the whole debootstraped rootfs.
+echo "Unpacking kernel package $KPKG..."
+debirf_exec dpkg --unpack /var/cache/apt/archives/"$KPKG"
+
+ls -la $DEBIRF_ROOT/usr/bin/apt-get
+
+if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
+  MODPKG=$(basename "$DEBIRF_ROOT"/var/cache/apt/archives/linux-modules-*)
+  echo "Unpacking kernel module package $MODPKG..."
+  debirf_exec dpkg --unpack /var/cache/apt/archives/"$MODPKG"
+fi
+# install the module init tools, since they are needed for depmod
+# these are in kmod in current releases
+# also add 'cpio' which is need for packing the kernel
+#debirf_exec apt-get install -y kmod cpio
+
+# depmod to create module list
+KVERS=$(ls -1 -t "$DEBIRF_ROOT/lib/modules" | head -n1)
+echo "generating modules.dep..."
+debirf_exec depmod -a "$KVERS"
+#debirf_exec apt-get -y install kmod
+
+# extract kernel and debian stock initrd from the build root:
+mv "$DEBIRF_ROOT"/boot/vmlinu* "$DEBIRF_BUILDD"
+
+# remove kernel symlinks
+if [[ -L "$DEBIRF_ROOT"/vmlinuz ]] ; then
+    rm "$DEBIRF_ROOT"/vmlinuz
+fi

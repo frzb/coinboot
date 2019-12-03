@@ -1,0 +1,80 @@
+#!/bin/bash -e
+
+# debirf module: a3_i915_bpo
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# The driver module to support the integrated graphic engine of Intel CPUs is i915.
+# This module only comes with the linux-image-extra package in Ubuntu.
+# The linux-image-extra package adds ~35M to the installation,
+# so we download the linux-image-extra package and extract only i915 module to
+# put it in place.
+# i915_bpo stands for i915_BackPOrt - so a version backuported from upstream.
+# The backported module only supports a limited set of devices.
+# To cover the full range we are including the i915 module as well.
+
+# Path of module from linux-image-extra from linux-image-extra e.g.:
+# /lib/modules/4.4.0-101-generic/kernel/ubuntu/i915/i915_bpo.ko
+
+# FIXME: Firmware can not be loaded
+#[    9.943066] i915_bpo 0000:00:02.0: Direct firmware load for i915/skl_dmc_ver1.bin failed with error -2
+#[    9.943069] i915_bpo 0000:00:02.0: Failed to load DMC firmware [https://01.org/linuxgraphics/intel-linux-graphics-firmwares], disabling runtime power management.
+# Firmware files mentioned by modinfo of i915_bpo
+# firmware:       i915/bxt_dmc_ver1.bin
+# firmware:       i915/skl_dmc_ver1.bin
+# firmware:       i915/skl_guc_ver6.bin
+# Files are located here:
+# /lib/firmware/i915/
+
+# For the kernel 4.15 the package with the i915 module is called
+# linux-modules-extra-4.15.0-*-generic
+# And there is no backuported module.
+
+KERNEL_RELEASE=$DEBIRF_KERNEL
+if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
+  EXTRA_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
+else
+  EXTRA_PACKAGE="linux-image-extra-$KERNEL_RELEASE"
+  MODULE_I915_BPO_PACKAGE_PATH="/lib/modules/$KERNEL_RELEASE/kernel/ubuntu/i915/i915_bpo.ko"
+fi
+EXTRA_PACKAGE_FILE=$(debirf_exec apt-cache show $EXTRA_PACKAGE | grep -oP $EXTRA_PACKAGE.*deb)
+MODULE_I915_PACKAGE_PATH="/lib/modules/$KERNEL_RELEASE/kernel/drivers/gpu/drm/i915/i915.ko"
+
+# TODO: Download to /tmp in the first place.
+debirf_exec apt-get update
+
+debirf_exec apt-get download "$EXTRA_PACKAGE"
+
+# FIXME: Remove the hardwired deb file.
+# dpkg-deb -x needs a full path!
+debirf_exec dpkg -x /$EXTRA_PACKAGE_FILE /tmp/i915/
+
+debirf_exec rm -rf /$EXTRA_PACKAGE_FILE
+
+# TODO: Put the i915_bpo module at a better place than the root of the module directory.
+debirf_exec cp -v "/tmp/i915/$MODULE_I915_PACKAGE_PATH" "/lib/modules/$KERNEL_RELEASE"
+if [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
+debirf_exec cp -v "/tmp/i915/$MODULE_I915_BPO_PACKAGE_PATH" "/lib/modules/$KERNEL_RELEASE"
+
+# The intel_ips module is a dependency of the i915_bpo module.
+# Add a version of this module with 'i915_bpo_enabled' symbol enabled.
+debirf_exec cp -v "/tmp/i915/lib/modules/$KERNEL_RELEASE/kernel/drivers/platform/x86/intel_ips.ko" "/lib/modules/$KERNEL_RELEASE"
+fi
+
+# Clean up the directories extracted from the extra package.
+debirf_exec rm -rf /tmp/i915

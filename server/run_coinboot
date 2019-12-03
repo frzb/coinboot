@@ -1,0 +1,165 @@
+!/bin/bash
+set -e -o pipefail
+# set -x
+# Copyright (C) 2019 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+export RELEASE=$(date +'%Y%m%d')
+export VERSION='0.98 Beta'
+MACHINE_IP='192.168.1.10'
+
+if [ -d "/vagrant" ]; then
+  BRIDGE='eth1'
+else
+  BRIDGE='ens4'
+fi
+
+get_bridge_interface() {
+  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+}
+
+get_interface_for_bridge() {
+  ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
+}
+
+migrate_ips_to_bridge_interface() {
+while ip -4 addr show dev $BRIDGE | grep inet; do
+ IP=$(ip -4 a show dev $BRIDGE | grep -m 1 inet | cut -d ' ' -f6)
+ echo "Migrating $IP to br0 now"
+ sudo ip addr del $IP dev $BRIDGE
+ sudo ip addr add $IP dev br0
+done
+}
+
+update_default_route() {
+  sudo ip route add 10.30.0.1 dev br0 metric 100
+  sudo ip route add default via 10.30.0.1 dev br0 metric 100
+  sudo ip route del default via 10.30.0.1 dev ens4
+  sudo ip route del 10.30.0.1 dev ens4
+  ip route
+}
+
+add_address_to_br0() {
+  sudo ip addr add 192.168.1.2/24 dev br0
+}
+
+add_interface_to_bridge() {
+  brctl show
+  brctl addbr br-travis
+  brctl addif get_interface_for_bridge br-travis
+  brctl show
+}
+
+move_interface_to_bridge() {
+  if [[ -z  $(get_bridge_interface) ]]; then
+    sudo brctl addbr br0
+    sudo brctl addif br0 $BRIDGE
+    sudo ip link set br0 up
+  fi
+  brctl show
+}
+
+change_to_build_dir() {
+if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
+  cd server
+else
+  cd /vagrant/server
+fi
+}
+
+run_docker_compose() {
+  pwd
+  docker-compose up -d
+}
+
+# TODO: Refactor this - should be possible with one curl call
+wait_for_server_to_be_ready() {
+  while ! [ $(curl --silent http://192.168.1.2 | jq length) -gt 4 ]; do
+    curl --silent http://192.168.1.2 | jq '.[].name'
+    echo '------------'
+    sleep 10
+  done
+}
+
+run_with_libvirt_bios() {
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot menu=on,useserial=on --noautoconsole
+}
+
+run_with_libvirt_uefi() {
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
+}
+
+verify_over_ssh() {
+  while ! ping -c 1 $MACHINE_IP; do
+    echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
+    sleep 10
+  done
+
+  while ! nc -z $MACHINE_IP 22; do
+    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
+  sleep 10
+  done
+
+  # FIXME: RELEASE does not expanse to date string when 'latest' is specified
+  # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
+    echo 'Waiting for SSH login to succeed...'
+  sleep 10
+  done
+
+  DOMAIN=$(sudo virsh list --name)
+  sudo virsh shutdown $DOMAIN
+  sudo virsh undefine $DOMAIN
+  sudo virsh list --all
+
+  while nc -z $MACHINE_IP 22; do
+    echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
+    sleep 10
+  done
+ }
+
+# ------------- main -------------
+
+sudo apt-get update
+
+sudo apt-get  install --yes --no-install-recommends jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
+
+change_to_build_dir
+
+move_interface_to_bridge
+
+update_default_route
+
+migrate_ips_to_bridge_interface
+
+add_address_to_br0
+
+# We also need to load the environment before calling docker-compose:
+# https://github.com/docker/compose/issues/3435
+export $(grep -v '^#' ./conf/environment/* | xargs)
+
+run_docker_compose
+
+wait_for_server_to_be_ready
+
+run_with_libvirt_bios
+
+verify_over_ssh
+
+run_with_libvirt_uefi
+
+verify_over_ssh

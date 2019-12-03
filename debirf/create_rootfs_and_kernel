@@ -1,0 +1,68 @@
+#!/bin/bash -e
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# The Kernel to use is set by the environment variable DEBIRF_KERNEL
+# Don't mix this up with DEBIRF_KERNEL_PACKAGE which defines a locally available
+# Debian package to be used.
+#export DEBIRF_KERNEL=4.4.0-133-generic
+
+apt update
+apt install --yes debirf bc sudo
+
+# We have a customized version of debirf
+# with an adapted 'init' script able to
+# pull and extract plugins.
+cp /mnt/debirf /usr/bin/debirf
+
+# Lets replace single threaded gzip
+# with pgiz that can use multiple cores.
+# Also set some symlink to use it as
+# drop-in-replacment.
+apt install --yes pigz lbzip2 pbzip2
+
+ln -fs /usr/bin/lbzip2 /usr/local/bin/bzip2
+ln -fs /usr/bin/lbzip2 /usr/local/bin/bunzip2
+ln -fs /usr/bin/lbzip2 /usr/local/bin/bzcat
+ln -fs /usr/bin/pigz /usr/local/bin/gzip
+ln -fs /usr/bin/pigz /usr/local/bin/gunzip
+ln -fs /usr/bin/pigz /usr/local/bin/zcat
+
+# FIXME: Setting variant=minbase shrink the rootfs archive by ~10M, but access over network and serial fails.
+# sudo sed -i 's#eval "/usr/sbin/debootstrap $OPTS"#eval "/usr/sbin/debootstrap --variant=minbase $OPTS"#' $(which debirf)
+
+# debootstrap can not handle that /vagrant is mounted with noexec or nodev
+# so we copy the debirf profile to /tmp
+cp -vr /mnt/profiles/coinboot /tmp
+
+# export variables of the debirf profile
+source /mnt/profiles/coinboot/debirf.conf
+
+which debirf
+
+ls -la /tmp
+
+#Force a root build without fakeroot
+time debirf make -n --root-build --no-warning /tmp/coinboot
+
+sudo cp -v /tmp/coinboot/vmlinuz* /mnt/build/coinboot-vmlinuz-$DEBIRF_KERNEL
+sudo cp -v /tmp/coinboot/*.cgz /mnt/build/coinboot-initramfs-$DEBIRF_KERNEL
+
+sudo chmod -v 644 /mnt/build/*
+
+

@@ -45,6 +45,12 @@ Its core features are:
 This repository contains the Coinboot Server Docker container.                 
 This container includes all services to get Coinboot up and running and boot diskless Coinboot Worker nodes over network.
 
+### Talk at All Systems Go! 2019 conference
+
+#### Coinboot - Cost effective, diskless GPU clusters for blockchain hashing and beyond
+
+[![](img/preview_talk_asg19.png)](http://www.youtube.com/watch?v=6T9pBa9I_AQ "Coinboot - Cost effective, diskless GPU clusters for blockchain hashing and beyond")
+
 ## Requirements
 
 Docker
@@ -84,7 +90,7 @@ There are also mandatory environment variables which are required to be configur
 
 The RootFS and Kernel are downloaded autmatically when the Coinboot Server Docker container is started based on the `RELEASE`set at `./conf/environment/default.env`. Out of the box the latest available release is used.
 
-You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot-debirf).   
+You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot/tree/master/debirf).   
 Or **download** a pre-build daily release at: https://github.com/frzb/coinboot-debirf/releases  
 These builds are made daily to contain all current packages updates and security fixes.
 The RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use are to be placed in the directory `./boot`.
