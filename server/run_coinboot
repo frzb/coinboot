@@ -82,8 +82,6 @@ fi
 }
 
 run_docker_compose() {
-  pwd
-  ls -la
   docker-compose -f ../docker-compose.yml up -d
 }
 
@@ -142,6 +140,7 @@ sudo apt-get  install --yes --no-install-recommends jq sshpass libvirt-bin virti
 change_to_build_dir
 
 move_interface_to_bridge
+
 update_default_route
 
 migrate_ips_to_bridge_interface
