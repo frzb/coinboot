@@ -32,7 +32,7 @@ jobs:
         provider: releases
         api_key: ${TOKEN}
         file_glob: true
-        file: build/*
+        file: debirf/build/*
         skip_cleanup: true
         on:
           branch: master
