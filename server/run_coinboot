@@ -82,6 +82,7 @@ fi
 }
 
 run_docker_compose() {
+  pwd
   docker-compose up -d
 }
 
