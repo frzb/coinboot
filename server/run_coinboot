@@ -82,7 +82,7 @@ fi
 }
 
 run_docker_compose() {
-  docker-compose -f ../docker-compose.yml up -d
+  docker-compose up -d
 }
 
 # TODO: Refactor this - should be possible with one curl call
