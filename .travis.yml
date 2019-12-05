@@ -23,7 +23,6 @@ jobs:
           fi
       env: KERNEL=4.15.0-45-generic SUITE=xenial
       dist: xenial
-      sudo: required
       language: bash
       script: ./debirf/build_and_run_images
       before_deploy:
@@ -38,7 +37,7 @@ jobs:
         api_key: ${TOKEN}
         file_glob: true
         file: debirf/build/*
-        skip_cleanup: true
+        cleanup: false
         on:
           branch: master
           tags: true 
@@ -51,7 +50,6 @@ jobs:
       before_script: if ! [[ "$TO_BUILD" = *"server"* ]]; then exit 0; fi
       env: KERNEL=4.15.0-45-generic SUITE=xenial
       dist: xenial
-      sudo: required
       language: bash
       script: ./server/run_coinboot
 
