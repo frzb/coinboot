@@ -26,22 +26,22 @@ jobs:
       sudo: required
       language: bash
       script: ./debirf/build_and_run_images
-      after_success:
+      before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-        - git tag -a "$(date +'%Y%m%d')" -m 'Automatic release by Travis CI'
-        - git push "https://${TOKEN}@github.com/${TRAVIS_REPO_SLUG}".git --tags
-        - git fetch origin
-        - git tag
+        - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d')
+        - git tag -a "$TRAVIS_TAG " -m 'Automatic release by Travis CI'
       deploy:
         provider: releases
+        draft: false
+        edge: true
         api_key: ${TOKEN}
         file_glob: true
         file: debirf/build/*
         skip_cleanup: true
         on:
           branch: master
-        draft: false
+          tags: true 
 
     - <<: *build_and_run
       env: KERNEL=5.0.0-13-generic SUITE=disco
