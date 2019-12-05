@@ -22,7 +22,7 @@ jobs:
             exit 0
           fi
       env: KERNEL=4.15.0-45-generic SUITE=xenial
-      dist: xenial
+      dist: bionic
       language: bash
       script: ./debirf/build_and_run_images
       before_deploy:
@@ -49,7 +49,7 @@ jobs:
       stage: run coinboot
       before_script: if ! [[ "$TO_BUILD" = *"server"* ]]; then exit 0; fi
       env: KERNEL=4.15.0-45-generic SUITE=xenial
-      dist: xenial
+      dist: bionic
       language: bash
       script: ./server/run_coinboot
 
