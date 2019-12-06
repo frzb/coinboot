@@ -18,7 +18,7 @@ jobs:
       # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
       before_script:
         - |
-          if ! [[ "$TO_BUILD" = *"debirf"* ]] || ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] ; then
+          if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
             exit 0
           fi
       env: KERNEL=4.15.0-45-generic SUITE=xenial
@@ -40,7 +40,7 @@ jobs:
         cleanup: false
         on:
           branch: master
-          tags: true 
+          tags: true
 
     - <<: *build_and_run
       env: KERNEL=5.0.0-13-generic SUITE=disco
