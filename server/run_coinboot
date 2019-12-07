@@ -1,4 +1,4 @@
-!/bin/bash
+! /bin/bash
 set -e -o pipefail
 set -x
 # Copyright (C) 2019 Gunter Miegel coinboot.io
@@ -46,6 +46,7 @@ done
 }
 
 update_default_route() {
+  ip route 
   sudo ip route add 10.30.0.1 dev br0 metric 100
   sudo ip route add default via 10.30.0.1 dev br0 metric 100
   sudo ip route del default via 10.30.0.1 dev ens4
