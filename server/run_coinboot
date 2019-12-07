@@ -136,7 +136,7 @@ verify_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes --no-install-recommends jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
+sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
 
 change_to_build_dir
 
