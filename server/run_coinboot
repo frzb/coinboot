@@ -159,7 +159,7 @@ cat /etc/resolv.conf
 
 sudo netstat -tulpen 
 
-sudo resolvectl status
+sudo systemd-resolve --status
 
 run_docker_compose
 
