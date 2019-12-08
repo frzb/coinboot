@@ -159,6 +159,8 @@ cat /etc/resolv.conf
 
 sudo netstat -tulpen 
 
+sudo resolvectl status
+
 run_docker_compose
 
 wait_for_server_to_be_ready
