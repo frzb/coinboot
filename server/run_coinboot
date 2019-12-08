@@ -153,6 +153,12 @@ add_address_to_br0
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
 
+dig heise.de
+
+cat /etc/resolv.conf 
+
+sudo netstat -tulpen 
+
 run_docker_compose
 
 wait_for_server_to_be_ready
