@@ -21,36 +21,48 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
+DEFAULT_ROUTE=$(ip route | grep default | grep -v br0) 
+DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 
 if [ -d "/vagrant" ]; then
-  BRIDGE='eth1'
+  EXT_IF='enp0s8'
 else
-  BRIDGE='ens4'
+  EXT_IF='ens4'
 fi
 
 get_bridge_interface() {
-  ip a | grep '192.168.1.1/24' |grep -oP 'br-.*'
+  ip a | grep '192.168.1.2/24' |grep -oP 'br-.*'
 }
 
 get_interface_for_bridge() {
-  ip a | grep '192.168.1.1/24' |grep -oP '\s(w+)$'
+  ip a | grep '192.168.1.2/24' |grep -oP '\s(w+)$'
+}
+
+get_default_route() {
+  ip route | grep default | grep -v br0
+}
+
+get_default_gateway() {
+  ip route | grep default | grep -v br0 | cut -d ' ' -3
 }
 
 migrate_ips_to_bridge_interface() {
-while ip -4 addr show dev $BRIDGE | grep inet; do
- IP=$(ip -4 a show dev $BRIDGE | grep -m 1 inet | cut -d ' ' -f6)
+while ip -4 addr show dev $EXT_IF | grep inet; do
+ IP=$(ip -4 a show dev $EXT_IF | grep -m 1 inet | cut -d ' ' -f6)
  echo "Migrating $IP to br0 now"
- sudo ip addr del $IP dev $BRIDGE
+ sudo ip addr del $IP dev $EXT_IF
  sudo ip addr add $IP dev br0
 done
 }
 
 update_default_route() {
   ip route
-  sudo ip route add 10.30.0.1 dev br0 metric 10
-  sudo ip route add default via 10.30.0.1 dev br0 metric 10
-  sudo ip route del default via 10.30.0.1 dev ens4
-  sudo ip route del 10.30.0.1 dev ens4
+  # sudo ip route add 10.30.0.1 dev br0 metric 10
+  sudo ip route add $DEFAULT_GW dev br0 metric 10
+  #sudo ip route add default via 10.30.0.1 dev br0 metric 10
+  sudo ip route add default via $DEFAULT_GW dev br0 metric 10
+  sudo ip route del default via $DEFAULT_GW dev $EXT_IF
+  sudo ip route del $DEFAULT_GW dev $EXT_IF
   ip route
 }
 
@@ -66,9 +78,9 @@ add_interface_to_bridge() {
 }
 
 move_interface_to_bridge() {
-  if [[ -z  $(get_bridge_interface) ]]; then
+  if [[ -z  $(get_bridge_interface) ]] && ! $(ip a |grep br0) ; then
     sudo brctl addbr br0
-    sudo brctl addif br0 $BRIDGE
+    sudo brctl addif br0 $EXT_IF
     sudo ip link set br0 up
   fi
   brctl show
@@ -156,6 +168,13 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 dig heise.de
 
 cat /etc/resolv.conf
+ls -la /etc/systemd/network
+ls -la  /run/systemd/network 
+ls -la  /usr/lib/systemd/network
+
+cat /etc/systemd/network/*
+cat /run/systemd/network/* 
+cat  /usr/lib/systemd/network/* 
 
 sudo netstat -tulpen
 sudo systemd-resolve --status
