@@ -52,6 +52,7 @@ while ip -4 addr show dev $EXT_IF | grep inet; do
  echo "Migrating $IP to br0 now"
  sudo ip addr del $IP dev $EXT_IF
  sudo ip addr add $IP dev br0
+ sudo dhclient -v br0
 done
 }
 
@@ -65,6 +66,7 @@ update_default_route() {
   sudo ip route del $DEFAULT_GW dev $EXT_IF
   ip route
 }
+
 
 add_address_to_br0() {
   sudo ip addr add 192.168.1.2/24 dev br0
