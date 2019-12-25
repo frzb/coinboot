@@ -24,21 +24,24 @@ echo '------------------------------'
 WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
 BOOTDIR=/var/lib/tftpboot
+GITHUB_REPO=frzb/coinboot 
 ## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
 
 if [ $RELEASE = latest ]; then
-    RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+    RESPONSE=$($CURL --silent "https://api.github.com/${GITHUB_REPO}/tags")
     sleep 5
     while ! TAG=$(echo $RESPONSE | jq -r '.[0].name'); do
       echo "Calling the Github API has failed, repeat ..."
-      RESPONSE=$($CURL --silent "https://api.github.com/repos/frzb/coinboot-debirf/tags")
+      RESPONSE=$($CURL --silent "https://api.github.com/${GITHUB_REPO}/tags")
       sleep 5
     done
   echo "Using latest coinboot-debirf release: $TAG"
 fi
-URL=https://github.com/frzb/coinboot-debirf/releases/download/${TAG}
+
+DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
+
 if [ -z $KERNEL ]; then
   KERNEL=4.15.0-45-generic
 fi
@@ -46,11 +49,11 @@ VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
 
 if ! [ -f $BOOTDIR/$VMLINUZ ]; then
-$WGET $URL/$VMLINUZ -P $BOOTDIR
+$WGET $DOWNLOAD_URL/$VMLINUZ -P $BOOTDIR
 fi
 
 if ! [ -f $BOOTDIR/$INITRAMFS ]; then
-$WGET $URL/$INITRAMFS -P $BOOTDIR
+$WGET $DOWNLOAD_URL/$INITRAMFS -P $BOOTDIR
 fi
 
 if ! [ -h $BOOTDIR/vmlinuz ] || [ $(readlink $BOOTDIR/vmlinuz) = $BOOTDIR/$VMLINUZ ]; then
