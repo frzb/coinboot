@@ -21,7 +21,7 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
-DEFAULT_ROUTE=$(ip route | grep default | grep -v br0) 
+DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 
 if [ -d "/vagrant" ]; then
@@ -138,7 +138,7 @@ verify_over_ssh() {
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
-  sudo virsh undefine $DOMAIN || sudo virsh undefine --nvram $DOMAIN 
+  virsh undefine --nvram $DOMAIN
   sudo virsh list --all
 
   while nc -z $MACHINE_IP 22; do
