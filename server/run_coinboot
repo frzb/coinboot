@@ -137,7 +137,7 @@ verify_over_ssh() {
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
-  virsh undefine --nvram $DOMAIN
+  sudo virsh undefine --nvram $DOMAIN 
   sudo virsh list --all
 
   while nc -z $MACHINE_IP 22; do
