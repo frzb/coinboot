@@ -168,13 +168,8 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 dig heise.de
 
 cat /etc/resolv.conf
-ls -la /etc/systemd/network
-ls -la  /run/systemd/network 
-ls -la  /usr/lib/systemd/network
-
-cat /etc/systemd/network/*
-cat /run/systemd/network/* 
-cat  /usr/lib/systemd/network/* 
+ls -la /etc/netplan/
+cat /etc/netplan/*
 
 sudo netstat -tulpen
 sudo systemd-resolve --status
