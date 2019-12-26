@@ -53,9 +53,9 @@ This container includes all services to get Coinboot up and running and boot dis
 
 ## Requirements
 
-Docker
+Docker 18.06.0-ce
 
-Docker Compose
+Docker Compose 1.25.0 
 
 ## Usage
 
@@ -91,7 +91,7 @@ There are also mandatory environment variables which are required to be configur
 The RootFS and Kernel are downloaded autmatically when the Coinboot Server Docker container is started based on the `RELEASE`set at `./conf/environment/default.env`. Out of the box the latest available release is used.
 
 You can **build** your own Coinboot base image using: [coinboot-debirf](https://github.com/frzb/coinboot/tree/master/debirf).   
-Or **download** a pre-build daily release at: https://github.com/frzb/coinboot-debirf/releases  
+Or **download** a pre-build daily release at: https://github.com/frzb/coinboot/releases  
 These builds are made daily to contain all current packages updates and security fixes.
 The RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use are to be placed in the directory `./boot`.
 
