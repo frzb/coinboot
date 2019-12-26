@@ -30,11 +30,11 @@ GITHUB_REPO=frzb/coinboot
 # If the value is 'latest' we determine the latest release, else we use the set value.
 
 if [ $RELEASE = latest ]; then
-    RESPONSE=$($CURL --silent "https://api.github.com/${GITHUB_REPO}/tags")
+    RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
     sleep 5
     while ! TAG=$(echo $RESPONSE | jq -r '.[0].name'); do
       echo "Calling the Github API has failed, repeat ..."
-      RESPONSE=$($CURL --silent "https://api.github.com/${GITHUB_REPO}/tags")
+      RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
     done
   echo "Using latest coinboot-debirf release: $TAG"
