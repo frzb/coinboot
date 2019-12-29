@@ -56,14 +56,9 @@ done
 }
 
 update_default_route() {
-  #ip route
-  #sudo ip route add $DEFAULT_GW dev br0 metric 10
-  #sudo ip route add default via $DEFAULT_GW dev br0 metric 10
-  #sudo ip route del default via $DEFAULT_GW dev $EXT_IF
-  #sudo ip route del $DEFAULT_GW dev $EXT_IF
   ip route
   sudo dhclient -v br0
-  ip route 
+  ip route
 }
 
 
@@ -142,7 +137,7 @@ verify_over_ssh() {
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
     sleep 10
   done
-  sudo virsh undefine --nvram $DOMAIN 
+  sudo virsh undefine --nvram $DOMAIN
  }
 
 # ------------- main -------------
