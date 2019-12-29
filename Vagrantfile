@@ -33,7 +33,7 @@ Vagrant.configure(2) do |config|
   # to speed up things as much as possible.
   config.vm.provider :virtualbox do |vb|
     vb.customize ["modifyvm", :id, "--cpus", `#{RbConfig::CONFIG['host_os'] =~ /darwin/ ? 'sysctl -n hw.ncpu' : 'nproc'}`.chomp]
-    vb.customize ["modifyvm", :id, "--memory", 2048]
+    vb.customize ["modifyvm", :id, "--memory", 3096]
   end
 
   config.vm.define "worker" do |machine|
@@ -78,7 +78,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "coinboot-server" do |machine|
-    machine.vm.box = "bento/ubuntu-16.04"
+    machine.vm.box = "ubuntu/bionic64"
     machine.vm.provision "shell", inline: $coinboot_docker
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
     machine.vm.network "forwarded_port", guest: 5900, host: 5900

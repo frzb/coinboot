@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 # Copyright (C) 2019 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
@@ -51,18 +52,12 @@ while ip -4 addr show dev $EXT_IF | grep inet; do
  echo "Migrating $IP to br0 now"
  sudo ip addr del $IP dev $EXT_IF
  sudo ip addr add $IP dev br0
- sudo dhclient -v br0
 done
 }
 
 update_default_route() {
   ip route
-  # sudo ip route add 10.30.0.1 dev br0 metric 10
-  sudo ip route add $DEFAULT_GW dev br0 metric 10
-  #sudo ip route add default via 10.30.0.1 dev br0 metric 10
-  sudo ip route add default via $DEFAULT_GW dev br0 metric 10
-  sudo ip route del default via $DEFAULT_GW dev $EXT_IF
-  sudo ip route del $DEFAULT_GW dev $EXT_IF
+  sudo dhclient -v br0
   ip route
 }
 
@@ -79,7 +74,7 @@ add_interface_to_bridge() {
 }
 
 move_interface_to_bridge() {
-  if [[ -z  $(get_bridge_interface) ]] && ! $(ip a |grep br0) ; then
+  if [[ -z  $(get_bridge_interface) ]] && ! $(ip a |grep -oP 'br0') ; then
     sudo brctl addbr br0
     sudo brctl addif br0 $EXT_IF
     sudo ip link set br0 up
@@ -137,13 +132,12 @@ verify_over_ssh() {
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
-  sudo virsh undefine --nvram $DOMAIN 
   sudo virsh list --all
-
   while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
     sleep 10
   done
+  sudo virsh undefine --nvram $DOMAIN
  }
 
 # ------------- main -------------
@@ -155,12 +149,12 @@ sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libv
 change_to_build_dir
 
 move_interface_to_bridge
-
-update_default_route
-
 migrate_ips_to_bridge_interface
 
-add_address_to_br0
+if ! [ -d "/vagrant" ]; then
+  add_address_to_br0
+  update_default_route
+fi
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
