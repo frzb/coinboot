@@ -1,6 +1,7 @@
 ---
 env:
   global:
+    - FORCE_BUILD=true
     # We use backticks in favor of the proper $() subshell call to cope with the
     # evaluation of Travis CI. Else we had trouble with the braces of the regex.
     # The regex matches on subdirectories only - identified by the trailing /.
@@ -10,6 +11,7 @@ jobs:
   include:
     - &build_and_run
       stage: build and run images
+      env: KERNEL=4.15.0-72-generic SUITE=xenial
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
@@ -18,10 +20,13 @@ jobs:
       # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
       before_script:
         - |
-          if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
-            exit 0
+          if [[ $FORCE_BUILD = true ]]; then
+              echo 'Forcing build - even if there are no changes in ./debirf'
+          else
+            if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
+              exit 0
+            fi
           fi
-      env: KERNEL=4.15.0-45-generic SUITE=xenial
       dist: bionic
       language: bash
       script: ./debirf/build_and_run_images
@@ -44,12 +49,20 @@ jobs:
           branch: master
 
     - <<: *build_and_run
-      env: KERNEL=5.0.0-13-generic SUITE=disco
+      env: KERNEL=5.0.0-37-generic SUITE=disco
 
     - &run_coinboot
+      env: KERNEL=4.15.0-72-generic SUITE=xenial
       stage: run coinboot
-      before_script: if ! [[ "$TO_BUILD" = *"server"* ]]; then exit 0; fi
-      env: KERNEL=4.15.0-45-generic SUITE=xenial
+      before_script:
+        - |
+          if [[ $FORCE_BUILD = true ]]; then
+            echo 'Forcing build - even if there are no changes in ./debirf'
+          else
+            if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"server"* ]]; then
+              exit 0
+            fi
+          fi
       dist: bionic
       language: bash
       script: ./server/run_coinboot
@@ -58,4 +71,4 @@ jobs:
       # env: KERNEL=4.15.0-45-generic SUITE=xenial
 
     - <<: *run_coinboot
-      env: KERNEL=5.0.0-13-generic SUITE=disco
+      env: KERNEL=5.0.0-37-generic SUITE=disco
