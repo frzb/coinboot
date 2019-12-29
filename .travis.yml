@@ -20,7 +20,7 @@ jobs:
       # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
       before_script:
         - |
-          if [[ FORCE_BUILD = "true" ]]; then 
+          if [[ FORCE_BUILD = true ]]; then
             echo 'Forcing build - even if there are no changes in ./debirf'
           elif ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
             exit 0
@@ -52,9 +52,9 @@ jobs:
     - &run_coinboot
       env: KERNEL=4.15.0-72-generic SUITE=xenial
       stage: run coinboot
-      before_script: 
+      before_script:
         - |
-          if [[ FORCE_BUILD = "true" ]]; then 
+          if [[ FORCE_BUILD = true ]]; then
             echo 'Forcing build - even if there are no changes in ./server'
           elif ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"server"* ]]; then
             exit 0
