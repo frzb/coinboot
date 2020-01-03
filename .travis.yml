@@ -41,7 +41,7 @@ jobs:
         provider: releases
         draft: false
         edge: true
-        api_key: ${TOKEN}
+        token: ${TOKEN}
         file_glob: true
         file: debirf/build/*
         cleanup: false
