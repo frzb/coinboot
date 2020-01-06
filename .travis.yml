@@ -33,7 +33,6 @@ jobs:
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
       before_deploy:
-        - rvm $(travis_internal_ruby) --fuzzy do ruby -S bundle install
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
         - export TRAVIS_TAG=$(printf '%(%Y%m%d)T')
@@ -41,7 +40,9 @@ jobs:
       deploy:
         provider: releases
         draft: false
-        edge: true
+        edge:
+          source: wenkokke/dpl
+          branch: master
         token: ${TOKEN}
         file_glob: true
         file: debirf/build/*
