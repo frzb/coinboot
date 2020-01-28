@@ -41,8 +41,6 @@ jobs:
         provider: releases
         draft: false
         edge:
-          source: wenkokke/dpl
-          branch: master
         token: ${TOKEN}
         file_glob: true
         file: debirf/build/*
