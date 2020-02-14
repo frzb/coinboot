@@ -21,7 +21,7 @@ set -x
 # They are Copyright 2007, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018, 2019 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2019, 2020 Gunter Miegel coinboot.io
 
 # clear out old modules if they exist, to avoid confusion
 rm -rf "$DEBIRF_ROOT/lib/modules"
@@ -50,10 +50,12 @@ if [ -z "$DEBIRF_KERNEL_PACKAGE" ] ; then
     # wheezy.
   fi
   #debirf_exec apt-get install -d -y "$KNAME"
-  debirf_exec apt-get install -d -y --no-install-recommends "$KNAME"
+  # debirf_exec apt-get install -d -y --no-install-recommends "$KNAME"
+  debirf_exec apt-get download "$KNAME"
   # Attention: For a Kernel > 4.4 Ubuntu kernel and modules are in separate packages.
   if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
-   debirf_exec apt-get install -d -y --no-install-recommends  linux-modules-$DEBIRF_KERNEL
+   #debirf_exec apt-get install -d -y --no-install-recommends  linux-modules-$DEBIRF_KERNEL
+   debirf_exec apt-get download linux-modules-$DEBIRF_KERNEL
   fi
 
 else
@@ -61,20 +63,21 @@ else
   cp "$DEBIRF_KERNEL_PACKAGE" "$DEBIRF_ROOT"/var/cache/apt/archives/
 fi
 
-KPKG=$(basename "$DEBIRF_ROOT"/var/cache/apt/archives/linux-image-*)
+KPKG=$(basename "$DEBIRF_ROOT"/linux-image-*)
 
 # Before cosmic 'dpkg --extract <pkg> /' was used instead of '--unpkack'.
 # But at cosmic it changed its behavior to cleanup destination directories 
 # before extracting data to them which breaks the whole debootstraped rootfs.
 echo "Unpacking kernel package $KPKG..."
-debirf_exec dpkg --unpack /var/cache/apt/archives/"$KPKG"
-
-ls -la $DEBIRF_ROOT/usr/bin/apt-get
+#debirf_exec dpkg --unpack /var/cache/apt/archives/"$KPKG"
+debirf_exec dpkg --unpack "$KPKG"
+debirf_exec rm -v "$KPKG"
 
 if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
-  MODPKG=$(basename "$DEBIRF_ROOT"/var/cache/apt/archives/linux-modules-*)
+  MODPKG=$(basename "$DEBIRF_ROOT"/linux-modules-*)
   echo "Unpacking kernel module package $MODPKG..."
-  debirf_exec dpkg --unpack /var/cache/apt/archives/"$MODPKG"
+  debirf_exec dpkg --unpack "$MODPKG"
+  debirf_exec rm -v "$MODPKG"
 fi
 # install the module init tools, since they are needed for depmod
 # these are in kmod in current releases
