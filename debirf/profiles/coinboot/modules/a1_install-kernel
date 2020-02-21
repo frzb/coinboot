@@ -83,12 +83,12 @@ fi
 # these are in kmod in current releases
 # also add 'cpio' which is need for packing the kernel
 #debirf_exec apt-get install -y kmod cpio
+debirf_exec apt-get install -y linux-base cpio
 
 # depmod to create module list
 KVERS=$(ls -1 -t "$DEBIRF_ROOT/lib/modules" | head -n1)
 echo "generating modules.dep..."
 debirf_exec depmod -a "$KVERS"
-#debirf_exec apt-get -y install kmod
 
 # extract kernel and debian stock initrd from the build root:
 mv "$DEBIRF_ROOT"/boot/vmlinu* "$DEBIRF_BUILDD"
