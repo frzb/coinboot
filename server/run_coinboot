@@ -74,7 +74,7 @@ add_interface_to_bridge() {
 }
 
 move_interface_to_bridge() {
-  if [[ -z  $(get_bridge_interface) ]] && ! $(ip a |grep -oP 'br0') ; then
+  if [[ -z  $(get_bridge_interface) ]] && ! ip a | grep -oP 'br0'; then
     sudo brctl addbr br0
     sudo brctl addif br0 $EXT_IF
     sudo ip link set br0 up
