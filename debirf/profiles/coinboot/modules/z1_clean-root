@@ -78,3 +78,8 @@ if [ "$ROOT_BUILD" != 'true' ]; then
     debirf_exec dpkg-divert --remove /usr/bin/ldd
     mv -f "$DEBIRF_ROOT/usr/bin/ldd.REAL" "$DEBIRF_ROOT/usr/bin/ldd"
 fi
+
+# depmod to create module list
+KVERS=$(ls -1 -t "$DEBIRF_ROOT/lib/modules" | head -n1)
+echo "Finalize with generating modules.dep..."
+debirf_exec depmod -a "$KVERS"
