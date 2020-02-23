@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 
 # Copyright (C) 2019 Gunter Miegel coinboot.io
 #
@@ -24,8 +25,10 @@ export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 
 change_to_buildir (){
-if [[ $(basename $PWD) != debirf ]]; then
+if [[ $(basename $PWD) != debirf ]] && ! id vagrant; then
   cd debirf
+elif id vagrant; then
+  cd /vagrant
 fi
 }
 
@@ -38,7 +41,7 @@ run_qemu() {
   -smp 2 \
   -display none \
   -daemonize \
-  -net user,hostfwd=tcp::2222-:22 \
+  -net user,hostfwd=tcp::2022-:22 \
   -net nic \
   -append "console=ttyS0 \
            netconsole=6666@192.168.1.10/eth0,6666@192.168.1.1/9c:4a:c7:7a:a1:7a \
@@ -49,12 +52,12 @@ run_qemu() {
  }
 
 verify_over_ssh() {
-  while ! nc -z 127.0.0.1 2222; do
+  while ! nc -z 127.0.0.1 2022; do
   echo 'Waiting for Coinboot machine to listen on port 2222/SSH ...'
   sleep 10
   done
 
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 2222 localhost "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && df -B1 && free -b && zramctl -b" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 2022 localhost "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && df -B1 && free -b && zramctl -b" ; do
   echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
