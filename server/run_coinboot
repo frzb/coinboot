@@ -67,7 +67,7 @@ add_address_to_br0() {
 move_ext_interface_to_bridge() {
   brctl show
   ip a
-  if [[ -z  $(get_bridge_interface) ]] && ! ip a | grep -oP 'br0'; then
+  if [[ -z  $(get_bridge_interface) ]] && ! ip a | grep -oP '\sbr0'; then
     sudo brctl addbr br0
     sudo brctl addif br0 $EXT_IF
     sudo ip link set br0 up
