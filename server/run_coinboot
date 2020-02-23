@@ -30,6 +30,14 @@ else
   EXT_IF='ens4'
 fi
 
+change_to_build_dir() {
+if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
+  cd server
+else
+  cd /vagrant/server
+fi
+}
+
 get_bridge_interface() {
   ip a | grep '192.168.1.2/24' |grep -oP 'br-.*'
 }
@@ -46,34 +54,18 @@ get_default_gateway() {
   ip route | grep default | grep -v br0 | cut -d ' ' -3
 }
 
-migrate_ips_to_bridge_interface() {
-while ip -4 addr show dev $EXT_IF | grep inet; do
- IP=$(ip -4 a show dev $EXT_IF | grep -m 1 inet | cut -d ' ' -f6)
- echo "Migrating $IP to br0 now"
- sudo ip addr add $IP dev br0
- sudo ip addr del $IP dev $EXT_IF
-done
-}
-
 update_default_route() {
   ip route
   sudo dhclient -v br0
   ip route
 }
 
-
 add_address_to_br0() {
   sudo ip addr add 192.168.1.2/24 dev br0
 }
 
-add_interface_to_bridge() {
+move_ext_interface_to_bridge() {
   brctl show
-  brctl addbr br-travis
-  brctl addif get_interface_for_bridge br-travis
-  brctl show
-}
-
-move_interface_to_bridge() {
   if [[ -z  $(get_bridge_interface) ]] && ! ip a | grep -oP 'br0'; then
     sudo brctl addbr br0
     sudo brctl addif br0 $EXT_IF
@@ -82,12 +74,14 @@ move_interface_to_bridge() {
   brctl show
 }
 
-change_to_build_dir() {
-if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
-  cd server
-else
-  cd /vagrant/server
-fi
+migrate_ips_to_bridge_interface() {
+  ip a
+  while ip -4 addr show dev $EXT_IF | grep inet; do
+   IP=$(ip -4 a show dev $EXT_IF | grep -m 1 inet | cut -d ' ' -f6)
+   echo "Migrating $IP to br0 now"
+   sudo ip addr add $IP dev br0
+   sudo ip addr del $IP dev $EXT_IF
+  done
 }
 
 run_docker_compose() {
@@ -148,7 +142,7 @@ sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libv
 
 change_to_build_dir
 
-move_interface_to_bridge
+move_ext_interface_to_bridge
 migrate_ips_to_bridge_interface
 update_default_route
 
