@@ -146,6 +146,8 @@ change_to_build_dir
 move_ext_interface_to_bridge
 migrate_ips_to_bridge_interface
 update_default_route
+echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf
+dig registry-1.docker.io || true  
 
 if ! [ -d "/vagrant" ]; then
   add_address_to_br0
