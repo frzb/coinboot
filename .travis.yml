@@ -11,6 +11,7 @@ env:
 jobs:
   include:
     - stage: create workspace
+      language: bash
       workspaces:
         create:
           name: build_workspace
