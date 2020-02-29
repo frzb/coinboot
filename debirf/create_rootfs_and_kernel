@@ -69,6 +69,3 @@ sudo ln -sv /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL} /mnt/
 
 ls -la /mnt/build/* 
 
-sudo chmod -Rv 644 /mnt/build/*
-
-
