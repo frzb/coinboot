@@ -19,7 +19,10 @@ jobs:
             - ./debirf/build
     - &build_and_run
       stage: build and run images
-      env: KERNEL=4.15.0-72-generic SUITE=xenial
+      env:
+        - KERNEL=4.15.0-72-generic
+        - SUITE=xenial
+      name: ${KERNEL}_${SUITE}
       workspaces:
         use: build_workspace
       # Only run this job when there are changes in the subdir 'debirf'
@@ -64,10 +67,15 @@ jobs:
           branch: master
 
     - <<: *build_and_run
-      env: KERNEL=5.3.0-29-generic SUITE=eoan
+      env:
+        - KERNEL=5.3.0-29-generic
+        - SUITE=eoan
+
 
     - &run_coinboot
-      env: KERNEL=4.15.0-72-generic SUITE=xenial
+      env:
+        - KERNEL=4.15.0-72-generic
+        - SUITE=xenial
       stage: run coinboot
       before_script:
         - |
