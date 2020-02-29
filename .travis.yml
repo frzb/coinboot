@@ -15,7 +15,7 @@ jobs:
       workspaces:
         create:
           name: build_workspace
-          path:
+          paths:
             - ./debirf/build
     - &build_and_run
       stage: build and run images
