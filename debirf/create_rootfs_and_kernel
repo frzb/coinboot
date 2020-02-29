@@ -60,8 +60,9 @@ ls -la /tmp
 #Force a root build without fakeroot
 time debirf make -n --root-build --no-warning /tmp/coinboot
 
-sudo cp -v /tmp/coinboot/vmlinuz-* /mnt/build/$/${SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL}
-sudo cp -v /tmp/coinboot/*.cgz /mnt/build/${SUITE}/coinboot-initramfs-${DEBIRF_KERNEL}
+# Use install instead of cp to create missing subdirectories like SDEBIRF_SUITE
+sudo install -v /tmp/coinboot/vmlinuz-* /mnt/build/$/${DEBIRF_SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL}
+sudo install -v /tmp/coinboot/*.cgz /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL}
 
 sudo chmod -Rv 644 /mnt/build/*
 
