@@ -14,6 +14,8 @@ jobs:
       workspaces:
         create:
           name: build_workspace
+          path:
+            - ./debirf/build
     - &build_and_run
       stage: build and run images
       env: KERNEL=4.15.0-72-generic SUITE=xenial
