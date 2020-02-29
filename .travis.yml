@@ -26,7 +26,10 @@ jobs:
       # https://github.com/travis-ci/travis-ci/issues/9984
       name: xenial
       workspaces:
-        use: build_workspace
+        create:
+          name: $TRAVIS_JOB_NAME
+          paths:
+            - debirf/build/${TRAVIS_JOB_NAME}
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
@@ -47,11 +50,14 @@ jobs:
       script: ./debirf/build_and_run_images
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
+
     - stage: deploy
       workspaces:
-        use: build_workspace
+        use: 
+          - eoan
+          - xenial
       script:
-        - ls -la ./debirf/build
+        - ls -la ./debirf/*/* 
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
