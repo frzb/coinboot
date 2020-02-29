@@ -10,6 +10,10 @@ env:
 
 jobs:
   include:
+    - stage: create workspace
+      workspaces:
+        create:
+          name: build_workspace
     - &build_and_run
       stage: build and run images
       env: KERNEL=4.15.0-72-generic SUITE=xenial
@@ -33,6 +37,11 @@ jobs:
       script: ./debirf/build_and_run_images
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
+    - stage: deploy
+      workspaces:
+        use: build_workspace
+      script:
+        - ls -la ./debirf/build
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
