@@ -67,7 +67,7 @@ sudo install -Dv /tmp/coinboot/*.cgz /mnt/build/${DEBIRF_SUITE}/coinboot-initram
 sudo ln -sv /mnt/build/${DEBIRF_SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL} /mnt/build/coinboot-vmlinuz-${DEBIRF_KERNEL}
 sudo ln -sv /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL} /mnt/build/coinboot-initramfs-${DEBIRF_KERNEL}
 
-ls -la /mnt/debirf/build/* 
+ls -la /mnt/build/* 
 
 sudo chmod -Rv 644 /mnt/build/*
 
