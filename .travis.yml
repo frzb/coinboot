@@ -22,7 +22,9 @@ jobs:
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
-      name: ${KERNEL}_${SUITE}
+      # We can't set the job name via environment variables.
+      # https://github.com/travis-ci/travis-ci/issues/9984
+      name: xenial
       workspaces:
         use: build_workspace
       # Only run this job when there are changes in the subdir 'debirf'
@@ -70,6 +72,7 @@ jobs:
       env:
         - KERNEL=5.3.0-29-generic
         - SUITE=eoan
+      name: eoan
 
 
     - &run_coinboot
