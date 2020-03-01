@@ -34,12 +34,6 @@ fi
 
 run_qemu() {
   zram=$1
-  pwd
-  ls -la build/coinboot-vmlinuz-${KERNEL} 
-  ls -la build/coinboot-initramfs-${KERNEL} 
-  [ -e build/coinboot-vmlinuz-${KERNEL} ] || echo "build/coinboot-vmlinuz-${KERNEL} missing"
-  [ -e build/coinboot-initramfs-${KERNEL} ] || echo "build/coinboot-initramfs-${KERNEL} missing" 
-
   qemu-system-x86_64 \
   -kernel build/coinboot-vmlinuz-${KERNEL} \
   -initrd build/coinboot-initramfs-${KERNEL} \
