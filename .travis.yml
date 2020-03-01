@@ -27,9 +27,9 @@ jobs:
       name: xenial
       workspaces:
         create:
-          name: $TRAVIS_JOB_NAME
+          name: xenial
           paths:
-            - debirf/build/${TRAVIS_JOB_NAME}/*
+            - debirf/build/xenial/*
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
@@ -79,6 +79,11 @@ jobs:
         - KERNEL=5.3.0-29-generic
         - SUITE=eoan
       name: eoan
+      workspaces:
+        create:
+          name: eoan
+          paths:
+            - debirf/build/eoan/*
 
 
     - &run_coinboot
