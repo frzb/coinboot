@@ -57,7 +57,7 @@ jobs:
         - go get github.com/aktau/github-release
         - ls -la ./debirf/*/*
       script:
-        - github-release release -v -p -t $TRAVIS_BUILD_ID -s $TOKEN
+        - github-release release -v -p -t $TRAVIS_BUILD_ID
         - for file in ./debirf/build/*/*; do github-release upload -f file; done
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
