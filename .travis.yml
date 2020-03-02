@@ -58,7 +58,7 @@ jobs:
         - ls -la ./debirf/*/*
       script:
         - github-release -v release -p -t $TRAVIS_BUILD_ID
-        - find ./debirf/build -name coinboot-* -exec github-release -v upload -t $TRAVIS_BUILD_ID -f {} -n {}\;
+        - find ./debirf/build -name coinboot-* -exec github-release -v upload -t $TRAVIS_BUILD_ID -f {} -n {} \;
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
