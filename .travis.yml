@@ -10,13 +10,6 @@ env:
 
 jobs:
   include:
-    - stage: create workspace
-      language: bash
-      workspaces:
-        create:
-          name: build_workspace
-          paths:
-            - ./debirf/build
     - &build_and_run
       stage: build and run images
       env:
