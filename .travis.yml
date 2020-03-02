@@ -45,16 +45,24 @@ jobs:
       # Use 'printf' instead.
 
     - stage: deploy
+      env:
+        - GITHUB_REPO=coinboot
+        - GITHUB_USER=frzb
+        - GITHUB_TOKEN=$TOKEN
+        - TRAVIS_TAG=$(printf '%(%Y%m%d)T')
       workspaces:
-        use: 
+        use:
           - eoan
           - xenial
+      before_script:
+        - go get github.com/aktau/github-release
+        - ls -la ./debirf/*/*
       script:
-        - ls -la ./debirf/*/* 
+        - github-release release -p -t $TRAVIS_BUILD_ID
+        - for f in ./debirf/build/*/*; do github-release upload -f ; done
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-        - export TRAVIS_TAG=$(printf '%(%Y%m%d)T')
         - git tag -a "$TRAVIS_TAG" -m 'Automatic release by Travis CI'
       deploy:
         provider: releases
@@ -80,10 +88,13 @@ jobs:
 
 
     - &run_coinboot
+      stage: run coinboot
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
-      stage: run coinboot
+      workspaces:
+        use:
+          - xenial
       before_script:
         - |
           if [[ $FORCE_BUILD = true ]]; then
