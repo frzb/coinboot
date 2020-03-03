@@ -66,7 +66,7 @@ jobs:
           # Use -execdir to execute command from the directory of the file found.
           # By this we can avoid to fiddle around with basename and such.
           # - find ./debirf/build -name coinboot-* -execdir github-release -v upload -t $TRAVIS_BUILD_ID -f {} -n {} \;
-          - find ./debirf/build -name coinboot-* -execdir /snap/bin/hub release create -p -a {} $TRAVIS_BUILD_ID \;
+          - find ./debirf/build -name coinboot-* -execdir /snap/bin/hub release create -m 'Automatic release by Travis CI' -p -a {} $TRAVIS_BUILD_ID \;
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
