@@ -55,7 +55,7 @@ jobs:
           - xenial
       before_script:
         - go get github.com/aktau/github-release
-        - apt install -y hub
+        - sudo apt install -y hub
         - ls -la ./debirf/*/*
       script:
           #- github-release -v release -p -t $TRAVIS_BUILD_ID
