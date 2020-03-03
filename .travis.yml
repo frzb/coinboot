@@ -55,6 +55,7 @@ jobs:
           - xenial
       before_script:
         - go get github.com/aktau/github-release
+        - sudo apt update
         - sudo apt install -y hub
         - ls -la ./debirf/*/*
       script:
