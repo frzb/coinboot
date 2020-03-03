@@ -45,6 +45,10 @@ jobs:
       # Use 'printf' instead.
 
     - stage: deploy
+      addons:
+        snaps:
+         - name: hub
+           confinement: classic 
       env:
         - GITHUB_REPO=coinboot
         - GITHUB_USER=frzb
@@ -55,8 +59,6 @@ jobs:
           - xenial
       before_script:
         - go get github.com/aktau/github-release
-        - sudo apt update
-        - sudo apt install -y hub
         - ls -la ./debirf/*/*
       script:
           #- github-release -v release -p -t $TRAVIS_BUILD_ID
