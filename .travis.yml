@@ -59,7 +59,7 @@ jobs:
           - xenial
       before_script:
         - go get github.com/aktau/github-release
-        - github-releases --version
+        - github-release --version
         - ls -la /snap/bin
         - ls -la ./debirf/*/*
       script:
