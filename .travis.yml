@@ -67,7 +67,7 @@ jobs:
           - github-release -v release -p -t $TRAVIS_BUILD_ID
           # Use -execdir to execute command from the directory of the file found.
           # By this we can avoid to fiddle around with basename and such.
-          - find ./debirf/build -name coinboot-* -execdir github-release -v upload -t $TRAVIS_BUILD_ID -f {} -n {} -l {} \;
+          - find ./debirf/build -name coinboot-* -execdir basename {} + | xargs -I {} github-release -v upload -t $TRAVIS_BUILD_ID -f {} -n {} -l {}
           - set +x
           #- find ./debirf/build -name coinboot-* -execdir /snap/bin/hub release create -m 'Automatic release by Travis CI' -p -a {} $TRAVIS_BUILD_ID \;
       before_deploy:
