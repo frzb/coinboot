@@ -65,7 +65,7 @@ jobs:
       script:
           - set -x
           - github-release -v release -p -t $TRAVIS_BUILD_ID
-          - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} ; basename {}" \; | xargs sh -c 'github-release upload -t "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
+          - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs sh -c 'github-release upload -t "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
 
           - set +x
           #- find ./debirf/build -name coinboot-* -execdir /snap/bin/hub release create -m 'Automatic release by Travis CI' -p -a {} $TRAVIS_BUILD_ID \;
