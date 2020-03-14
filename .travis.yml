@@ -101,6 +101,7 @@ jobs:
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
+        - RELEASE=$TRAVIS_BUILD_ID
       workspaces:
         use:
           - xenial

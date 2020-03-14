@@ -27,7 +27,8 @@ BOOTDIR=/var/lib/tftpboot
 GITHUB_REPO=frzb/coinboot 
 ## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
-# If the value is 'latest' we determine the latest release, else we use the set value.
+# If the value is 'latest' we determine the latest release tag, else
+# we assign the RELEASE value to TAG.
 
 if [ $RELEASE = latest ]; then
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
@@ -37,8 +38,11 @@ if [ $RELEASE = latest ]; then
       RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
     done
-  echo "Using latest coinboot-debirf release: $TAG"
+  else
+    TAG=$RELEASE
 fi
+
+echo "Using latest coinboot-debirf release: $TAG"
 
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
