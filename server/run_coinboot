@@ -162,7 +162,7 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 
 
 # Beside $RELEASE which is a Travis CI environment variable we need
-export $RELEASE=$TRAVIS_BUILD_ID
+export RELEASE=$TRAVIS_BUILD_ID
 
 run_docker_compose
 
