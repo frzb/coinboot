@@ -88,6 +88,8 @@ migrate_ips_to_bridge_interface() {
 run_docker_compose() {
   pwd
   docker-compose up -d
+  sleep 30
+  docker-compose logs 
 }
 
 # TODO: Refactor this - should be possible with one curl call
