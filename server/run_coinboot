@@ -85,6 +85,11 @@ migrate_ips_to_bridge_interface() {
   done
 }
 
+
+build_docker_image() {
+  docker build -t coinboot/coinboot:latest ./docker/
+}
+
 run_docker_compose() {
   pwd
   docker-compose up -d
@@ -163,6 +168,8 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 
 # Beside $RELEASE which is a Travis CI environment variable we need
 export RELEASE=$TRAVIS_BUILD_ID
+
+build_docker_image
 
 run_docker_compose
 
