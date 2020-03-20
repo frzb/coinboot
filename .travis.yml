@@ -55,7 +55,6 @@ jobs:
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
-        - ls -la /snap/bin
         - ls -la ./debirf/*/*
       script:
         - github-release -v release -p -t $TRAVIS_BUILD_ID
