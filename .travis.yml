@@ -112,5 +112,8 @@ jobs:
       env: KERNEL=5.3.0-29-generic SUITE=eoan
 
     - stage: cleanup
+      before_script:
+        - go get github.com/aktau/github-release
+        - github-release --version
       script:
         - github-release -v delete -t "${TRAVIS_BUILD_ID}"
