@@ -6,7 +6,7 @@ env:
     # We use backticks in favor of the proper $() subshell call to cope with the
     # evaluation of Travis CI. Else we had trouble with the braces of the regex.
     # The regex matches on subdirectories only - identified by the trailing /.
-    # - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
+    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
     - GITHUB_REPO=coinboot
     - GITHUB_USER=frzb
     - TRAVIS_TAG=$(printf '%(%Y%m%d)T')
@@ -34,12 +34,8 @@ jobs:
       # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
       before_script:
         - |
-          echo $TRAVIS_COMMIT_RANGE
-          set -x
-          git diff --name-only $TRAVIS_COMMIT_RANGE 
-          set +x
           if [[ $FORCE_BUILD = true ]]; then
-              echo 'Forcing build - even if there are no changes in ./debirf'
+              cho 'Forcing build - even if there are no changes in ./debirf'
           else
             if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
               exit 0
