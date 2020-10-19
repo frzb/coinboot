@@ -35,7 +35,7 @@ jobs:
       before_script:
         - |
           if [[ $FORCE_BUILD = true ]]; then
-              cho 'Forcing build - even if there are no changes in ./debirf'
+              echo 'Forcing build - even if there are no changes in ./debirf'
           else
             if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
               exit 0
