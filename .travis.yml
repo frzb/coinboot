@@ -108,8 +108,8 @@ jobs:
       language: bash
       script: ./server/run_coinboot
 
-    - <<: *run_coinboot
-      env: KERNEL=5.3.0-29-generic SUITE=eoan
+      #- <<: *run_coinboot
+      #  env: KERNEL=5.3.0-29-generic SUITE=eoan
 
     - stage: cleanup
       before_script:
