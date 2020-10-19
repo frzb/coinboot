@@ -22,8 +22,6 @@
 # Debian package to be used.
 #export DEBIRF_KERNEL=4.4.0-133-generic
 
-Change only for triggering build 6
-
 apt update
 apt install --yes debirf bc sudo
 
