@@ -1,17 +1,31 @@
 ---
 env:
   global:
+    # We can enforce builds even with no changes in ./debirf.
     - FORCE_BUILD=true
     # We use backticks in favor of the proper $() subshell call to cope with the
     # evaluation of Travis CI. Else we had trouble with the braces of the regex.
     # The regex matches on subdirectories only - identified by the trailing /.
-    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
+    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
+    - GITHUB_REPO=coinboot
+    - GITHUB_USER=frzb
+    - TRAVIS_TAG=$(printf '%(%Y%m%d)T')
 
 jobs:
   include:
     - &build_and_run
       stage: build and run images
-      env: KERNEL=4.15.0-72-generic SUITE=xenial
+      env:
+        - KERNEL=4.15.0-72-generic
+        - SUITE=xenial
+      # We can't set the job name via environment variables.
+      # https://github.com/travis-ci/travis-ci/issues/9984
+      name: xenial
+      workspaces:
+        create:
+          name: xenial
+          paths:
+            - debirf/build/xenial/*
       # Only run this job when there are changes in the subdir 'debirf'
       # Attention: Travis CI is only parsing this file if the condition is met.
       # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
@@ -32,10 +46,22 @@ jobs:
       script: ./debirf/build_and_run_images
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
+
+    - stage: deploy
+      workspaces:
+        use:
+          - eoan
+          - xenial
+      before_script:
+        - go get github.com/aktau/github-release
+        - github-release --version
+        - ls -la ./debirf/*/*
+      script:
+        - github-release -v release -p -t $TRAVIS_BUILD_ID
+        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload -t "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-        - export TRAVIS_TAG=$(printf '%(%Y%m%d)T')
         - git tag -a "$TRAVIS_TAG" -m 'Automatic release by Travis CI'
       deploy:
         provider: releases
@@ -49,11 +75,26 @@ jobs:
           branch: master
 
     - <<: *build_and_run
-      env: KERNEL=5.0.0-37-generic SUITE=disco
+      env:
+        - KERNEL=5.3.0-29-generic
+        - SUITE=eoan
+      name: eoan
+      workspaces:
+        create:
+          name: eoan
+          paths:
+            - debirf/build/eoan/*
+
 
     - &run_coinboot
-      env: KERNEL=4.15.0-72-generic SUITE=xenial
       stage: run coinboot
+      env:
+        - KERNEL=4.15.0-72-generic
+        - SUITE=xenial
+        - RELEASE=$TRAVIS_BUILD_ID
+      workspaces:
+        use:
+          - xenial
       before_script:
         - |
           if [[ $FORCE_BUILD = true ]]; then
@@ -67,8 +108,12 @@ jobs:
       language: bash
       script: ./server/run_coinboot
 
-      # - <<: *run_coinboot
-      # env: KERNEL=4.15.0-45-generic SUITE=xenial
-
     - <<: *run_coinboot
-      env: KERNEL=5.0.0-37-generic SUITE=disco
+      env: KERNEL=5.3.0-29-generic SUITE=eoan
+
+    - stage: cleanup
+      before_script:
+        - go get github.com/aktau/github-release
+        - github-release --version
+      script:
+        - github-release -v delete -t "${TRAVIS_BUILD_ID}"

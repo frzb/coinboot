@@ -1,4 +1,4 @@
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2020 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 #
@@ -17,33 +17,54 @@
 
 
 environment = {
-'DEBIRF_KERNEL' => '5.0.0-13-generic',
-'DEBIRF_SUITE' => 'disco',
+'DEBIRF_KERNEL' => '5.3.0-29-generic',
+'DEBIRF_SUITE' => 'eoan',
+'KERNEL' => '$DEBIRF_KERNEL',
+'SUITE' => '$DEBIRF_SUITE',
 'RELEASE' => '$(date +"%Y%m%d")',
 'VERSION' => '0.98 Beta'
 }
 
+$setup_docker = <<SCRIPT
+if ! docker info; then
+  curl -fsSL https://get.docker.com/ | CHANNEL=test sh
+  sudo usermod -aG docker vagrant
+fi
+
+if ! which docker-compose; then
+  sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
+
+SCRIPT
+
+
 Vagrant.configure(2) do |config|
   # Dynamically allign number of core of the built VM with the host
   # to speed up things as much as possible.
+  # There is a nasty bug letting eoan+ booting slow caused by missing
+  # ttyS0 - work around is to create a stub ttyS0
+  # https://github.com/hashicorp/vagrant/issues/10970
   config.vm.provider :virtualbox do |vb|
     vb.customize ["modifyvm", :id, "--cpus", `#{RbConfig::CONFIG['host_os'] =~ /darwin/ ? 'sysctl -n hw.ncpu' : 'nproc'}`.chomp]
-    vb.customize ["modifyvm", :id, "--memory", 2048]
+    vb.customize ["modifyvm", :id, "--memory", 4352]
+    vb.customize [ "modifyvm", :id, "--uart1", "0x03f8", "4" ]
+    vb.customize [ "modifyvm", :id, "--uartmode1", "file", Vagrant::Util::Platform.windows? ? "NUL" : "/dev/null" ]
   end
 
   config.vm.define "make-rootfs" do |machine|
-  machine.vm.box = "ubuntu/xenial64"
+  machine.vm.box = "ubuntu/eoan64"
   machine.vm.hostname = "make-rootfs"
   machine.vm.synced_folder "./", "/mnt"
   # FIXME: Have a look at this Kernel version issue in general.
   # Take care that the built box is running on the most recent kernel.
   # For that we have to reboot the Vagrant box which is achieved by
   # the reload-plugin.
-  #config.vm.provision "shell", inline: 'apt update; apt dist-upgrade --yes'
   config.vm.provision "shell", inline: 'apt update; apt upgrade --yes'
-  config.vm.provision "shell", inline: 'source /vagrant/profiles/coinboot/debirf.conf && apt install linux-image-$DEBIRF_KERNEL --yes'
+  config.vm.provision "shell", inline: 'source /vagrant/profiles/coinboot/debirf.conf && apt install linux-image-$DEBIRF_KERNEL virtualbox-guest-dkms --yes', env: environment
   config.vm.provision :reload
-  config.vm.provision "shell", inline: 'env && /mnt/create_rootfs_and_kernel', env: environment
+  config.vm.provision "shell", inline: $setup_docker
+  config.vm.provision "shell", inline: 'env && /mnt/build_and_run_images', env: environment
   # Dynamically allign number of core of the built VM with the host
   # to speed up things as much as possible.
   end

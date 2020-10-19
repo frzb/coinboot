@@ -1,9 +1,9 @@
 #!/bin/bash -e
-set +x
+set -x
 
 # debirf module: network-driver-r8168
 
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2020 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 #
@@ -31,7 +31,9 @@ set +x
 
 KERNEL_RELEASE=$DEBIRF_KERNEL
 R8168_PACKAGE=r8168-dkms
-PACKAGES="linux-headers-$DEBIRF_KERNEL libelf-dev wget dkms"
+R8168_PACKAGE_VERSION=8.048.00-1_all
+R8168_PACKAGE_DEB="$R8168_PACKAGE"_"$R8168_PACKAGE_VERSION".deb
+PACKAGES="linux-base linux-headers-$DEBIRF_KERNEL libelf-dev wget dkms"
 
 # Update package list.
 debirf_exec sudo apt-get update
@@ -43,12 +45,14 @@ sudo mount -o bind /dev "$DEBIRF_ROOT"/dev
 sudo mount -o bind /dev/pts "$DEBIRF_ROOT"/dev/pts
 sudo mount -t proc /proc "$DEBIRF_ROOT/"proc
 
+chroot "$DEBIRF_ROOT" sudo apt-get install --yes linux-base
 chroot "$DEBIRF_ROOT" sudo apt-get install --yes $PACKAGES
 
-debirf_exec sudo wget http://mirrors.kernel.org/ubuntu/pool/universe/r/r8168/r8168-dkms_8.046.00-1_all.deb -P /tmp
+# debirf_exec sudo wget http://mirrors.kernel.org/ubuntu/pool/universe/r/r8168/r8168-dkms_8.046.00-1_all.deb -P /tmp
+debirf_exec sudo wget http://mirrors.kernel.org/ubuntu/pool/universe/r/r8168/$R8168_PACKAGE_DEB -P /tmp
 
-chroot "$DEBIRF_ROOT" dpkg -i /tmp/r8168-dkms_8.046.00-1_all.deb
-debirf_exec sudo rm -v /tmp/r8168-dkms_8.046.00-1_all.deb
+chroot "$DEBIRF_ROOT" dpkg -i /tmp/$R8168_PACKAGE_DEB
+debirf_exec sudo rm -v /tmp/$R8168_PACKAGE_DEB
 
 sudo umount "$DEBIRF_ROOT"/dev/pts
 sudo umount "$DEBIRF_ROOT"/dev
@@ -57,8 +61,13 @@ sudo umount "$DEBIRF_ROOT"/proc
 # Copy modules to /var/lib/modules - after we purges DKMS can not longer do this.
 # Afterwards we have to rebuilt the dependency map with depmod.
 # TODO: Put compiled module at a better place than the root of the module directory.
-sudo cp -v "$DEBIRF_ROOT"/var/lib/dkms/r8168/8.046.00/"$KERNEL_RELEASE"/x86_64/module/r8168.ko "$DEBIRF_ROOT"/lib/modules/"$KERNEL_RELEASE"
+sudo find $DEBIRF_ROOT/var/lib/dkms -name r8168.ko -exec cp -v {} "$DEBIRF_ROOT"/lib/modules/"$KERNEL_RELEASE" \;
+#sudo cp -v "$DEBIRF_ROOT"/var/lib/dkms/r8168/8.046.00/"$KERNEL_RELEASE"/x86_64/module/r8168.ko "$DEBIRF_ROOT"/lib/modules/"$KERNEL_RELEASE"
+
+# Since Eoan linux-check-removal is triggered when removing the package
+# with the currently running linux kernel and omits that operation.
+# We just replace linux-chec-remove with a simple 'exit 0'.
+echo 'exit 0' > "$DEBIRF_ROOT"/usr/bin/linux-check-removal
 
 # Purge installed packages of this modules to free up the space.
-
 debirf_exec apt-get purge $PACKAGES $R8168_PACKAGE --yes

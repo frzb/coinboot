@@ -4,8 +4,11 @@ services:
   coinboot:
     image: coinboot/coinboot
     container_name: coinboot
+    # "Values in the shell take precedence over those specified in the .env file."
+    # https://docs.docker.com/compose/environment-variables/#the-env-file
     environment:
       KERNEL: $KERNEL
+      RELEASE: $RELEASE
     env_file:
       - ./conf/environment/default.env
     volumes:
