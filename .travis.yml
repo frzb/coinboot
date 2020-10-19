@@ -36,7 +36,7 @@ jobs:
         - |
           echo $TRAVIS_COMMIT_RANGE
           set -x
-          git diff --name-only $TRAVIS_COMMIT_RANGE HEAD
+          git diff --name-only $TRAVIS_COMMIT_RANGE 
           set +x
           if [[ $FORCE_BUILD = true ]]; then
               echo 'Forcing build - even if there are no changes in ./debirf'
