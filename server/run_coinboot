@@ -184,8 +184,8 @@ wait_for_server_to_be_ready
 
 run_with_libvirt_bios
 
-verify_over_ssh
+verify_and_shutdown_over_ssh
 
 run_with_libvirt_uefi
 
-verify_over_ssh
+verify_and_shutdown_over_ssh
