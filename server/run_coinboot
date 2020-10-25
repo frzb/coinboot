@@ -131,7 +131,7 @@ verify_and_shutdown_over_ssh() {
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
   # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && sudo shutdown -h now"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && dhclient -v -r && sudo shutdown -h now && exit"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
