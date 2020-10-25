@@ -56,8 +56,12 @@ get_default_gateway() {
 
 update_default_route() {
   ip route
-  sudo dhclient -v br0
-  ip route
+  if [ ! -d "/vagrant" ]; then
+    sudo dhclient -v br0
+    ip route
+  else
+    echo "Not running at Travis CI - update of default route skipped"
+  fi
 }
 
 add_address_to_br0() {
@@ -114,7 +118,7 @@ run_with_libvirt_uefi() {
   sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
-verify_over_ssh() {
+verify_and_shutdown_over_ssh() {
   while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
     sleep 10
@@ -127,7 +131,7 @@ verify_over_ssh() {
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
   # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && sudo shutdown -h now"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
@@ -136,7 +140,7 @@ verify_over_ssh() {
   # TODO: Using shutdown is smarter - cause we verify that machine is shutdown properly
   # But for now this hangs sometime - so force shutdown with destroy.
   # sudo virsh shutdown $DOMAIN
-  sudo virsh destroy $DOMAIN
+  # sudo virsh destroy $DOMAIN
   sudo virsh list --all
   while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
