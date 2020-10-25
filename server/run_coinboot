@@ -133,7 +133,10 @@ verify_over_ssh() {
   done
 
   DOMAIN=$(sudo virsh list --name)
-  sudo virsh shutdown $DOMAIN
+  # TODO: Using shutdown is smarter - cause we verify that machine is shutdown properly
+  # But for now this hangs sometime - so force shutdown with destroy.
+  # sudo virsh shutdown $DOMAIN
+  sudo virsh destroy $DOMAIN
   sudo virsh list --all
   while nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
