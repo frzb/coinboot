@@ -12,6 +12,7 @@ env:
     - RELEASE_TAG=$(date +%Y%m%d)
 
 jobs:
+  allow_failure:
   include:
     - &build_and_run
       stage: build and run images
@@ -47,7 +48,7 @@ jobs:
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
 
-    - stage: deploy
+    - stage: pre-release
       workspaces:
         use:
           - eoan
@@ -57,22 +58,12 @@ jobs:
         - github-release --version
         - ls -la ./debirf/*/*
       script:
-        - github-release -v release -p -t ${RELEASE_TAG}
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload -t "${RELEASE_TAG}" -n $2 -f $1 -l $2' sh
+        - github-release -v release --pre-release --tag ${TRAVIS_BUILD_ID} --name pre-release-${TRAVIS_BUILD_ID}
+        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
       before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-        - git tag -a "${RELEASE_TAG}" -m 'Automatic release by Travis CI'
-      deploy:
-        provider: releases
-        draft: false
-        edge: true
-        token: ${TOKEN}
-        file_glob: true
-        file: debirf/build/*
-        cleanup: false
-        on:
-          branch: master
+        - git tag -a "${TRAVIS_BUILD_ID}" -m 'Automatic release by Travis CI'
 
     - <<: *build_and_run
       env:
@@ -84,7 +75,6 @@ jobs:
           name: eoan
           paths:
             - debirf/build/eoan/*
-
 
     - &run_coinboot
       stage: run coinboot
@@ -111,7 +101,17 @@ jobs:
       #- <<: *run_coinboot
       #  env: KERNEL=5.3.0-29-generic SUITE=eoan
 
+    - stage: release
+      if: branch = master
+      before_script:
+        - go get github.com/aktau/github-release
+        - github-release --version
+      script:
+        - github-release -v edit --tag "${TRAVIS_BUILD_ID}" --name ${RELEASE_TAG}
+        - github-release -v delete -t "${TRAVIS_BUILD_ID}"
+
     - stage: cleanup
+      if: branch != master
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
