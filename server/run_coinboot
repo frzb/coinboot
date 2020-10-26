@@ -33,7 +33,8 @@ fi
 
 
 determine_last_dhcp_lease() {
- docker exec coinboot tail -n 1 /var/lib/misc/dnsmasq.leases | cut -d '' -f3
+ docker exec coinboot tail -n 1 /var/lib/misc/dnsmasq.leases | cut -d ' ' -f3
+ docker exec coinboot cat /var/lib/misc/dnsmasq.leases 
 }
 
 change_to_build_dir() {
