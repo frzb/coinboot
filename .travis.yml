@@ -12,10 +12,9 @@ env:
     - RELEASE_TAG=$(date +%Y%m%d)
 
 
-if:  commit_message != 'Automatic release by Travis CI'
 
 jobs:
-  allow_failure:
+  if:  commit_message != 'Automatic release by Travis CI'
   include:
     - &build_and_run
       stage: build and run images
