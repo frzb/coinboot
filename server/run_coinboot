@@ -37,7 +37,7 @@ get_ip_address_associated() {
   local MACHINE_MAC_ADDRESS=$1
 
   while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
-    echo 'Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up' >&2
+    echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
     sleep 10
   done
 
@@ -148,7 +148,7 @@ verify_and_shutdown_over_ssh() {
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
   # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && sudo dhclient -v -r && sudo shutdown -h now && exit"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && sudo dhclient -v -r && sudo shutdown -h now; exit"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
