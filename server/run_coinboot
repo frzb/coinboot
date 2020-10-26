@@ -21,6 +21,7 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
+MACHINE_MAC_ADDRESS='52:54:04:b9:ab:45'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 
@@ -111,11 +112,11 @@ wait_for_server_to_be_ready() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS --boot menu=on,useserial=on --noautoconsole
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
 verify_and_shutdown_over_ssh() {
