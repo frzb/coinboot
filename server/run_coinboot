@@ -41,7 +41,7 @@ get_ip_address_associated() {
     sleep 10
   done
 
-  ip neighbour show dev wlp4s0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
+  ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
 }
 
 change_to_build_dir() {
