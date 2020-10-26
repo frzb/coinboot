@@ -36,7 +36,7 @@ fi
 get_ip_address_associated() {
   local MACHINE_MAC_ADDRESS=$1
 
-  while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS ; do
+  while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
     echo 'Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up' >&2
     sleep 10
   done
