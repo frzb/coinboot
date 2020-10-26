@@ -11,6 +11,9 @@ env:
     - GITHUB_USER=frzb
     - RELEASE_TAG=$(date +%Y%m%d)
 
+
+if:  commit_message != 'Automatic release by Travis CI'
+
 jobs:
   allow_failure:
   include:
