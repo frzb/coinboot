@@ -31,12 +31,17 @@ else
   EXT_IF='ens4'
 fi
 
+
+determine_last_dhcp_lease() {
+ docker exec coinboot tail -n 1 /var/lib/misc/dnsmasq.leases | cut -d '' -f3
+}
+
 change_to_build_dir() {
-if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
-  cd server
-else
-  cd /vagrant/server
-fi
+  if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
+    cd server
+  else
+    cd /vagrant/server
+  fi
 }
 
 get_bridge_interface() {
@@ -185,8 +190,12 @@ wait_for_server_to_be_ready
 
 run_with_libvirt_bios
 
+determine_last_dhcp_lease
+
 verify_and_shutdown_over_ssh
 
 run_with_libvirt_uefi
+
+determine_last_dhcp_lease
 
 verify_and_shutdown_over_ssh
