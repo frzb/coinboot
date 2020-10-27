@@ -11,8 +11,10 @@ env:
     - GITHUB_USER=frzb
     - RELEASE_TAG=$(date +%Y%m%d)
 
+
+
 jobs:
-  allow_failure:
+  if:  commit_message != 'Automatic release by Travis CI'
   include:
     - &build_and_run
       stage: build and run images

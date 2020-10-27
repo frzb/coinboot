@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
-set -x
+
 # Copyright (C) 2019 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
@@ -21,6 +21,8 @@ set -x
 export RELEASE=$(date +'%Y%m%d')
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
+MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
+MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 
@@ -30,12 +32,24 @@ else
   EXT_IF='ens4'
 fi
 
+
+get_ip_address_associated() {
+  local MACHINE_MAC_ADDRESS=$1
+
+  while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
+    echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
+    sleep 10
+  done
+
+  ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
+}
+
 change_to_build_dir() {
-if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
-  cd server
-else
-  cd /vagrant/server
-fi
+  if [ ! -d "/vagrant" ] && [[ $(basename $PWD) != server ]]; then
+    cd server
+  else
+    cd /vagrant/server
+  fi
 }
 
 get_bridge_interface() {
@@ -56,8 +70,12 @@ get_default_gateway() {
 
 update_default_route() {
   ip route
-  sudo dhclient -v br0
-  ip route
+  if [ ! -d "/vagrant" ]; then
+    sudo dhclient -v br0
+    ip route
+  else
+    echo "Not running at Travis CI - update of default route skipped"
+  fi
 }
 
 add_address_to_br0() {
@@ -94,7 +112,7 @@ run_docker_compose() {
   pwd
   docker-compose up -d
   sleep 30
-  docker-compose logs 
+  docker-compose logs
 }
 
 # TODO: Refactor this - should be possible with one curl call
@@ -107,14 +125,17 @@ wait_for_server_to_be_ready() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0 --boot menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0 --boot uefi,menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole
 }
 
-verify_over_ssh() {
+verify_and_shutdown_over_ssh() {
+  local MACHINE_MAC_ADDRESS=$1
+  local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
+
   while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
     sleep 10
@@ -126,23 +147,14 @@ verify_over_ssh() {
   done
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl" ; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
 
   DOMAIN=$(sudo virsh list --name)
-  # TODO: Using shutdown is smarter - cause we verify that machine is shutdown properly
-  # But for now this hangs sometime - so force shutdown with destroy.
-  # sudo virsh shutdown $DOMAIN
-  sudo virsh destroy $DOMAIN
+  sudo virsh shutdown $DOMAIN
   sudo virsh list --all
-  while nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
-    sleep 10
-  done
-  sudo virsh undefine --nvram $DOMAIN
  }
 
 # ------------- main -------------
@@ -157,7 +169,7 @@ move_ext_interface_to_bridge
 migrate_ips_to_bridge_interface
 update_default_route
 echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf
-dig registry-1.docker.io || true  
+dig registry-1.docker.io || true
 
 if ! [ -d "/vagrant" ]; then
   add_address_to_br0
@@ -180,8 +192,8 @@ wait_for_server_to_be_ready
 
 run_with_libvirt_bios
 
-verify_over_ssh
+verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
 
 run_with_libvirt_uefi
 
-verify_over_ssh
+verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
