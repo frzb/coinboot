@@ -148,7 +148,7 @@ verify_and_shutdown_over_ssh() {
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
   # while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "grep -C 10 $RELEASE /etc/motd && lsb_release -a && uname -a && zramctl" ; do
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && sudo dhclient -v -r && sudo shutdown -h now; exit"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctlt"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
@@ -156,14 +156,14 @@ verify_and_shutdown_over_ssh() {
   DOMAIN=$(sudo virsh list --name)
   # TODO: Using shutdown is smarter - cause we verify that machine is shutdown properly
   # But for now this hangs sometime - so force shutdown with destroy.
-  # sudo virsh shutdown $DOMAIN
+  sudo virsh shutdown $DOMAIN
   # sudo virsh destroy $DOMAIN
   sudo virsh list --all
-  while nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
-    sleep 10
-  done
-  sudo virsh undefine --nvram $DOMAIN
+  #while nc -z $MACHINE_IP 22; do
+  #  echo 'Waiting for Coinboot machine to stop listen on port 22/SSH ...'
+  #  sleep 10
+  #done
+  #sudo virsh undefine --nvram $DOMAIN &
  }
 
 # ------------- main -------------
