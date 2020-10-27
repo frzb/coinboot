@@ -111,10 +111,10 @@ jobs:
         - github-release -v edit --tag "${TRAVIS_BUILD_ID}" --name ${RELEASE_TAG}
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-          git tag ${TRAVIS_BUILD_ID} ${RELEASE_TAG}
-          git tag -d  ${TRAVIS_BUILD_ID}
-          git push origin :refs/tags/${TRAVIS_BUILD_ID}
-          git push --tags
+        - git tag ${TRAVIS_BUILD_ID} ${RELEASE_TAG}
+        - git tag -d  ${TRAVIS_BUILD_ID}
+        - git push origin :refs/tags/${TRAVIS_BUILD_ID}
+        - git push --tags
 
     - stage: cleanup
       if: branch != master
@@ -123,8 +123,8 @@ jobs:
         - github-release --version
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
-          git tag -d  ${TRAVIS_BUILD_ID}
-          git push origin :refs/tags/${TRAVIS_BUILD_ID}
-          git push --tags
+        - git tag -d  ${TRAVIS_BUILD_ID}
+        - git push origin :refs/tags/${TRAVIS_BUILD_ID}
+        - git push --tags
       script:
         - github-release -v delete -t "${TRAVIS_BUILD_ID}"
