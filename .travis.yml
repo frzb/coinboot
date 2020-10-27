@@ -14,7 +14,7 @@ env:
 
 
 jobs:
-  if:  commit_message != 'Automatic release by Travis CI'
+  if:  commit_message != "Automatic release by Travis CI"
   include:
     - &build_and_run
       stage: build and run images
@@ -59,13 +59,12 @@ jobs:
         - go get github.com/aktau/github-release
         - github-release --version
         - ls -la ./debirf/*/*
-      script:
-        - github-release -v release --pre-release --tag ${TRAVIS_BUILD_ID} --name pre-release-${TRAVIS_BUILD_ID}
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
-      before_deploy:
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
         - git tag -a "${TRAVIS_BUILD_ID}" -m 'Automatic release by Travis CI'
+      script:
+        - github-release -v release --pre-release --tag ${TRAVIS_BUILD_ID} --name pre-release-${TRAVIS_BUILD_ID}
+        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
 
     - <<: *build_and_run
       env:
@@ -110,12 +109,22 @@ jobs:
         - github-release --version
       script:
         - github-release -v edit --tag "${TRAVIS_BUILD_ID}" --name ${RELEASE_TAG}
-        - github-release -v delete -t "${TRAVIS_BUILD_ID}"
+        - git config --global user.email "build@travis-ci.com"
+        - git config --global user.name "Travis CI"
+          git tag ${TRAVIS_BUILD_ID} ${RELEASE_TAG}
+          git tag -d  ${TRAVIS_BUILD_ID}
+          git push origin :refs/tags/${TRAVIS_BUILD_ID}
+          git push --tags
 
     - stage: cleanup
       if: branch != master
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
+        - git config --global user.email "build@travis-ci.com"
+        - git config --global user.name "Travis CI"
+          git tag -d  ${TRAVIS_BUILD_ID}
+          git push origin :refs/tags/${TRAVIS_BUILD_ID}
+          git push --tags
       script:
         - github-release -v delete -t "${TRAVIS_BUILD_ID}"
