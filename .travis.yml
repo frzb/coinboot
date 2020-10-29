@@ -119,19 +119,6 @@ jobs:
         - git push origin :refs/tags/${TRAVIS_BUILD_ID}
         - git push --tags
 
-    - stage: cleanup
-      if: branch != master
-      before_script:
-        - go get github.com/aktau/github-release
-        - github-release --version
-        - git config --global user.email "build@travis-ci.com"
-        - git config --global user.name "Travis CI"
-        - git tag -d  pre-release-"${TRAVIS_BUILD_ID}"
-        - git push origin pre-release-"${TRAVIS_BUILD_ID}"
-      script:
-        - github-release -v release --pre-release --tag pre-release-"${TRAVIS_BUILD_ID}" --name pre-release-"${TRAVIS_BUILD_ID}"
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag pre-release-"${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
-
     - <<: *build_and_run
       env:
         - KERNEL=5.3.0-29-generic
@@ -142,31 +129,6 @@ jobs:
           name: eoan
           paths:
             - debirf/build/eoan/*
-
-    - &run_coinboot
-      stage: run coinboot
-      env:
-        - KERNEL=4.15.0-72-generic
-        - SUITE=xenial
-        - RELEASE=$TRAVIS_BUILD_ID
-      workspaces:
-        use:
-          - xenial
-      before_script:
-        - |
-          if [[ $FORCE_BUILD = true ]]; then
-            echo 'Forcing build - even if there are no changes in ./debirf'
-          else
-            if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"server"* ]]; then
-              exit 0
-            fi
-          fi
-      dist: bionic
-      language: bash
-      script: ./server/run_coinboot
-
-      #- <<: *run_coinboot
-      #  env: KERNEL=5.3.0-29-generic SUITE=eoan
 
     - stage: release
       if: branch = master
