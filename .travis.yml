@@ -190,6 +190,7 @@ jobs:
         - go get github.com/aktau/github-release
         - github-release --version
       script:
+        - github-release -v delete -t pre-release-"${TRAVIS_BUILD_ID}"
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
         - git tag -d pre-release-"${TRAVIS_BUILD_ID}"
@@ -197,4 +198,3 @@ jobs:
         - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
         - git push origin :refs/tags/pre-release-"${TRAVIS_BUILD_ID}"
         - git push origin --tags
-        - github-release -v delete -t pre-release-"${TRAVIS_BUILD_ID}"
