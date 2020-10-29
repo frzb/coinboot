@@ -66,7 +66,7 @@ jobs:
         - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
         - git push --quiet --set-upstream origin pre-release-"${TRAVIS_BUILD_ID}"
       script:
-        - github-release -v release --pre-release --tag --pre-release-"${TRAVIS_BUILD_ID}" --name pre-release-"${TRAVIS_BUILD_ID}"
+        - github-release -v release --pre-release --tag pre-release-"${TRAVIS_BUILD_ID}" --name pre-release-"${TRAVIS_BUILD_ID}"
         - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
 
     - <<: *build_and_run
