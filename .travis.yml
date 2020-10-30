@@ -9,7 +9,6 @@ env:
     - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
     - GITHUB_REPO=coinboot
     - GITHUB_USER=frzb
-    - RELEASE_TAG=$(date +%Y%m%d)
 
 jobs:
   if:  tag !~ /pre-release.*/
@@ -48,6 +47,17 @@ jobs:
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
 
+    - <<: *build_and_run
+      env:
+        - KERNEL=5.3.0-29-generic
+        - SUITE=eoan
+      name: eoan
+      workspaces:
+        create:
+          name: eoan
+          paths:
+            - debirf/build/eoan/*
+
     - stage: pre-release
       workspaces:
         use:
@@ -68,16 +78,6 @@ jobs:
         - github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
         - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
 
-    - <<: *build_and_run
-      env:
-        - KERNEL=5.3.0-29-generic
-        - SUITE=eoan
-      name: eoan
-      workspaces:
-        create:
-          name: eoan
-          paths:
-            - debirf/build/eoan/*
 
     - &run_coinboot
       stage: run coinboot
@@ -105,17 +105,6 @@ jobs:
       #- <<: *run_coinboot
       #  env: KERNEL=5.3.0-29-generic SUITE=eoan
 
-    - <<: *build_and_run
-      env:
-        - KERNEL=5.3.0-29-generic
-        - SUITE=eoan
-      name: eoan
-      workspaces:
-        create:
-          name: eoan
-          paths:
-            - debirf/build/eoan/*
-
     - stage: release
       if: branch = master
       workspaces:
@@ -124,7 +113,7 @@ jobs:
           - xenial
       before_script:
         - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - export RELEASE=$PRE_RELEASE_TAG
+        - export RELEASE_TAG=$(date +%Y%m%d)
         - go get github.com/aktau/github-release
         - github-release --version
         - git config --global user.email "build@travis-ci.com"

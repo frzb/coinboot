@@ -24,7 +24,7 @@ echo '------------------------------'
 WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
 BOOTDIR=/var/lib/tftpboot
-GITHUB_REPO=frzb/coinboot 
+GITHUB_REPO=frzb/coinboot
 ## initramfs and kernel vmlinuz ##
 # RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release tag, else
@@ -38,11 +38,11 @@ if [ $RELEASE = latest ]; then
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
     sleep 5
   done
+  echo "Using latest coinboot-debirf release: $TAG"
 else
   TAG=$RELEASE
+  echo "Using  coinboot-debirf release: $TAG"
 fi
-
-echo "Using latest coinboot-debirf release: $TAG"
 
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
