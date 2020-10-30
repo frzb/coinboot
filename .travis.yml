@@ -9,10 +9,7 @@ env:
     - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
     - GITHUB_REPO=coinboot
     - GITHUB_USER=frzb
-    - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
     - RELEASE_TAG=(date +%Y%m%d) 
-
-
 
 jobs:
   if:  tag !~ /pre-release.*/
@@ -52,6 +49,8 @@ jobs:
       # Use 'printf' instead.
 
     - stage: pre-release
+      env:
+        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       workspaces:
         use:
           - eoan
@@ -86,6 +85,7 @@ jobs:
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
+        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
         - RELEASE=PRE_RELEASE_TAG
       workspaces:
         use:
@@ -119,6 +119,8 @@ jobs:
 
     - stage: release
       if: branch = master
+      env:
+        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       workspaces:
         use:
           - eoan
@@ -140,6 +142,8 @@ jobs:
 
     - stage: cleanup
       if: branch != master
+      env:
+        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
