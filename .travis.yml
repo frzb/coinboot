@@ -84,7 +84,6 @@ jobs:
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
-        - RELEASE=$PRE_RELEASE_TAG
       workspaces:
         use:
           - xenial
