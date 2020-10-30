@@ -9,7 +9,7 @@ env:
     - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
     - GITHUB_REPO=coinboot
     - GITHUB_USER=frzb
-    - RELEASE_TAG=(date +%Y%m%d) 
+    - RELEASE_TAG=$(date +%Y%m%d)
 
 jobs:
   if:  tag !~ /pre-release.*/
@@ -49,13 +49,12 @@ jobs:
       # Use 'printf' instead.
 
     - stage: pre-release
-      env:
-        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       workspaces:
         use:
           - eoan
           - xenial
       before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
         - go get github.com/aktau/github-release
         - github-release --version
         - ls -la ./debirf/*/*
@@ -85,12 +84,13 @@ jobs:
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
-        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - RELEASE=PRE_RELEASE_TAG
+        - RELEASE=$PRE_RELEASE_TAG
       workspaces:
         use:
           - xenial
       before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - export RELEASE=$PRE_RELEASE_TAG
         - |
           if [[ $FORCE_BUILD = true ]]; then
             echo 'Forcing build - even if there are no changes in ./debirf'
@@ -119,13 +119,13 @@ jobs:
 
     - stage: release
       if: branch = master
-      env:
-        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       workspaces:
         use:
           - eoan
           - xenial
       before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - export RELEASE=$PRE_RELEASE_TAG
         - go get github.com/aktau/github-release
         - github-release --version
         - git config --global user.email "build@travis-ci.com"
@@ -142,12 +142,11 @@ jobs:
 
     - stage: cleanup
       if: branch != master
-      env:
-        - PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
       script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
         - github-release -v delete -t $PRE_RELEASE_TAG
         - git config --global user.email "build@travis-ci.com"
         - git config --global user.name "Travis CI"
