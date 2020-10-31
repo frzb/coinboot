@@ -1,145 +1,145 @@
 ---
-env:
-  global:
-    # We can enforce builds even with no changes in ./debirf.
-    - FORCE_BUILD=true
-    # We use backticks in favor of the proper $() subshell call to cope with the
-    # evaluation of Travis CI. Else we had trouble with the braces of the regex.
-    # The regex matches on subdirectories only - identified by the trailing /.
-    - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
-    - GITHUB_REPO=coinboot
-    - GITHUB_USER=frzb
+if:  tag !~ /pre-release.*/
+  env:
+    global:
+      # We can enforce builds even with no changes in ./debirf.
+      - FORCE_BUILD=true
+      # We use backticks in favor of the proper $() subshell call to cope with the
+      # evaluation of Travis CI. Else we had trouble with the braces of the regex.
+      # The regex matches on subdirectories only - identified by the trailing /.
+      - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
+      - GITHUB_REPO=coinboot
+      - GITHUB_USER=frzb
 
-jobs:
-  if:  tag !~ /pre-release.*/
-  include:
-    - &build_and_run
-      stage: build and run images
-      env:
-        - KERNEL=4.15.0-72-generic
-        - SUITE=xenial
-      # We can't set the job name via environment variables.
-      # https://github.com/travis-ci/travis-ci/issues/9984
-      name: xenial
-      workspaces:
-        create:
-          name: xenial
-          paths:
-            - debirf/build/xenial/*
-      # Only run this job when there are changes in the subdir 'debirf'
-      # Attention: Travis CI is only parsing this file if the condition is met.
-      # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
-      before_install: env
-      # Verbose if conditional instead  pure [[ ]] - else this won't work in this YAML file.
-      # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
-      before_script:
-        - |
-          if [[ $FORCE_BUILD = true ]]; then
+  jobs:
+    include:
+      - &build_and_run
+        stage: build and run images
+        env:
+          - KERNEL=4.15.0-72-generic
+          - SUITE=xenial
+        # We can't set the job name via environment variables.
+        # https://github.com/travis-ci/travis-ci/issues/9984
+        name: xenial
+        workspaces:
+          create:
+            name: xenial
+            paths:
+              - debirf/build/xenial/*
+        # Only run this job when there are changes in the subdir 'debirf'
+        # Attention: Travis CI is only parsing this file if the condition is met.
+        # before_install: git diff --name-only $TRAVIS_COMMIT_RANGE HEAD | grep -qP '^debirf/' && env
+        before_install: env
+        # Verbose if conditional instead  pure [[ ]] - else this won't work in this YAML file.
+        # TODO: Check if TRAVIS_EVENT_TYPE is cron to trigger builds of daily cron jobs
+        before_script:
+          - |
+            if [[ $FORCE_BUILD = true ]]; then
+                echo 'Forcing build - even if there are no changes in ./debirf'
+            else
+              if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
+                exit 0
+              fi
+            fi
+        dist: bionic
+        language: bash
+        script: ./debirf/build_and_run_images
+        # Tag generation with 'date' comes with a newline to strip off.
+        # Use 'printf' instead.
+
+      - <<: *build_and_run
+        env:
+          - KERNEL=5.3.0-29-generic
+          - SUITE=eoan
+        name: eoan
+        workspaces:
+          create:
+            name: eoan
+            paths:
+              - debirf/build/eoan/*
+
+      - stage: pre-release
+        workspaces:
+          use:
+            - eoan
+            - xenial
+        before_script:
+          - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+          - go get github.com/aktau/github-release
+          - github-release --version
+          - ls -la ./debirf/*/*
+          - git config --global user.email "build@travis-ci.com"
+          - git config --global user.name "Travis CI"
+          - git tag $PRE_RELEASE_TAG
+          - git remote rm origin
+          - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          - git push --quiet --set-upstream origin $PRE_RELEASE_TAG
+        script:
+          - github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
+          - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
+
+
+      - &run_coinboot
+        stage: run coinboot
+        env:
+          - KERNEL=4.15.0-72-generic
+          - SUITE=xenial
+        workspaces:
+          use:
+            - xenial
+        before_script:
+          - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+          - export RELEASE=$PRE_RELEASE_TAG
+          - |
+            if [[ $FORCE_BUILD = true ]]; then
               echo 'Forcing build - even if there are no changes in ./debirf'
-          else
-            if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"debirf"* ]]; then
-              exit 0
+            else
+              if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"server"* ]]; then
+                exit 0
+              fi
             fi
-          fi
-      dist: bionic
-      language: bash
-      script: ./debirf/build_and_run_images
-      # Tag generation with 'date' comes with a newline to strip off.
-      # Use 'printf' instead.
+        dist: bionic
+        language: bash
+        script: ./server/run_coinboot
 
-    - <<: *build_and_run
-      env:
-        - KERNEL=5.3.0-29-generic
-        - SUITE=eoan
-      name: eoan
-      workspaces:
-        create:
-          name: eoan
-          paths:
-            - debirf/build/eoan/*
+        #- <<: *run_coinboot
+        #  env: KERNEL=5.3.0-29-generic SUITE=eoan
 
-    - stage: pre-release
-      workspaces:
-        use:
-          - eoan
-          - xenial
-      before_script:
-        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - go get github.com/aktau/github-release
-        - github-release --version
-        - ls -la ./debirf/*/*
-        - git config --global user.email "build@travis-ci.com"
-        - git config --global user.name "Travis CI"
-        - git tag $PRE_RELEASE_TAG
-        - git remote rm origin
-        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
-        - git push --quiet --set-upstream origin $PRE_RELEASE_TAG
-      script:
-        - github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
+      - stage: release
+        if: branch = master
+        workspaces:
+          use:
+            - eoan
+            - xenial
+        before_script:
+          - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+          - export RELEASE_TAG=$(date +%Y%m%d)
+          - go get github.com/aktau/github-release
+          - github-release --version
+          - git config --global user.email "build@travis-ci.com"
+          - git config --global user.name "Travis CI"
+          - git tag -d $PRE_RELEASE_TAG
+          - git tag $RELEASE_TAG
+          - git remote rm origin
+          - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          - git push --quiet --set-upstream origin $RELEASE_TAG
+          - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+        script:
+          - github-release -v release --pre-release --tag $RELEASE_TAG --name $PRE_RELEASE_TAG
+          - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
 
-
-    - &run_coinboot
-      stage: run coinboot
-      env:
-        - KERNEL=4.15.0-72-generic
-        - SUITE=xenial
-      workspaces:
-        use:
-          - xenial
-      before_script:
-        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - export RELEASE=$PRE_RELEASE_TAG
-        - |
-          if [[ $FORCE_BUILD = true ]]; then
-            echo 'Forcing build - even if there are no changes in ./debirf'
-          else
-            if ! [[ "$TRAVIS_EVENT_TYPE" = "cron" ]] && ! [[ "$TO_BUILD" = *"server"* ]]; then
-              exit 0
-            fi
-          fi
-      dist: bionic
-      language: bash
-      script: ./server/run_coinboot
-
-      #- <<: *run_coinboot
-      #  env: KERNEL=5.3.0-29-generic SUITE=eoan
-
-    - stage: release
-      if: branch = master
-      workspaces:
-        use:
-          - eoan
-          - xenial
-      before_script:
-        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - export RELEASE_TAG=$(date +%Y%m%d)
-        - go get github.com/aktau/github-release
-        - github-release --version
-        - git config --global user.email "build@travis-ci.com"
-        - git config --global user.name "Travis CI"
-        - git tag -d $PRE_RELEASE_TAG
-        - git tag $RELEASE_TAG
-        - git remote rm origin
-        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
-        - git push --quiet --set-upstream origin $RELEASE_TAG
-        - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
-      script:
-        - github-release -v release --pre-release --tag $RELEASE_TAG --name $PRE_RELEASE_TAG
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
-
-    - stage: cleanup
-      if: branch != master
-      before_script:
-        - go get github.com/aktau/github-release
-        - github-release --version
-      script:
-        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
-        - github-release -v delete -t $PRE_RELEASE_TAG
-        - git config --global user.email "build@travis-ci.com"
-        - git config --global user.name "Travis CI"
-        - git tag -d $PRE_RELEASE_TAG
-        - git remote rm origin
-        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
-        - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
-        - git push origin --tags
+      - stage: cleanup
+        if: branch != master
+        before_script:
+          - go get github.com/aktau/github-release
+          - github-release --version
+        script:
+          - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+          - github-release -v delete -t $PRE_RELEASE_TAG
+          - git config --global user.email "build@travis-ci.com"
+          - git config --global user.name "Travis CI"
+          - git tag -d $PRE_RELEASE_TAG
+          - git remote rm origin
+          - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+          - git push origin --tags
