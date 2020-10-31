@@ -1,4 +1,5 @@
 ---
+if:  tag !~ /pre-release.*/
 env:
   global:
     # We can enforce builds even with no changes in ./debirf.
@@ -9,12 +10,8 @@ env:
     - TO_BUILD=`git diff --name-only $TRAVIS_COMMIT_RANGE | grep -oP '^.*?(?=\/)' | uniq | tr -s "\n" ":" || exit 0`
     - GITHUB_REPO=coinboot
     - GITHUB_USER=frzb
-    - RELEASE_TAG=$(date +%Y%m%d)
-
-
 
 jobs:
-  if:  commit_message != 'Automatic release by Travis CI'
   include:
     - &build_and_run
       stage: build and run images
@@ -50,23 +47,6 @@ jobs:
       # Tag generation with 'date' comes with a newline to strip off.
       # Use 'printf' instead.
 
-    - stage: pre-release
-      workspaces:
-        use:
-          - eoan
-          - xenial
-      before_script:
-        - go get github.com/aktau/github-release
-        - github-release --version
-        - ls -la ./debirf/*/*
-      script:
-        - github-release -v release --pre-release --tag ${TRAVIS_BUILD_ID} --name pre-release-${TRAVIS_BUILD_ID}
-        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag "${TRAVIS_BUILD_ID}" -n $2 -f $1 -l $2' sh
-      before_deploy:
-        - git config --global user.email "build@travis-ci.com"
-        - git config --global user.name "Travis CI"
-        - git tag -a "${TRAVIS_BUILD_ID}" -m 'Automatic release by Travis CI'
-
     - <<: *build_and_run
       env:
         - KERNEL=5.3.0-29-generic
@@ -78,16 +58,38 @@ jobs:
           paths:
             - debirf/build/eoan/*
 
+    - stage: pre-release
+      workspaces:
+        use:
+          - eoan
+          - xenial
+      before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - go get github.com/aktau/github-release
+        - github-release --version
+        - ls -la ./debirf/*/*
+        - git config --global user.email "build@travis-ci.com"
+        - git config --global user.name "Travis CI"
+        - git tag $PRE_RELEASE_TAG
+        - git remote rm origin
+        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+        - git push --quiet --set-upstream origin $PRE_RELEASE_TAG
+      script:
+        - github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
+        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
+
+
     - &run_coinboot
       stage: run coinboot
       env:
         - KERNEL=4.15.0-72-generic
         - SUITE=xenial
-        - RELEASE=$TRAVIS_BUILD_ID
       workspaces:
         use:
           - xenial
       before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - export RELEASE=$PRE_RELEASE_TAG
         - |
           if [[ $FORCE_BUILD = true ]]; then
             echo 'Forcing build - even if there are no changes in ./debirf'
@@ -105,12 +107,26 @@ jobs:
 
     - stage: release
       if: branch = master
+      workspaces:
+        use:
+          - eoan
+          - xenial
       before_script:
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - export RELEASE_TAG=$(date +%Y%m%d)
         - go get github.com/aktau/github-release
         - github-release --version
+        - git config --global user.email "build@travis-ci.com"
+        - git config --global user.name "Travis CI"
+        - git tag -d $PRE_RELEASE_TAG
+        - git tag $RELEASE_TAG
+        - git remote rm origin
+        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+        - git push --quiet --set-upstream origin $RELEASE_TAG
+        - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
       script:
-        - github-release -v edit --tag "${TRAVIS_BUILD_ID}" --name ${RELEASE_TAG}
-        - github-release -v delete -t "${TRAVIS_BUILD_ID}"
+        - github-release -v release --pre-release --tag $RELEASE_TAG --name $PRE_RELEASE_TAG
+        - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
 
     - stage: cleanup
       if: branch != master
@@ -118,4 +134,12 @@ jobs:
         - go get github.com/aktau/github-release
         - github-release --version
       script:
-        - github-release -v delete -t "${TRAVIS_BUILD_ID}"
+        - export PRE_RELEASE_TAG=pre-release-"${TRAVIS_BUILD_ID}"
+        - github-release -v delete -t $PRE_RELEASE_TAG
+        - git config --global user.email "build@travis-ci.com"
+        - git config --global user.name "Travis CI"
+        - git tag -d $PRE_RELEASE_TAG
+        - git remote rm origin
+        - git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+        - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+        - git push origin --tags

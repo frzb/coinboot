@@ -18,13 +18,17 @@ set -e -o pipefail
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-export RELEASE=$(date +'%Y%m%d')
+export RELEASE=$RELEASE_TAG
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
 MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
 MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
+
+
+echo "Debug environment at run_coinboot"
+env 
 
 if [ -d "/vagrant" ]; then
   EXT_IF='enp0s8'
@@ -179,10 +183,6 @@ fi
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
-
-
-# Beside $RELEASE which is a Travis CI environment variable we need
-export RELEASE=$TRAVIS_BUILD_ID
 
 build_docker_image
 
