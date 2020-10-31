@@ -1,5 +1,6 @@
 ---
-if:  tag !~ /pre-release.*/
+# Don't run a build for tags of of pre-leases and releases.
+if:  tag !~ /pre-release.*/ OR tag !~ /202.{5}/
 env:
   global:
     # We can enforce builds even with no changes in ./debirf.
