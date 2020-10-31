@@ -1,4 +1,5 @@
 ---
+if: tag IS blank 
 env:
   global:
     # We can enforce builds even with no changes in ./debirf.
@@ -12,9 +13,7 @@ env:
 
 jobs:
   include:
-    # Don't run a build for tags of of pre-leases and releases.
-    - if:  tag !~ /pre-release.*/ OR tag !~ /202.{5}/
-      &build_and_run
+    - &build_and_run
       stage: build and run images
       env:
         - KERNEL=4.15.0-72-generic
@@ -108,6 +107,7 @@ jobs:
 
     - stage: release
       if: branch = master
+      env:
       workspaces:
         use:
           - eoan
@@ -131,6 +131,7 @@ jobs:
 
     - stage: cleanup
       if: branch != master
+      env:
       before_script:
         - go get github.com/aktau/github-release
         - github-release --version
