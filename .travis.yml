@@ -1,6 +1,4 @@
 ---
-# Don't run a build for tags of of pre-leases and releases.
-if:  tag !~ /pre-release.*/ OR tag !~ /202.{5}/
 env:
   global:
     # We can enforce builds even with no changes in ./debirf.
@@ -14,7 +12,9 @@ env:
 
 jobs:
   include:
-    - &build_and_run
+    # Don't run a build for tags of of pre-leases and releases.
+    - if:  tag !~ /pre-release.*/ OR tag !~ /202.{5}/
+      &build_and_run
       stage: build and run images
       env:
         - KERNEL=4.15.0-72-generic
