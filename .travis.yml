@@ -125,7 +125,7 @@ jobs:
         - git push --quiet --set-upstream origin $RELEASE_TAG
         - git push origin :refs/tags/"${PRE_RELEASE_TAG}"
       script:
-        - github-release -v release --pre-release --tag $RELEASE_TAG --name RELEASE_TAG
+        - github-release -v release --tag $RELEASE_TAG --name $RELEASE_TAG
         - find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
 
     - stage: cleanup
