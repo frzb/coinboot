@@ -184,10 +184,6 @@ fi
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
 
-
-# Beside $RELEASE which is a Travis CI environment variable we need
-export RELEASE=$TRAVIS_BUILD_ID
-
 build_docker_image
 
 run_docker_compose
