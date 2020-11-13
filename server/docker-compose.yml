@@ -59,11 +59,9 @@ services:
     image: fluent/fluent-bit:1.6.3
     container_name: fluent-bit
     entrypoint: /fluent-bit/bin/fluent-bit -c /fluent-bit/etc/fluent-bit.conf
+    ports:
+      - "514:514/udp"
+      - "5140:5140/udp"
+      - "5555:5555/udp"
     volumes:
       - ./conf/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://localhost:3100/loki/api/v1/push"
-
-
