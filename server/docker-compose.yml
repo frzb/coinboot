@@ -24,6 +24,10 @@ services:
       - NET_ADMIN
       - NET_BROADCAST
     network_mode: "host"
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -34,6 +38,10 @@ services:
       # sudo mkdir -p /srv/docker/grafana/data; chown 472:472 /srv/docker/grafana/data
       - grafana-data:/var/lib/grafana
       - ./conf/grafana/provisioning:/etc/grafana/provisioning
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -42,8 +50,20 @@ services:
     command: -config.file=/etc/loki/loki.yaml
     volumes:
       - ./conf/loki/loki.yaml:/etc/loki/loki.yaml
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
   # Fluent Bit is used as forwarder for UDP Syslog log messages to Loki
   fluent-bit:
     image: fluent/fluent-bit:1.6.3
     container_name: fluent-bit
     entrypoint: /fluent-bit/bin/fluent-bit -c /fluent-bit/etc/fluent-bit.conf
+    volumes:
+      - ./conf/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+
+

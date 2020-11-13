@@ -14,6 +14,11 @@ if ! which docker-compose; then
   sudo chmod +x /usr/local/bin/docker-compose
 fi
 
+if ! docker plugin ls |grep -q loki; then
+  docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+  docker plugin ls
+fi
+
 # Configure forwading and NAT cause the DHCP server vagrant box acts currently
 # also as gateway.
 # Ignore the masquerading set up for Docker (destination 172.17.0.0/16).
@@ -39,7 +44,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "worker" do |machine|
     # machine.vm.box = "bento/ubuntu-16.04"
     # FIXME: Built own empty Vagrantbox
-    machine.vm.box = "c33s/empty"
+    machine.vm.box = "clink15/pxe"
     machine.vm.hostname = "client"
     machine.ssh.host = "192.168.1.10"
     machine.ssh.port = 22
@@ -81,7 +86,8 @@ Vagrant.configure(2) do |config|
     machine.vm.box = "ubuntu/focal64"
     machine.vm.provision "shell", inline: $coinboot_docker
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
-    machine.vm.network "forwarded_port", guest: 5900, host: 5900
+    # Port-forwarding for Grafana
+    machine.vm.network "forwarded_port", guest: 3000, host: 3000
     interfaces = []
 
     Socket.getifaddrs.each do |addr_info|
