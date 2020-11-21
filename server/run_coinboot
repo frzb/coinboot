@@ -107,7 +107,6 @@ migrate_ips_to_bridge_interface() {
   done
 }
 
-
 build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
@@ -125,6 +124,17 @@ wait_for_server_to_be_ready() {
     curl --silent http://192.168.1.2 | jq '.[].name'
     echo '------------'
     sleep 10
+  done
+}
+
+cleanup_virsh_domains() {
+  # Domains with UEFI need to be deleted with the additional parameter --vram
+  for DOMAIN in $(sudo virsh list --all --name); do
+    if [[ $DOMAIN == *"uefi"* ]]; then
+      sudo virsh undefine --nvram $DOMAIN
+    else
+      sudo virsh undefine $DOMAIN
+    fi
   done
 }
 
@@ -189,6 +199,8 @@ build_docker_image
 run_docker_compose
 
 wait_for_server_to_be_ready
+
+cleanup_virsh_domains
 
 run_with_libvirt_bios
 
