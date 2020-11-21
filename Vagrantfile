@@ -85,9 +85,11 @@ Vagrant.configure(2) do |config|
   config.vm.define "coinboot-server" do |machine|
     machine.vm.box = "ubuntu/bionic64"
     machine.vm.provision "shell", inline: $coinboot_docker
-    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
+    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.3.0-29-generic"}
     # Port-forwarding for Grafana
     machine.vm.network "forwarded_port", guest: 3000, host: 3000
+    # Port-forwarding for virsh VM VNC 
+    machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
     Socket.getifaddrs.each do |addr_info|
