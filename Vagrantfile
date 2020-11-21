@@ -92,7 +92,6 @@ Vagrant.configure(2) do |config|
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.3.0-29-generic"}
     # Port-forwarding for Grafana
     machine.vm.network "forwarded_port", guest: 3000, host: 3000
-    # Port-forwarding for virsh VM VNC
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
