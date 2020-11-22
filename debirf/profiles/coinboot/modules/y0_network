@@ -1,5 +1,4 @@
 #!/bin/bash -e
-set -x
 
 # debirf module: network
 # setup default network interface configuration
@@ -37,13 +36,3 @@ iface lo inet loopback
 allow-hotplug eth0
 iface eth0 inet dhcp
 EOF
-
-# Since focal udevadm is under /bin so lets
-# create a symlink to not break our init script.
-
-debirf_exec ls -la /bin/udevadm  || true
-debirf_exec ls -la /sbin/udevadm || true
-
-if [[ -f "${DEBIRF_ROOT}"/bin/udevadm ]]; then
-  debirf_exec ln -v -s /bin/udevadm /sbin/udevadm
-fi
