@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -x
 
 # debirf module: network
 # setup default network interface configuration
@@ -11,7 +12,7 @@
 # They are Copyright 2007-2011, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018-2020 Gunter Miegel coinboot.io
 
 # Cosmic is missing the 'ifupdown' out of the box
 # which leads to a unconfigured NIC in early userspace.
@@ -39,6 +40,10 @@ EOF
 
 # Since focal udevadm is under /bin so lets
 # create a symlink to not break our init script.
-if [[ -f "${DEBIRF_ROOT}"/sbin/udevadm ]]; then
-  debirf_exec ln -s /bin/udevadm /sbin/udevadm
+
+debirf_exec ls -la /bin/udevadm  || true
+debirf_exec ls -la /sbin/udevadm || true
+
+if [[ -f "${DEBIRF_ROOT}"/bin/udevadm ]]; then
+  debirf_exec ln -v -s /bin/udevadm /sbin/udevadm
 fi
