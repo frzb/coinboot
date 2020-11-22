@@ -11,7 +11,7 @@
 # They are Copyright 2007-2011, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018-2020 Gunter Miegel coinboot.io
 
 # Cosmic is missing the 'ifupdown' out of the box
 # which leads to a unconfigured NIC in early userspace.
@@ -36,9 +36,3 @@ iface lo inet loopback
 allow-hotplug eth0
 iface eth0 inet dhcp
 EOF
-
-# Since focal udevadm is under /bin so lets
-# create a symlink to not break our init script.
-if [[ -f "${DEBIRF_ROOT}"/sbin/udevadm ]]; then
-  debirf_exec ln -s /bin/udevadm /sbin/udevadm
-fi

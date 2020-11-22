@@ -139,11 +139,11 @@ cleanup_virsh_domains() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 verify_and_shutdown_over_ssh() {
@@ -176,6 +176,14 @@ verify_and_shutdown_over_ssh() {
 sudo apt-get update
 
 sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
+
+# Enable the execution of virsh without root access 
+# mostly used for local debugging and just for Vagrant.
+if [ -d "/vagrant" ]; then
+  if id | grep -v libvirt; then
+    sudo usermod -a -G libvirt vagrant
+  fi
+fi
 
 change_to_build_dir
 
