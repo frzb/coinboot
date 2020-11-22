@@ -326,8 +326,8 @@ fi
 
 /lib/systemd/systemd-udevd --daemon --resolve-names=never
 
-/sbin/udevadm trigger --type=subsystems --action=add
-/sbin/udevadm trigger --type=devices --action=add
+/bin/udevadm trigger --type=subsystems --action=add
+/bin/udevadm trigger --type=devices --action=add
 
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8

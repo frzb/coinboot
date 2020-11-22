@@ -1,4 +1,4 @@
-FROM alpine:3.8
+FROM alpine:3.12
 
 #TODO add syslinux/pxelinux files
 RUN apk --no-cache add nginx supervisor dnsmasq jq curl wget openssl ca-certificates && update-ca-certificates
