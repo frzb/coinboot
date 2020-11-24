@@ -8,4 +8,5 @@ jobs:
       - env:
           KERNEL: 4.15.0-72-generic
           SUITE: xenial
-        run: pwd
+        uses: actions/checkout@v2
+        run: pwd && ls
