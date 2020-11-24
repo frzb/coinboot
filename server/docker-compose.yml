@@ -34,8 +34,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Data persistency
-      # sudo mkdir -p /srv/docker/grafana/data; chown 472:472 /srv/docker/grafana/data
       - grafana-data:/var/lib/grafana
       - ./conf/grafana/provisioning:/etc/grafana/provisioning
     logging:
@@ -54,18 +52,6 @@ services:
       driver: loki
       options:
         loki-url: "http://localhost:3100/loki/api/v1/push"
-  # Fluent Bit is used as forwarder for UDP Syslog log messages to Loki
-  #fluent-bit:
-  #  image: fluent/fluent-bit:1.6.3
-  #  container_name: fluent-bit
-  #  entrypoint: /fluent-bit/bin/fluent-bit -c /fluent-bit/etc/fluent-bit.conf
-  #  ports:
-  #    - "514:514/udp"
-  #    - "5140:5140/udp"
-  #    - "5555:5555/udp"
-  #  volumes:
-  #    - ./conf/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-  # Fluentd is used as forwarder for UDP Syslog log messages to Loki
   fluentd:
     image: grafana/fluent-plugin-loki:master
     container_name: fluentd
