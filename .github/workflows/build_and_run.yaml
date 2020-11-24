@@ -8,4 +8,5 @@ jobs:
       - env:
           KERNEL: 4.15.0-72-generic
           SUITE: xenial
-        run: ./debirf/build_and_run_images
+        working-directory: debirf
+        run: ./build_and_run_images
