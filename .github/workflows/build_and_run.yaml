@@ -6,6 +6,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - env:
-          KERNEL=4.15.0-72-geeric
-          SUITE=xenial
+          KERNEL: 4.15.0-72-generic
+          SUITE: xenial
         run: ./debirf/build_and_run_images
