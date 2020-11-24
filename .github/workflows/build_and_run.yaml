@@ -9,4 +9,4 @@ jobs:
       - env:
           KERNEL: 4.15.0-72-generic
           SUITE: xenial
-        run: pwd && ls
+        run: ./debirf/build_and_run_images
