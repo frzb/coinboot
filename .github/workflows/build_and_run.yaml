@@ -8,4 +8,4 @@ jobs:
       - env:
           KERNEL=4.15.0-72-geeric
           SUITE=xenial
-      - run: ./debirf/build_and_run_images
+        run: ./debirf/build_and_run_images
