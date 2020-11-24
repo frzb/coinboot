@@ -40,7 +40,7 @@ Its core features are:
 
 * **Insights out of the box**  
 
-  Coinboot comes with Graylog integrated for log managment.   
+  Coinboot comes with [Loki](https://grafana.com/oss/loki/) integrated for log managment.   
   Providing the log files of your worker nodes at a glance.
 
 This repository contains the Coinboot Server Docker container.                 
@@ -149,18 +149,22 @@ For instance to see the DHCP lease hand-shakes happen or what plugins are delive
 $ docker-compose logs -f coinboot
 ```
 
-### Centralized log managment with Graylog
+### Centralized log managment with Loki
 
-Coinboot comes with Graylog as centralized log management collecting iPXE bootloader and Kernel message of all your worker nodes.  
+Coinboot comes with Loki as centralized log management collecting iPXE bootloader and Kernel message of all your worker nodes.  
 
-![Screenshot of Graylog](img/graylog.png)
+![Screenshot of Loki Logs in Grafana Explore](img/grafana_explore_loki_logs.png)
 
-Login with your web browser at: http://<your-Docker-host-IP:9000>`
+Login with your web browser at the preconfigured Grafana instance: http://<your-Docker-host-IP:3000>`
   
 * login `admin`    
 
 * password: `admin`
 
+Change the initial password as suggested by Grafana.   
+
+Get to the Explore section and select the worker node by `host` label to browse the log files of individual worker nodes.  
+For more details about the usage of the Grafana Explore for exploring log files please refer to the [logs](https://grafana.com/docs/grafana/latest/explore/#logs-integration) section of the Grafana Explore documentation.
 
 ## Test and development environment
 
