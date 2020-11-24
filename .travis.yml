@@ -41,7 +41,6 @@ jobs:
               exit 0
             fi
           fi
-          ./get-coinboot.sh
       dist: bionic
       language: bash
       script: ./debirf/build_and_run_images
