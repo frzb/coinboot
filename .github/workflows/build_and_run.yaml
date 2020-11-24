@@ -5,8 +5,8 @@ jobs:
   build_and_run:
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2
       - env:
           KERNEL: 4.15.0-72-generic
           SUITE: xenial
-        uses: actions/checkout@v2
         run: pwd && ls
