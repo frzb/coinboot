@@ -1,0 +1,11 @@
+---
+name: build_and_run
+on: [push]
+jobs:
+  build_and_run:
+    runs-on: ubuntu-20.04
+    steps:
+      - env:
+          KERNEL=4.15.0-72-geeric
+          SUITE=xenial
+      - run: ./debirf/build_and_run_images
