@@ -8,4 +8,4 @@ jobs:
       - env:
           KERNEL: 4.15.0-72-generic
           SUITE: xenial
-        run: ls
+        run: pwd
