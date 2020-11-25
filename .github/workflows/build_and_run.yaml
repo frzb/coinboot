@@ -15,13 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Build and test run Debirf image
-       env:
+        env:
           KERNEL: ${{ matrix.kernel }}
           SUITE: ${{ matrix.suite }}
         run: ./debirf/build_and_run_images
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
-         name: Debirf images
-         path: |
-           build
+          name: Debirf images
+          path: build
