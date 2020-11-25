@@ -13,7 +13,7 @@ jobs:
             suite: "eoan"
     steps:
       - uses: actions/checkout@v2
-          - env:
+      - env:
           KERNEL: ${{ matrix.kernel }}
           SUITE: ${{ matrix.suite }}
         run: ./debirf/build_and_run_images
