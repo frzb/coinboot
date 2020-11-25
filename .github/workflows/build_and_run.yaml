@@ -12,8 +12,16 @@ jobs:
           - kernel: "5.3.0-29-generic"
             suite: "eoan"
     steps:
-      - uses: actions/checkout@v2
-      - env:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Build and test run Debirf image
+       env:
           KERNEL: ${{ matrix.kernel }}
           SUITE: ${{ matrix.suite }}
         run: ./debirf/build_and_run_images
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+         name: Debirf images
+         path: |
+           build
