@@ -9,7 +9,7 @@ jobs:
         include:
           - kernel: "4.15.0-72-generic"
             suite: "xenial"
-          - kernel: "5.3.0-29.generic"
+          - kernel: "5.3.0-29-generic"
             suite: "eoan"
     steps:
       - uses: actions/checkout@v2
