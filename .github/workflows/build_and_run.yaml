@@ -33,6 +33,7 @@ jobs:
           GITHUB_USER: "frzb"
           GITHUB_REPO: "coinboot"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: "/home/runner/go"
         run: |
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
