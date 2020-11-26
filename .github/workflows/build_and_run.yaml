@@ -30,6 +30,8 @@ jobs:
     needs: build_and_run
     runs-on: ubuntu-20.04
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Download build artifacts
         uses: actions/download-artifact@v2
         with:
