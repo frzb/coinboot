@@ -59,4 +59,7 @@ jobs:
           git remote add origin https://"${{ secrets.GITHUB_TOKEN}}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
           git push --quiet --set-upstream origin $PRE_RELEASE_TAG
           github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
+          set -x
+          echo $0
+          find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 1 sh -c 'echo github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
           find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 1 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
