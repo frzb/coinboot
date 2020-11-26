@@ -19,10 +19,12 @@ jobs:
           KERNEL: ${{ matrix.kernel }}
           SUITE: ${{ matrix.suite }}
         run: ./debirf/build_and_run_images
+        if: github.ref == 'refs/heads/master'
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
           path: debirf/build/coinboot*
+        if: github.ref == 'refs/heads/master'
       - name: Setup Golang for github-release
         uses: actions/setup-go@v2
       - name: Create pre-release
@@ -35,6 +37,7 @@ jobs:
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           ls -la "${GOPATH}"/bin 
+          env 
           github-release --version
           ls -la ./debirf/*/*
           git config --global user.email "build@coinboot.io"
