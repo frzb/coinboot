@@ -29,7 +29,6 @@ jobs:
         uses: actions/setup-go@v2
       - name: Create pre-release
         env:
-          PRE_RELEASE_TAG: "pre-release-${GITHUB_RUN_ID}"
           GITHUB_USER: "frzb"
           GITHUB_REPO: "coinboot"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,6 +36,7 @@ jobs:
         run: |
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
           ls -la "${GOPATH}"/bin 
           env 
           github-release --version
