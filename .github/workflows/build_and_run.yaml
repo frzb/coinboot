@@ -25,8 +25,13 @@ jobs:
         with:
           path: debirf/build/coinboot*
         # if: github.ref == 'refs/heads/master'
+
+  Create pre-release:
+    needs: build_and_run
+    runs-on: ubuntu-20.04
+    steps:
       - name: Setup Golang for github-release
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v1
       - name: Create pre-release
         env:
           GITHUB_USER: "frzb"
@@ -37,8 +42,8 @@ jobs:
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
-          ls -la "${GOPATH}"/bin 
-          env 
+          ls -la "${GOPATH}"/bin
+          env
           github-release --version
           ls -la ./debirf/*/*
           git config --global user.email "build@coinboot.io"
@@ -48,7 +53,4 @@ jobs:
           git remote add origin https://"${{ secrets.GITHUB_TOKEN}}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
           git push --quiet --set-upstream origin $PRE_RELEASE_TAG
           github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
-          find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
-
-
-
+          find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 1 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
