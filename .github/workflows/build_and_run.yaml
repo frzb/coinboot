@@ -25,6 +25,8 @@ jobs:
           path: debirf/build/coinboot*
       - name: Setup Golang for github-release
         uses: actions/setup-go@v2
+      - name: Extend $PATH with $GOPATH/bin
+        run: export PATH=$PATH:$GOPATH/bin
       - name: Create pre-release
         env:
           PRE_RELEASE_TAG: "pre-release-${GITHUB_RUN_ID}"
