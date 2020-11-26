@@ -26,7 +26,7 @@ jobs:
           path: debirf/build/coinboot*
         # if: github.ref == 'refs/heads/master'
 
-  Create pre-release:
+  create_pre-release:
     needs: build_and_run
     runs-on: ubuntu-20.04
     steps:
