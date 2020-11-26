@@ -23,8 +23,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           path: debirf/build/coinboot*
-      - name: Create pre-release
+      - name: Setup Golang for github-release
         uses: actions/setup-go@v2
+      - name: Create pre-release
         env:
           PRE_RELEASE_TAG: "pre-release-${GITHUB_RUN_ID}"
           GITHUB_USER: "frzb"
