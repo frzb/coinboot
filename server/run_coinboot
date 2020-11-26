@@ -165,7 +165,7 @@ verify_and_shutdown_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
+sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
 
 # Enable the execution of virsh without root access 
 # mostly used for local debugging and just for Vagrant.
