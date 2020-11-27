@@ -28,12 +28,17 @@ DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 
 
 echo "Debug environment at run_coinboot"
-env 
+env
 
 if [ -d "/vagrant" ]; then
   EXT_IF='enp0s8'
-else
+elif [ -n "$TRAVIS_BUILD_ID"" ]; then
   EXT_IF='ens4'
+elif [ -n "$GITHUB_RUN_ID" ]; then
+  EXT_IF='eth0'
+else
+  echo 'Error: External interface could not be determined.'
+  exit 1
 fi
 
 
@@ -167,7 +172,7 @@ sudo apt-get update
 
 sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
