@@ -32,7 +32,7 @@ env
 
 if [ -d "/vagrant" ]; then
   EXT_IF='enp0s8'
-elif [ -n "$TRAVIS_BUILD_ID"" ]; then
+elif [ -n "$TRAVIS_BUILD_ID"]; then
   EXT_IF='ens4'
 elif [ -n "$GITHUB_RUN_ID" ]; then
   EXT_IF='eth0'
