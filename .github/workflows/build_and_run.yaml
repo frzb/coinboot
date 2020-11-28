@@ -61,10 +61,9 @@ jobs:
           github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
           set -x
           echo $0
-          find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'echo github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
           find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
 
-  run_coinboot:
+  run_coinboot_with_pxe_boot:
     needs: create_pre-release
     runs-on: ubuntu-20.04
     steps:
@@ -80,3 +79,23 @@ jobs:
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
+      - name: Remove pre-release
+        # Only remove pre-release on master, else make a release.
+        if: github.ref != 'refs/heads/master'
+        env:
+          GITHUB_USER: "frzb"
+          GITHUB_REPO: "coinboot"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: "/home/runner/go"
+        run: |
+          go get github.com/aktau/github-release
+          export PATH=$PATH:"${GOPATH}"/bin
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          github-release -v delete -t $PRE_RELEASE_TAG
+          git config --global user.email "build@travis-ci.com"
+          git config --global user.name "Travis CI"
+          git tag -d $PRE_RELEASE_TAG
+          git remote rm origin
+          git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+          git push origin --tags
