@@ -25,22 +25,10 @@ MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
 MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
-
+EXT_IF=$(ip route show default | grep -oP '?<=dev )\w+')
 
 echo "Debug environment at run_coinboot"
 env
-
-if [ -d "/vagrant" ]; then
-  EXT_IF='enp0s8'
-elif [ -n "$TRAVIS_BUILD_ID"]; then
-  EXT_IF='ens4'
-elif [ -n "$GITHUB_RUN_ID" ]; then
-  EXT_IF='eth0'
-else
-  echo 'Error: External interface could not be determined.'
-  exit 1
-fi
-
 
 get_ip_address_associated() {
   local MACHINE_MAC_ADDRESS=$1
