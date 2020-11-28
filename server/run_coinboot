@@ -31,8 +31,8 @@ echo "Debug environment at run_coinboot"
 env
 
 get_ip_address_associated() {
-  local MACHINE_MAC_ADDRESS=$1
-
+  export local MACHINE_MAC_ADDRESS=$1
+  
   timeout 240s  bash -c "while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
     echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
     sleep 10
@@ -131,7 +131,7 @@ run_with_libvirt_uefi() {
 
 verify_and_shutdown_over_ssh() {
   local MACHINE_MAC_ADDRESS=$1
-  local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
+  export local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
   timeout 240s bash -c "while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
