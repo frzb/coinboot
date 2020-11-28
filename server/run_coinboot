@@ -33,10 +33,10 @@ env
 get_ip_address_associated() {
   local MACHINE_MAC_ADDRESS=$1
 
-  while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
+  timeout 240s -c bash "while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
     echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
     sleep 10
-  done
+  done"
 
   ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
 }
@@ -133,21 +133,21 @@ verify_and_shutdown_over_ssh() {
   local MACHINE_MAC_ADDRESS=$1
   local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
-  while ! ping -c 1 $MACHINE_IP; do
+  timeout 240s -c bash "while ! ping -c 1 $MACHINE_IP; do
     echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
     sleep 10
-  done
+  done"
 
-  while ! nc -z $MACHINE_IP 22; do
+  timeout 240s -c "bash while ! nc -z $MACHINE_IP 22; do
     echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
   sleep 10
-  done
+  done"
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
+  timeout 240s -c bash "while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
-  done
+  done"
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
