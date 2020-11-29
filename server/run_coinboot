@@ -26,17 +26,19 @@ MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 EXT_IF=$(ip route show default | grep -oP '(?<=dev )\w+')
+TIMEOUT=240
 
 echo "Debug environment at run_coinboot"
 env
 
 get_ip_address_associated() {
-  export local MACHINE_MAC_ADDRESS=$1
-  
-  timeout 240s  bash -c "while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
+  local MACHINE_MAC_ADDRESS=$1
+
+  while ! ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS >&2 ; do
     echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
     sleep 10
-  done"
+  done
+
 
   ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
 }
@@ -131,23 +133,19 @@ run_with_libvirt_uefi() {
 
 verify_and_shutdown_over_ssh() {
   local MACHINE_MAC_ADDRESS=$1
-  export local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
+  local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
-  timeout 240s bash -c "while ! ping -c 1 $MACHINE_IP; do
-    echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
-    sleep 10
-  done"
+  echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
+  ping -w $TIMEOUT -c 1 $MACHINE_IP
 
-  timeout 240s bash -c "while ! nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
-  sleep 10
-  done"
+  echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
+  nc -w $TIMEOUT -z $MACHINE_IP 22
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  timeout 240s bash -c "while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
-  done"
+  done
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh shutdown $DOMAIN
