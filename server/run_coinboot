@@ -105,9 +105,10 @@ migrate_ips_to_bridge_interface() {
   ip a
   while ip -4 addr show dev $COINBOOT_SERVER_IF | grep inet; do
    #COINBOOT_SERVER_IP=$(ip -4 a show dev $COINBOOT_SERVER_IF | grep -m 1 inet | cut -d ' ' -f6)
-   echo "Migrating $COINBOOT_SERVER_IP to br0 now"
-   sudo ip addr add $COINBOOT_SERVER_IP dev br0
-   sudo ip addr del $COINBOOT_SERVER_IP dev $COINBOOT_SERVER_IF
+   IP=$(ip -4 a show dev $EXT_IF | grep -m 1 inet | cut -d ' ' -f6)
+   echo "Migrating $IP to br0 now"
+   sudo ip addr add $IP dev br0
+   sudo ip addr del $IP dev $COINBOOT_SERVER_IF
   done
 }
 
