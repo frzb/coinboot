@@ -22,12 +22,20 @@ set -x
 export RELEASE=$RELEASE_TAG
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
+COINBOOT_SERVER_IP=192.168.1.2/24
 MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
 MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 EXT_IF=$(ip route show default | grep -oP '(?<=dev )\w+')
 TIMEOUT=300
+
+
+if [ -d "/vagrant" ]; then
+  COINBOOT_SERVER_IF='enp0s8'
+else
+  COINBOOT_SERVER_IF=$EXT_IF
+fi
 
 echo "Debug environment at run_coinboot"
 env
@@ -53,11 +61,15 @@ change_to_build_dir() {
 }
 
 get_bridge_interface() {
-  ip a | grep '192.168.1.2/24' |grep -oP 'br-.*'
+  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'  
 }
 
 export_interface_for_bridge() {
-  export COINBOOT_SERVER_IF=$(ip route |grep 192.168.1.0/24 | grep -oP '(?<=dev )\w+')
+  if ip route | grep 192.168.1.0/24; then
+    export COINBOOT_SERVER_IF=$(ip route |grep 192.168.1.0/24 | grep -oP '(?<=dev )\w+')
+  else
+   export COINBOOT_SERVER_IF=enp0s8
+  fi
 }
 
 get_default_route() {
@@ -92,10 +104,10 @@ move_ext_interface_to_bridge() {
 migrate_ips_to_bridge_interface() {
   ip a
   while ip -4 addr show dev $COINBOOT_SERVER_IF | grep inet; do
-   IP=$(ip -4 a show dev $COINBOOT_SERVER_IF | grep -m 1 inet | cut -d ' ' -f6)
-   echo "Migrating $IP to br0 now"
-   sudo ip addr add $IP dev br0
-   sudo ip addr del $IP dev $COINBOOT_SERVER_IF
+   #COINBOOT_SERVER_IP=$(ip -4 a show dev $COINBOOT_SERVER_IF | grep -m 1 inet | cut -d ' ' -f6)
+   echo "Migrating $COINBOOT_SERVER_IP to br0 now"
+   sudo ip addr add $COINBOOT_SERVER_IP dev br0
+   sudo ip addr del $COINBOOT_SERVER_IP dev $COINBOOT_SERVER_IF
   done
 }
 
@@ -174,11 +186,11 @@ fi
 
 change_to_build_dir
 
-export_interface_for_bridge
-
 move_ext_interface_to_bridge
 
 migrate_ips_to_bridge_interface
+
+add_address_to_br0
 
 #update_default_route
 
@@ -186,13 +198,11 @@ echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf
 
 dig registry-1.docker.io || true
 
-# The Vagrant VMs has two network interfaces:
+# The Vagrant VM has two network interfaces:
 # A default one for internet access and a second "private network" which we include in
 # as network bridge for the Coinboot Server Container and the Coinboot Qemu worker VMs.
 # Because of this we don't have to refresh the default route after moving IPs between interfaces.
-# TODO: Disable DHCP in default Vagrant network interface
 if ! [ -d "/vagrant" ]; then
- #add_address_to_br0
  update_default_route
 fi
 

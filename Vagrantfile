@@ -78,7 +78,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "coinboot-server" do |machine|
-    machine.vm.box = "ubuntu/bionic64"
+    machine.vm.box = "ubuntu/focal64"
     machine.vm.provision "shell", inline: $coinboot_docker
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
@@ -102,7 +102,11 @@ Vagrant.configure(2) do |config|
         bridge: ['enx00e04c680379']
       machine.vm.provision "shell", inline: 'rm -fv /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     else
-      machine.vm.network "private_network", ip: "192.168.1.2"
+      #machine.vm.network "private_network", auto_config: false
+    # Create a second nic without any IP configuration
+    machine.vm.provider "virtualbox" do |vb|
+      vb.customize ["modifyvm", :id, "--nic2", "intnet"]
+    end
       # FIXME: Path has changed in monorepo
       # machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     end
