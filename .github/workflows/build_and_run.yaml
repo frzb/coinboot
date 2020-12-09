@@ -1,5 +1,5 @@
 ---
-name: build_and_run
+name: build_and_run_images
 on: [push]
 jobs:
   build_and_run:
@@ -63,7 +63,7 @@ jobs:
           echo $0
           find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
 
-  run_coinboot_with_pxe_boot:
+  verify_and_release:
     needs: create_pre-release
     runs-on: ubuntu-20.04
     steps:
@@ -91,6 +91,9 @@ jobs:
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
           export RELEASE_TAG=$(date +%Y%m%d)
+          # actions/checkout@v2 with depth 0 is not pulling tags.
+          # To avoid a full pull we just pull the tags.
+          git pull --tags origin
           git config --global user.email "build@coinboot.io"
           git config --global user.name "Github Actions"
           git tag -d $PRE_RELEASE_TAG
@@ -110,7 +113,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: "/home/runner/go"
         run: |
-          go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
           github-release -v delete -t $PRE_RELEASE_TAG
