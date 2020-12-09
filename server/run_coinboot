@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 
-# Copyright (C) 2019 Gunter Miegel coinboot.io
+# Copyright (C) 2019-2020 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 #
@@ -21,21 +22,23 @@ set -e -o pipefail
 export RELEASE=$RELEASE_TAG
 export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
+COINBOOT_SERVER_IP=192.168.1.2/24
 MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
 MACHINE_MAC_ADDRESS_UEFI='52:54:04:b9:ab:46'
 DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
+EXT_IF=$(ip route show default | grep -oP '(?<=dev )\w+')
+TIMEOUT=300
 
-
-echo "Debug environment at run_coinboot"
-env 
 
 if [ -d "/vagrant" ]; then
-  EXT_IF='enp0s8'
+  COINBOOT_SERVER_IF='enp0s8'
 else
-  EXT_IF='ens4'
+  COINBOOT_SERVER_IF=$EXT_IF
 fi
 
+echo "Debug environment at run_coinboot"
+env
 
 get_ip_address_associated() {
   local MACHINE_MAC_ADDRESS=$1
@@ -44,6 +47,7 @@ get_ip_address_associated() {
     echo "Waiting until MAC address $MACHINE_MAC_ADDRESS of VM shows up" >&2
     sleep 10
   done
+
 
   ip neighbour show dev br0 nud reachable | grep $MACHINE_MAC_ADDRESS -m 1| cut -d ' ' -f 1
 }
@@ -57,11 +61,15 @@ change_to_build_dir() {
 }
 
 get_bridge_interface() {
-  ip a | grep '192.168.1.2/24' |grep -oP 'br-.*'
+  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'  
 }
 
-get_interface_for_bridge() {
-  ip a | grep '192.168.1.2/24' |grep -oP '\s(w+)$'
+export_interface_for_bridge() {
+  if ip route | grep 192.168.1.0/24; then
+    export COINBOOT_SERVER_IF=$(ip route |grep 192.168.1.0/24 | grep -oP '(?<=dev )\w+')
+  else
+   export COINBOOT_SERVER_IF=enp0s8
+  fi
 }
 
 get_default_route() {
@@ -74,12 +82,8 @@ get_default_gateway() {
 
 update_default_route() {
   ip route
-  if [ ! -d "/vagrant" ]; then
-    sudo dhclient -v br0
-    ip route
-  else
-    echo "Not running at Travis CI - update of default route skipped"
-  fi
+  sudo dhclient -v br0
+  ip route
 }
 
 add_address_to_br0() {
@@ -91,7 +95,7 @@ move_ext_interface_to_bridge() {
   ip a
   if [[ -z  $(get_bridge_interface) ]] && ! ip a | grep -oP '\sbr0'; then
     sudo brctl addbr br0
-    sudo brctl addif br0 $EXT_IF
+    sudo brctl addif br0 $COINBOOT_SERVER_IF
     sudo ip link set br0 up
   fi
   brctl show
@@ -99,11 +103,12 @@ move_ext_interface_to_bridge() {
 
 migrate_ips_to_bridge_interface() {
   ip a
-  while ip -4 addr show dev $EXT_IF | grep inet; do
+  while ip -4 addr show dev $COINBOOT_SERVER_IF | grep inet; do
+   #COINBOOT_SERVER_IP=$(ip -4 a show dev $COINBOOT_SERVER_IF | grep -m 1 inet | cut -d ' ' -f6)
    IP=$(ip -4 a show dev $EXT_IF | grep -m 1 inet | cut -d ' ' -f6)
    echo "Migrating $IP to br0 now"
    sudo ip addr add $IP dev br0
-   sudo ip addr del $IP dev $EXT_IF
+   sudo ip addr del $IP dev $COINBOOT_SERVER_IF
   done
 }
 
@@ -129,7 +134,7 @@ wait_for_server_to_be_ready() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --vcpus 4 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 run_with_libvirt_uefi() {
@@ -140,14 +145,19 @@ verify_and_shutdown_over_ssh() {
   local MACHINE_MAC_ADDRESS=$1
   local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
-  while ! ping -c 1 $MACHINE_IP; do
-    echo 'Waiting for Coinboot machine to respond to our ICMP echo requests ...'
-    sleep 10
+  local COUNTER=0
+  while ! ping -c1 $MACHINE_IP && [ $COUNTER < $TIMEOUT ]; do
+    sleep 1
+    ((COUNTERi++))
+    echo "Waiting $COUNTER second(s) Coinboot machine to respond to our ICMP echo requests ..."
   done
 
-  while ! nc -z $MACHINE_IP 22; do
-    echo 'Waiting for Coinboot machine to listen on port 22/SSH ...'
-  sleep 10
+  # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
+  local COUNTER=0
+  while ! nc -v -z $MACHINE_IP 22 && [ $COUNTER < $TIMEOUT ]; do
+    sleep 1
+    ((COUNTERi++))
+    echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
   done
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
@@ -165,9 +175,9 @@ verify_and_shutdown_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-bin virtinst qemu-system-x86 ipxe-qemu ovmf
+sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
@@ -178,14 +188,23 @@ fi
 change_to_build_dir
 
 move_ext_interface_to_bridge
+
 migrate_ips_to_bridge_interface
-update_default_route
+
+add_address_to_br0
+
+#update_default_route
+
 echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf
+
 dig registry-1.docker.io || true
 
+# The Vagrant VM has two network interfaces:
+# A default one for internet access and a second "private network" which we include in
+# as network bridge for the Coinboot Server Container and the Coinboot Qemu worker VMs.
+# Because of this we don't have to refresh the default route after moving IPs between interfaces.
 if ! [ -d "/vagrant" ]; then
-  add_address_to_br0
-  update_default_route
+ update_default_route
 fi
 
 # We also need to load the environment before calling docker-compose:

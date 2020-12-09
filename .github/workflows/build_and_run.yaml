@@ -1,0 +1,127 @@
+---
+name: build_and_run
+on: [push]
+jobs:
+  build_and_run:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+          - kernel: "4.15.0-72-generic"
+            suite: "xenial"
+          - kernel: "5.3.0-29-generic"
+            suite: "eoan"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Build and test run Debirf image
+        env:
+          KERNEL: ${{ matrix.kernel }}
+          SUITE: ${{ matrix.suite }}
+        run: ./debirf/build_and_run_images
+        # if: github.ref == 'refs/heads/master'
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: debirf/build/coinboot*
+        # if: github.ref == 'refs/heads/master'
+
+  create_pre-release:
+    needs: build_and_run
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: debirf/build
+      - name: Setup Golang for github-release
+        uses: actions/setup-go@v1
+      - name: Create pre-release
+        env:
+          GITHUB_USER: "frzb"
+          GITHUB_REPO: "coinboot"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: "/home/runner/go"
+        run: |
+          go get github.com/aktau/github-release
+          export PATH=$PATH:"${GOPATH}"/bin
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          ls -la "${GOPATH}"/bin
+          env
+          github-release --version
+          ls -la ./debirf/*/*
+          git config --global user.email "build@coinboot.io"
+          git config --global user.name "Github Actions"
+          git tag $PRE_RELEASE_TAG
+          git remote rm origin
+          git remote add origin https://"${{ secrets.GITHUB_TOKEN}}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          git push --quiet --set-upstream origin $PRE_RELEASE_TAG
+          github-release -v release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
+          set -x
+          echo $0
+          find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
+
+  run_coinboot_with_pxe_boot:
+    needs: create_pre-release
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+      - name: Run Coinboot server and boot workers
+        env:
+          KERNEL: "5.3.0-29-generic"
+          SUITE: "eoan"
+        run: |
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
+          export RELEASE=$PRE_RELEASE_TAG
+          ./server/run_coinboot
+      - name: Create release from pre-release on master
+        if: github.ref == 'refs/heads/master'
+        env:
+          GITHUB_USER: "frzb"
+          GITHUB_REPO: "coinboot"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: "/home/runner/go"
+        run: |
+          go get github.com/aktau/github-release
+          export PATH=$PATH:"${GOPATH}"/bin
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          export RELEASE_TAG=$(date +%Y%m%d)
+          git config --global user.email "build@coinboot.io"
+          git config --global user.name "Github Actions"
+          git tag -d $PRE_RELEASE_TAG
+          git tag $RELEASE_TAG
+          git remote rm origin
+          git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          git push --quiet --set-upstream origin $RELEASE_TAG
+          git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+          github-release -v release --tag $RELEASE_TAG --name $RELEASE_TAG
+          find ./debirf/build -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
+      - name: Remove pre-release if not on master
+        # Only remove pre-release on master, else make a release.
+        if: github.ref != 'refs/heads/master'
+        env:
+          GITHUB_USER: "frzb"
+          GITHUB_REPO: "coinboot"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOPATH: "/home/runner/go"
+        run: |
+          go get github.com/aktau/github-release
+          export PATH=$PATH:"${GOPATH}"/bin
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          github-release -v delete -t $PRE_RELEASE_TAG
+          git config --global user.email "build@coinboot.io"
+          git config --global user.name "Github Actions"
+          set +x
+          # actions/checkout@v2 with depth 0 is not pulling tags.
+          # To avoid a full pull we just pull the tags.
+          git pull --tags origin
+          git tag -d $PRE_RELEASE_TAG
+          git remote rm origin
+          git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
+          git push origin :refs/tags/"${PRE_RELEASE_TAG}"
+          git push origin --tags
