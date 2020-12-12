@@ -113,6 +113,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOPATH: "/home/runner/go"
         run: |
+          go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
           github-release -v delete -t $PRE_RELEASE_TAG
