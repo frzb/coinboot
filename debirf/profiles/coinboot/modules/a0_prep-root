@@ -67,8 +67,8 @@ EOF
 # Extend sources list to get access to 16.03.4 updates.
 # Like e.g. kernel, kernel headers.
 cat <<EOF >> "${DEBIRF_ROOT}/etc/apt/sources.list"
-deb mirror://mirrors.archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-updates main
-deb mirror://mirrors.archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-security main
+deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-updates main
+deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-security main
 EOF
 
 # Add components for restricted, universe and multiverse.
