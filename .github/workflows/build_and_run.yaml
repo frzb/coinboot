@@ -9,8 +9,8 @@ jobs:
         include:
           - kernel: "4.15.0-72-generic"
             suite: "xenial"
-          - kernel: "5.3.0-29-generic"
-            suite: "eoan"
+          - kernel: "5.4.0-58-generic"
+            suite: "focal"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -73,8 +73,8 @@ jobs:
         uses: actions/download-artifact@v2
       - name: Run Coinboot server and boot workers
         env:
-          KERNEL: "5.3.0-29-generic"
-          SUITE: "eoan"
+          KERNEL: "5.4.0-58-generic"
+          SUITE: "focal"
         run: |
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
           export RELEASE=$PRE_RELEASE_TAG
