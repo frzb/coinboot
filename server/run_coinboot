@@ -154,7 +154,8 @@ verify_and_shutdown_over_ssh() {
 
   # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
   local COUNTER=0
-  while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -lt "$TIMEOUT" ]; do
+  #while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -lt "$TIMEOUT" ]; do
+  while ! nc -v -z $MACHINE_IP 22; do 
     sleep 1
     ((COUNTER++))
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
