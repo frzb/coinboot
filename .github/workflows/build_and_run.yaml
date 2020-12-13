@@ -75,6 +75,7 @@ jobs:
         env:
           KERNEL: "5.4.0-58-generic"
           SUITE: "focal"
+        shell: bash
         run: |
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
           export RELEASE=$PRE_RELEASE_TAG
