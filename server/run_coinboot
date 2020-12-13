@@ -61,7 +61,7 @@ change_to_build_dir() {
 }
 
 get_bridge_interface() {
-  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'  
+  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'
 }
 
 export_interface_for_bridge() {
@@ -146,7 +146,7 @@ verify_and_shutdown_over_ssh() {
   local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
   local COUNTER=0
-  while ! ping -c1 $MACHINE_IP && [ "$COUNTER" -lt "$TIMEOUT" ]; do
+  while ! ping -c1 $MACHINE_IP || [ "$COUNTER" -lt "$TIMEOUT" ]; do
     sleep 1
     ((COUNTER++))
     echo "Waiting $COUNTER second(s) Coinboot machine to respond to our ICMP echo requests ..."
@@ -154,7 +154,7 @@ verify_and_shutdown_over_ssh() {
 
   # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
   local COUNTER=0
-  while ! nc -v -z $MACHINE_IP 22 && [ "$COUNTER" -lt "$TIMEOUT" ]; do
+  while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -lt "$TIMEOUT" ]; do
     sleep 1
     ((COUNTER++))
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
