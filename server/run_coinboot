@@ -146,9 +146,10 @@ verify_and_shutdown_over_ssh() {
   local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
   local COUNTER=0
-  while ! ping -c1 $MACHINE_IP || [ "$COUNTER" -lt "$TIMEOUT" ]; do
+  while ! ping -c1 $MACHINE_IP ; do
     sleep 1
-    ((COUNTER++))
+    ((COUNTER++)
+    if [ "$COUNTER" -lt "$TIMEOUT" ])
     echo "Waiting $COUNTER second(s) Coinboot machine to respond to our ICMP echo requests ..."
   done
 
@@ -157,7 +158,11 @@ verify_and_shutdown_over_ssh() {
   #while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -lt "$TIMEOUT" ]; do
   while ! nc -v -z $MACHINE_IP 22; do 
     sleep 1
-    ((COUNTER++))
+    ((COUNTER++)) 
+    if [ "$COUNTER" -lt "$TIMEOUT" ]; then
+      echo "Timeout reached"
+      exit 1
+    fi
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
   done
 
