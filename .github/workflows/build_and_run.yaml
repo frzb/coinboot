@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Download build artifacts
+      - name: Download build artifact
         uses: actions/download-artifact@v2
         with:
           path: debirf/build
@@ -80,6 +80,10 @@ jobs:
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          path: debirf/build
       - name: Create release from pre-release on master
         if: github.ref == 'refs/heads/master'
         env:
