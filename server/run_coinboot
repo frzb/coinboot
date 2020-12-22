@@ -148,17 +148,20 @@ verify_and_shutdown_over_ssh() {
   local COUNTER=0
   while ! ping -c1 $MACHINE_IP ; do
     sleep 1
-    ((COUNTER++)
-    if [ "$COUNTER" -ge "$TIMEOUT" ])
+    COUNTER=$((COUNTER+1))
+    if [ "$COUNTER" -ge "$TIMEOUT" ]; then
+      echo "Timeout reached"
+      exit 1
+    fi
     echo "Waiting $COUNTER second(s) Coinboot machine to respond to our ICMP echo requests ..."
   done
 
   # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
   local COUNTER=0
   #while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -ge "$TIMEOUT" ]; do
-  while ! nc -v -z $MACHINE_IP 22; do 
+  while ! nc -v -z $MACHINE_IP 22; do
     sleep 1
-    ((COUNTER++)) 
+    COUNTER=$((COUNTER+1))
     if [ "$COUNTER" -ge "$TIMEOUT" ]; then
       echo "Timeout reached"
       exit 1
