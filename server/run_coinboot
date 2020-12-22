@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 
 # Copyright (C) 2019-2020 Gunter Miegel coinboot.io
 #
@@ -157,7 +158,6 @@ verify_and_shutdown_over_ssh() {
 
   # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
   local COUNTER=0
-  #while ! nc -v -z $MACHINE_IP 22 || [ "$COUNTER" -ge "$TIMEOUT" ]; do
   while ! nc -v -z $MACHINE_IP 22; do
     sleep 1
     COUNTER=$((COUNTER+1))
