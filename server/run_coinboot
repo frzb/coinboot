@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e -o pipefail
-set -x
 
 # Copyright (C) 2019-2020 Gunter Miegel coinboot.io
 #
@@ -61,7 +60,7 @@ change_to_build_dir() {
 }
 
 get_bridge_interface() {
-  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'  
+  ip a | grep '192.168.1.2/24' | grep -oP 'br-.*'
 }
 
 export_interface_for_bridge() {
@@ -146,17 +145,25 @@ verify_and_shutdown_over_ssh() {
   local MACHINE_IP=$(get_ip_address_associated $MACHINE_MAC_ADDRESS)
 
   local COUNTER=0
-  while ! ping -c1 $MACHINE_IP && [ $COUNTER < $TIMEOUT ]; do
+  while ! ping -c1 $MACHINE_IP ; do
     sleep 1
-    ((COUNTERi++))
+    COUNTER=$((COUNTER+1))
+    if [ "$COUNTER" -ge "$TIMEOUT" ]; then
+      echo "Timeout reached"
+      exit 1
+    fi
     echo "Waiting $COUNTER second(s) Coinboot machine to respond to our ICMP echo requests ..."
   done
 
   # Pure nc -z -w with timeout fails for ssh all the time, so again with the while loop.
   local COUNTER=0
-  while ! nc -v -z $MACHINE_IP 22 && [ $COUNTER < $TIMEOUT ]; do
+  while ! nc -v -z $MACHINE_IP 22; do
     sleep 1
-    ((COUNTERi++))
+    COUNTER=$((COUNTER+1))
+    if [ "$COUNTER" -ge "$TIMEOUT" ]; then
+      echo "Timeout reached"
+      exit 1
+    fi
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
   done
 
