@@ -71,6 +71,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Download build artifacts
         uses: actions/download-artifact@v2
+      - name: Set up Coinboot requirements 
+        shell: bash
+        run: https://raw.githubusercontent.com/frzb/coinboot/master/setup_coinboot_requirements | bash 
       - name: Run Coinboot server and boot workers
         env:
           KERNEL: "5.4.0-58-generic"
