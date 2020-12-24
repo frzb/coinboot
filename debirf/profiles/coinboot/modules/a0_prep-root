@@ -66,9 +66,13 @@ EOF
 
 # Extend sources list to get access to 16.03.4 updates.
 # Like e.g. kernel, kernel headers.
+# FIXME: mirror:// protocal fails currently due to
+# 404  Not Found [Mirror: http://mirror.cc.vt.edu/pub2/ubuntu/]
 cat <<EOF >> "${DEBIRF_ROOT}/etc/apt/sources.list"
-deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-updates main
-deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-security main
+# deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-updates main
+# deb mirror://mirrors.ubuntu.com/mirrors.txt ${DEBIRF_SUITE}-security main
+deb http://archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-updates main
+deb http://archive.ubuntu.com/ubuntu ${DEBIRF_SUITE}-security main
 EOF
 
 # Add components for restricted, universe and multiverse.
