@@ -71,3 +71,7 @@ services:
       driver: loki
       options:
         loki-url: "http://localhost:3100/loki/api/v1/push"
+      # Data persistency
+      # sudo mkdir -p /srv/docker/grafana/data; chown 472:472 /srv/docker/grafana/data
+      - grafana-data:/var/lib/grafana
+      - ./conf/grafana/provisioning:/etc/grafana/provisioning
