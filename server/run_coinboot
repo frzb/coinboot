@@ -210,6 +210,14 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
+# Enable the execution of virsh without root access 
+# mostly used for local debugging and just for Vagrant.
+if [ -d "/vagrant" ]; then
+  if id | grep -v libvirt; then
+    sudo usermod -a -G libvirt vagrant
+  fi
+fi
+
 change_to_build_dir
 
 move_ext_interface_to_bridge
