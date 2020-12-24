@@ -2,7 +2,7 @@
 
 **Message from the Maintainer: Due to some priority changes in my life I am not able to put as much effort in here as needed. Some things might be broken. For 2021 a major rehaul is planned and prepared in the background. Helping hands are always welcome.**
 
-## Coinboot [![Build Status](https://travis-ci.com/frzb/coinboot.svg?branch=master)](https://travis-ci.com/frzb/coinboot)
+## Coinboot ![Build Status](https://github.com/frzb/coinboot/workflows/build/badge.svg?branch=master)
 
 Coinboot is a framework for **diskless** computing.   
 

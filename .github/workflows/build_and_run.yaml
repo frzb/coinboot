@@ -1,5 +1,5 @@
 ---
-name: build_and_run_images
+name: build
 on: [push]
 jobs:
   build_and_run:
