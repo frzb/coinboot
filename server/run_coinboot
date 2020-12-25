@@ -111,7 +111,6 @@ migrate_ips_to_bridge_interface() {
   done
 }
 
-
 build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
@@ -132,8 +131,19 @@ wait_for_server_to_be_ready() {
   done
 }
 
+cleanup_virsh_domains() {
+  # Domains with UEFI need to be deleted with the additional parameter --vram
+  for DOMAIN in $(sudo virsh list --all --name); do
+    if [[ $DOMAIN == *"uefi"* ]]; then
+      sudo virsh undefine --nvram $DOMAIN
+    else
+      sudo virsh undefine $DOMAIN
+    fi
+  done
+}
+
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --vcpus 4 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 run_with_libvirt_uefi() {
@@ -192,6 +202,22 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
+# Enable the execution of virsh without root access 
+# mostly used for local debugging and just for Vagrant.
+if [ -d "/vagrant" ]; then
+  if id | grep -v libvirt; then
+    sudo usermod -a -G libvirt vagrant
+  fi
+fi
+
+# Enable the execution of virsh without root access 
+# mostly used for local debugging and just for Vagrant.
+if [ -d "/vagrant" ]; then
+  if id | grep -v libvirt; then
+    sudo usermod -a -G libvirt vagrant
+  fi
+fi
+
 change_to_build_dir
 
 move_ext_interface_to_bridge
@@ -224,10 +250,11 @@ run_docker_compose
 
 wait_for_server_to_be_ready
 
+cleanup_virsh_domains
+
 run_with_libvirt_bios
 
 verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
 
 run_with_libvirt_uefi
 
-verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI

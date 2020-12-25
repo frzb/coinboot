@@ -1,4 +1,8 @@
+---
 version: '3'
+
+volumes:
+  grafana-data:
 
 services:
   coinboot:
@@ -20,53 +24,52 @@ services:
       - NET_ADMIN
       - NET_BROADCAST
     network_mode: "host"
-  mongodb:
-    image: mongo:4.0.6
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.6.0
-    environment:
-      - http.host=0.0.0.0
-      - transport.host=localhost
-      - network.host=0.0.0.0
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-  # Graylog: https://hub.docker.com/r/graylog/graylog/
-  graylog:
-    # We have to use 2.5.1-4 to get around this issue:
-    # https://github.com/Graylog2/graylog-docker/issues/62
-    image: graylog/graylog:2.5.1-4
-    volumes:
-      - ./conf/graylog/contentpacks:/usr/share/graylog/data/contentpacks
-    env_file:
-      - ./conf/environment/default.env
-    environment:
-      - GRAYLOG_CONTENT_PACKS_AUTO_LOAD=coinboot-remote-logging.json
-      - GRAYLOG_CONTENT_PACKS_DIR=data/contentpacks
-      - GRAYLOG_CONTENT_PACKS_LOADER_ENABLED=true
-      # CHANGE ME!
-      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
-      # Password: admin
-      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-      - GRAYLOG_WEB_ENDPOINT_URI=http://${COINBOOT_SERVER_IP}:9000/api
-    links:
-      - mongodb:mongo
-      - elasticsearch
-    depends_on:
-      - mongodb
-      - elasticsearch
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
     ports:
-      # Graylog web interface and REST API
-      - 9000:9000
-      # Syslog TCP
-      - 514:514
-      # Syslog UDP
-      - 514:514/udp
-      # Netconsole raw UDP
-      - 5555:5555/udp
-      # GELF TCP
-      - 12201:12201
-      # GELF UDP
-      - 12201:12201/udp
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./conf/grafana/provisioning:/etc/grafana/provisioning
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki.yaml
+    volumes:
+      - ./conf/loki/loki.yaml:/etc/loki/loki.yaml
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+  fluentd:
+    image: grafana/fluent-plugin-loki:master
+    container_name: fluentd
+    command: fluentd -p /fluentd/plugins
+    environment:
+      LOKI_URL: http://loki:3100
+      LOKI_USERNAME:
+      LOKI_PASSWORD:
+    ports:
+      # We have to map to unprivileged port 5140
+      # because inside the container fluentd is running unprivileged
+      - "514:5140/udp"
+      - "5555:5555/udp"
+    volumes:
+      - ./conf/fluentd/fluentd.conf:/fluentd/etc/fluent.conf
+      - grafana-data:/var/lib/grafana
+      - ./conf/grafana/provisioning:/etc/grafana/provisioning
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"

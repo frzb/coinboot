@@ -14,6 +14,11 @@ if ! which docker-compose; then
   sudo chmod +x /usr/local/bin/docker-compose
 fi
 
+if ! docker plugin ls |grep -q loki; then
+  docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+  docker plugin ls
+fi
+
 # Configure forwading and NAT cause the DHCP server vagrant box acts currently
 # also as gateway.
 # Ignore the masquerading set up for Docker (destination 172.17.0.0/16).
@@ -22,6 +27,10 @@ if ! iptables -L -t nat | grep -q 'MASQUERADE  all  --  anywhere'; then
 else
   echo 'Masquerading iptables rule already set.'
 fi
+
+# enable Password login to Vagrant box for remote debugging of VMs
+sudo sed -i "s/.*PasswordAuthentication.*/PasswordAuthentication yes/g" /etc/ssh/sshd_config
+sudo systemctl restart ssh
 
 # FIXME: Using a default policy seems a little bit coarse.
 sudo iptables -P FORWARD ACCEPT
@@ -39,7 +48,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "worker" do |machine|
     # machine.vm.box = "bento/ubuntu-16.04"
     # FIXME: Built own empty Vagrantbox
-    machine.vm.box = "c33s/empty"
+    machine.vm.box = "clink15/pxe"
     machine.vm.hostname = "client"
     machine.ssh.host = "192.168.1.10"
     machine.ssh.port = 22
@@ -80,7 +89,9 @@ Vagrant.configure(2) do |config|
   config.vm.define "coinboot-server" do |machine|
     machine.vm.box = "ubuntu/focal64"
     machine.vm.provision "shell", inline: $coinboot_docker
-    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot"
+    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.3.0-29-generic"}
+    # Port-forwarding for Grafana
+    machine.vm.network "forwarded_port", guest: 3000, host: 3000
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
