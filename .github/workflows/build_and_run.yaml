@@ -1,6 +1,6 @@
 ---
 name: build
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   build_and_run:
     runs-on: ubuntu-20.04
