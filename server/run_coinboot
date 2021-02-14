@@ -31,7 +31,11 @@ TIMEOUT=300
 
 
 if [ -d "/vagrant" ]; then
-  COINBOOT_SERVER_IF='enp0s8'
+  if ip a | grep -q eth1; then
+    COINBOOT_SERVER_IF='eth1'
+  else
+    COINBOOT_SERVER_IF='enp0s8'
+  fi
 else
   COINBOOT_SERVER_IF=$EXT_IF
 fi

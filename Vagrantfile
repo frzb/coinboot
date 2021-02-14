@@ -56,7 +56,7 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "coinboot-server" do |machine|
-    machine.vm.box = "ubuntu/focal64"
+    machine.vm.box = "bento/ubuntu-20.04"
     machine.vm.hostname = "coinboot-server"
     machine.vm.provision "shell", inline: $coinboot_docker
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.4.0-58-generic"}
