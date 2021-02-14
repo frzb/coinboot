@@ -37,12 +37,12 @@ sudo iptables -P FORWARD ACCEPT
 
 SCRIPT
 
-$grub_ipxe = <<SCRIPT 
+$grub_ipxe = <<SCRIPT
 
 sudo apt update
 sudo apt install ipxe -y
 
-# grub2-set-default
+# grub-set-default "Network boot (iPXE)"
 
 SCRIPT
 
@@ -59,10 +59,10 @@ Vagrant.configure(2) do |config|
     machine.vm.box = "ubuntu/focal64"
     machine.vm.hostname = "coinboot-server"
     machine.vm.provision "shell", inline: $coinboot_docker
-    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.3.0-29-generic"}
+    machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.4.0-58-generic"}
     # Port-forwarding for Grafana
     machine.vm.network "forwarded_port", guest: 3000, host: 3000
-    # Port-forwarding for VNC of Qemu/KVM 
+    # Port-forwarding for VNC of Qemu/KVM
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
