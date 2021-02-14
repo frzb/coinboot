@@ -96,6 +96,7 @@ move_ext_interface_to_bridge() {
     sudo brctl addbr br0
     sudo brctl addif br0 $COINBOOT_SERVER_IF
     sudo ip link set br0 up
+    sudo ip link set $COINBOOT_SERVER_IF up
   fi
   brctl show
 }
