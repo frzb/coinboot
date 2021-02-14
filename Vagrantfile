@@ -52,6 +52,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider :virtualbox do |vb|
     vb.customize ["modifyvm", :id, "--cpus", `#{RbConfig::CONFIG['host_os'] =~ /darwin/ ? 'sysctl -n hw.ncpu' : 'nproc'}`.chomp]
     vb.customize ["modifyvm", :id, "--memory", 3096]
+    vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
   end
 
   config.vm.define "coinboot-server" do |machine|
@@ -61,6 +62,7 @@ Vagrant.configure(2) do |config|
     machine.vm.provision "shell", inline: "/vagrant/server/run_coinboot", env: {"KERNEL": "5.3.0-29-generic"}
     # Port-forwarding for Grafana
     machine.vm.network "forwarded_port", guest: 3000, host: 3000
+    # Port-forwarding for VNC of Qemu/KVM 
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
     interfaces = []
 
@@ -85,9 +87,10 @@ Vagrant.configure(2) do |config|
       puts "Using interface enx00e04c680379 as bridge interface"
     else
       # No IP address is configured, this is handled by the "run_coinboot" script.
-      machine.vm.network "private_network", auto_config: false, virtualbox__intnet: "intnet"
-      puts "Using interface intnet as bridge interface"
-    end
+      # We have to configure an IP even if auto_config is set to true, else same sanity checks of Vagrant
+      # are not happy.
+      machine.vm.network "private_network", ip: "192.168.1.2", auto_config: false
+      puts "Using interface vboxnet_pxe as bridge interface"
       # FIXME: Path has changed in monorepo
       # machine.vm.provision "shell", inline: 'cp -v /vagrant/example_plugins/builds/coinboot-vagrantbox.tar.gz /vagrant/plugins/coinboot-vagrantbox.tar.gz'
     end
@@ -95,7 +98,7 @@ Vagrant.configure(2) do |config|
         # 100MBit/s one.
     #machine.vm.provider "virtualbox" do |vb|
     #  vb.customize ['modifyvm', :id, '--nictype2', '82540EM']
-    #end
+  end
 
   config.vm.define "worker" do |machine|
     machine.vm.box = "clink15/pxe"
@@ -147,7 +150,17 @@ Vagrant.configure(2) do |config|
     # lack of the Virtualbox guest extension.
     # machine.vm.synced_folder "./plugins", "/vagrant", type: "rsync"
     machine.vm.provision "shell", inline: $grub_ipxe
-    machine.vm.network "private_network", auto_config: false, virtualbox__intnet: "intnet"
+    for addr_info in Socket.getifaddrs
+      if addr_info.addr.ipv4?
+        if addr_info.addr.ip_address.eql? "192.168.1.1"
+          vboxnet_pxe = addr_info.name
+          puts "Internal network for TFTP/PXE: #{vboxnet_pxe}"
+        end
+      end
+    end
+    # We have to configure an IP even if auto_config is set to true, else same sanity checks of Vagrant
+    # are not happy.
+    machine.vm.network "private_network", ip: "192.168.1.20", auto_config: false, name: vboxnet_pxe
     machine.vm.provider "virtualbox" do |vb|
       #vb.customize ["modifyvm", :id,
       #              "--nic1", "intnet",
