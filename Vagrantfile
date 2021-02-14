@@ -127,6 +127,7 @@ Vagrant.configure(2) do |config|
                     "--nic1", "hostonly",
                     "--hostonlyadapter1", vboxnet_pxe,
                     "--macaddress1", "080027C1447D",
+	            "--nictype1", "82540EM",
                     "--boot1", "net"]
       # Set up serial port
       # name = /dev/ttyS0
