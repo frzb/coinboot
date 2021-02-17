@@ -42,7 +42,20 @@ $grub_ipxe = <<SCRIPT
 sudo apt update
 sudo apt install ipxe -y
 
-# grub-set-default "Network boot (iPXE)"
+# The idea is set the boot entry for the next boot to iPXE with grub-reboot.
+# This entry is just used once and then the default boot entry is used again.
+# Attenion: When the GRUB environment block which is used to store infomation
+# from one boot to next e.g. which entry to boot next time is placed on LVM
+# the grub-reboot command is not working as expected.
+# https://www.gnu.org/software/grub/manual/grub/html_node/Environment-block.html
+# WARNING: Detected GRUB environment block on lvm device
+# Network boot (iPXE) will remain the default boot entry until manually cleared with:
+#     grub-editenv /boot/grub/grubenv unset next_entry
+
+sudo sed -i 's/GRUB_DEFAULT=.*/GRUB_DEFAULT=saved/g' /etc/default/grub
+sudo grub-reboot "Network boot (iPXE)"
+sudo update-grub2
+sudo reboot
 
 SCRIPT
 
