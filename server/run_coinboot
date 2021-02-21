@@ -116,6 +116,10 @@ migrate_ips_to_bridge_interface() {
   done
 }
 
+check_dnsmasq_config() {
+  dnsmasq --test --conf-file=./docker/dnsmasq/dnsmasq.conf
+}
+
 build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
@@ -197,7 +201,7 @@ verify_and_shutdown_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes --no-install-recommends bridge-utils jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
+sudo apt-get  install --yes --no-install-recommends bridge-utils dnsmasq jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
 
 # Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
@@ -207,7 +211,7 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
@@ -215,7 +219,7 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
@@ -248,6 +252,10 @@ fi
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
+
+# Config syntax check fails because the build environment on Ubuntu focal is 
+# running dnsmasq 2.80 which is lacking "dhcp-ignore-clid", this feature was introduced with 2.81
+# check_dnsmasq_config
 
 build_docker_image
 
