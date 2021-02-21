@@ -154,12 +154,14 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "worker_without_pxe_firmware" do |machine|
-    machine.vm.box = "bento/ubuntu-20.04"
+    # Using ubuntu/focal cause it is not using LVM.
+    # LVM and grubenv is not working as expected.
+    machine.vm.box = "ubuntu/focal64"
     machine.vm.hostname = "client-no-pxe-firmware"
     #machine.ssh.host = "192.168.1.11"
     #machine.ssh.port = 22
-    machine.ssh.password = "vagrant"
-    machine.ssh.username = "vagrant"
+    #machine.ssh.password = "vagrant"
+   # machine.ssh.username = "vagrant"
     # Switch to rsync for syncing files to Vagrantbox caused by the initial
     # lack of the Virtualbox guest extension.
     # machine.vm.synced_folder "./plugins", "/vagrant", type: "rsync"
@@ -180,13 +182,6 @@ Vagrant.configure(2) do |config|
       #              "--nic1", "intnet",
       #              "--macaddress1", "080027C1447E"
       #]
-      # Set up serial port
-      # name = /dev/ttyS0
-      # IO address = 0x3F8
-      # Interupt Request (IRQ) = 4
-      # Use with: socat -d -d /tmp/serial_port_client PTY
-      vb.customize ["modifyvm", :id, "--uart1", "0x3f8", "4"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "server", "/tmp/serial_port_client_worker_no_pxe_firmware"]
       vb.customize ["modifyvm", :id, "--memory", "2048"]
     end
   end
