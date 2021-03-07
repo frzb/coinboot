@@ -47,7 +47,7 @@ fi
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
 if [ -z $KERNEL ]; then
-  KERNEL=4.15.0-45-generic
+  KERNEL=5.4.0-58-generic
 fi
 VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
