@@ -24,7 +24,7 @@ COMPOSE_VERSION=1.27.4
 if ! docker info; then
   curl -fsSL get.docker.com -o get-docker.sh
   sudo sh get-docker.sh
-  sudo usermod -aG docker $(whomami)
+  sudo usermod -aG docker $(whoami)
 fi
 
 if ! which docker-compose; then
