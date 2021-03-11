@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e -o pipefail
+
+# Copyright (C) 2019-2020 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+if ! docker info; then
+  curl -fsSL get.docker.com | bash 
+  sudo usermod -aG docker vagrant
+fi
+
+if ! which docker-compose; then
+  sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+fi
+
+if ! docker plugin ls |grep -q loki; then
+  docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+  docker plugin ls
+fi
+
