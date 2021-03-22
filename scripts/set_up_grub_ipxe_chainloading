@@ -49,7 +49,7 @@ sudo tee /usr/local/bin/reboot_with_iPXE << EOF
 sudo grub-reboot "Network boot (iPXE)"
 EOF
 
-sudo chown u+x /usr/local/bin/reboot_with_iPXE
+sudo chmod u+x /usr/local/bin/reboot_with_iPXE
 
 echo 'Use the command "reboot_with_iPXE" to reboot and to trigger'
 echo 'booting over network with iPXE in the next boot sequence.'
