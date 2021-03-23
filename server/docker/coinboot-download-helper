@@ -47,7 +47,7 @@ fi
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
 if [ -z $KERNEL ]; then
-  KERNEL=4.15.0-45-generic
+  KERNEL=5.4.0-58-generic
 fi
 VMLINUZ=coinboot-vmlinuz-$KERNEL
 INITRAMFS=coinboot-initramfs-$KERNEL
@@ -70,7 +70,7 @@ fi
 
 ## iPXE network bootloader for BIOS and UEFI ##
 # We use a customised build with remote logging
-IPXE_RELEASE=20190130
+IPXE_RELEASE=20210311
 URL=https://github.com/frzb/coinboot-ipxe/releases/download/${IPXE_RELEASE}
 BIOS=undionly.kpxe
 UEFI=ipxe.efi

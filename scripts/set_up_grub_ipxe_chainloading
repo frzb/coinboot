@@ -1,0 +1,55 @@
+#!/bin/bash
+set -e -o pipefail
+
+# Copyright (C) 2019-2021 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+#
+# Coinboot is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+# The basic idea is to set the boot entry for the next boot to iPXE with grub-reboot.
+# This entry is just used once and then the default boot entry is used again.
+# As mentioned under https://ipxe.org/embed we use an iPXE script passed via the initrd entry
+# during chainloading to achieve some resiliency by rebooting the default OS on HDD/SSD boot entry
+# if booting over network fails completely.
+# Attenion: When the GRUB environment block which is used to store infomation
+# from one boot to next e.g. which entry to boot next time is placed on LVM
+# the grub-reboot command is not working as expected.
+# https://www.gnu.org/software/grub/manual/grub/html_node/Environment-block.html
+# WARNING: Detected GRUB environment block on lvm device
+# Network boot (iPXE) boot entry can be manually cleared with:
+#     grub-editenv /boot/grub/grubenv unset next_entry
+
+sudo apt update
+sudo apt install ipxe -y
+
+sudo sed -i 's/GRUB_DEFAULT=.*/GRUB_DEFAULT=saved/g' /etc/default/grub
+sudo grub-reboot "Network boot (iPXE)"
+sudo update-grub2
+
+sudo tee /boot/ipxe.ipxe << EOF
+#!ipxe
+dhcp
+
+autoboot || reboot
+EOF
+
+sudo tee /usr/local/bin/reboot_with_iPXE << EOF
+sudo grub-reboot "Network boot (iPXE)"
+EOF
+
+sudo chmod u+x /usr/local/bin/reboot_with_iPXE
+
+echo 'Use the command "reboot_with_iPXE" to reboot and to trigger'
+echo 'booting over network with iPXE in the next boot sequence.'

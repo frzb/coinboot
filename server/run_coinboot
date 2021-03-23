@@ -28,10 +28,14 @@ DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 EXT_IF=$(ip route show default | grep -oP '(?<=dev )\w+')
 TIMEOUT=300
-
+VCPUS=$(nproc)
 
 if [ -d "/vagrant" ]; then
-  COINBOOT_SERVER_IF='enp0s8'
+  if ip a | grep -q eth1; then
+    COINBOOT_SERVER_IF='eth1'
+  else
+    COINBOOT_SERVER_IF='enp0s8'
+  fi
 else
   COINBOOT_SERVER_IF=$EXT_IF
 fi
@@ -96,6 +100,7 @@ move_ext_interface_to_bridge() {
     sudo brctl addbr br0
     sudo brctl addif br0 $COINBOOT_SERVER_IF
     sudo ip link set br0 up
+    sudo ip link set $COINBOOT_SERVER_IF up
   fi
   brctl show
 }
@@ -111,15 +116,33 @@ migrate_ips_to_bridge_interface() {
   done
 }
 
+configure_proxy_dhcp() {
+  sed -i "s/dhcp-range=192.168.1.10,192.168.1.100,6h/dhcp-range=192.168.1.0,proxy,255.255.255.0/" conf/dnsmasq/coinboot.conf
+}
+
+check_dnsmasq_config() {
+  sudo docker-compose run coinboot 
+  dnsmasq --test --conf-file=./docker/dnsmasq/dnsmasq.conf
+}
+
 build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
 
-run_docker_compose() {
-  pwd
+up_docker_compose() {
   docker-compose up -d
   sleep 30
   docker-compose logs
+}
+
+up_docker_compose_separate_dhcp_server() {
+  docker-compose -f docker-compose.yml -f docker-compose_external_dhcp_server.yml up -d
+  sleep 30
+  docker-compose logs
+}
+
+down_docker_compose() {
+  docker-compose down
 }
 
 # TODO: Refactor this - should be possible with one curl call
@@ -143,11 +166,11 @@ cleanup_virsh_domains() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --vcpus=$VCPUS --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --vcpus=$VCPUS --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 verify_and_shutdown_over_ssh() {
@@ -184,7 +207,7 @@ verify_and_shutdown_over_ssh() {
   done
 
   DOMAIN=$(sudo virsh list --name)
-  sudo virsh shutdown $DOMAIN
+  sudo virsh destroy $DOMAIN
   sudo virsh list --all
  }
 
@@ -202,7 +225,7 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
@@ -210,7 +233,7 @@ if [ -d "/vagrant" ]; then
   fi
 fi
 
-# Enable the execution of virsh without root access 
+# Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
 if [ -d "/vagrant" ]; then
   if id | grep -v libvirt; then
@@ -244,9 +267,13 @@ fi
 # https://github.com/docker/compose/issues/3435
 export $(grep -v '^#' ./conf/environment/* | xargs)
 
+# Config syntax check fails because the build environment on Ubuntu focal is
+# running dnsmasq 2.80 which is lacking "dhcp-ignore-clid", this feature was introduced with 2.81
+# check_dnsmasq_config
+
 build_docker_image
 
-run_docker_compose
+up_docker_compose
 
 wait_for_server_to_be_ready
 
@@ -258,3 +285,4 @@ verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
 
 run_with_libvirt_uefi
 
+verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI

@@ -54,9 +54,9 @@ This container includes all services to get Coinboot up and running and boot dis
 
 ## Requirements
 
-Docker 18.06.0-ce
+Docker ≥ 18.06.0-ce
 
-Docker Compose 1.25.0 
+Docker Compose ≥ 1.25.0 
 
 ## Usage
 
@@ -120,6 +120,18 @@ Take care that your Docker host has assigned an IP address matching to the `dhcp
 For example the Docker host has assigned `192.168.1.2` then a matching DHCP-range configuration is: `dhcp-range=192.168.1.10,192.168.1.100,6h`. 
 
 Also verify that the network adapter you assigned this IP address on your Docker host is connected to the same L2/broadcast domain as the machines you want to boot with Coinboot.
+
+
+#### Configure PXE network boot on worker nodes
+
+Configure the BIOS/Firmware of the worker nodes to boot over network with PXE.  
+
+#### Hardware without PXE support
+
+Some mainboards for crypto mining don't have support for PXE network booting by the BIOS/Firmware.  
+In this case Coinboot can be booted via chainloading by a network bootloader from a local boot drive of the worker node.  
+Boot scheme in such a scenario is: GRUB(local SDD) →  iPXE(local SSD) →  iPXE(Network) →  Coinboot OS  
+To setup this chainloading run `scrips/set_up_grub_ipxe_chainloading` on the worker node and follow the instructions provided by the script.
 
 ### Start the Coinboot Server Docker container
 

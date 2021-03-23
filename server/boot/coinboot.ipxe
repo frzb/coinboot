@@ -1,4 +1,5 @@
 #!ipxe
+
 # Remote logging server is with the DHCP-server
 set syslog ${dhcp-server}
 
@@ -12,7 +13,5 @@ echo Proceeding with booting right now...
 kernel ${base-url}/vmlinuz coinboot-server=${base-url} initrd=initramfs ignore_loglevel netconsole=5555@${ip}/eth0,5555@${dhcp-server} console=tty0 net.ifnames=0 biosdevname=0 zram
 initrd ${base-url}/initramfs
 boot ||
-# If everything failed, give the user some options.
 echo Boot from ${base-url} failed.
-prompt --key 0x197e --timeout 2000 Press F12 to investigate || exit
-shell
+reboot
