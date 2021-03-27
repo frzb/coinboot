@@ -47,8 +47,8 @@ debirf_exec find /usr/share/doc -empty -delete #-print
 debirf_exec rm -rf /usr/share/man/* /usr/share/groff/* /usr/share/info/*
 debirf_exec rm -rf /usr/share/lintian/* /usr/share/linda/* /var/cache/man/*
 
-# Remove Python object bytecode cache.
-rm  -rf "$DEBIRF_ROOT/usr/lib/python*/__pycache__"
+# Remove Python cached byte code
+find "$DEBIRF_ROOT" -regex '^.*\(__pycache__\|\.py[co]\)$' -delete
 
 rm -f "$DEBIRF_ROOT"/var/cache/apt/*.bin
 rm -rf "$DEBIRF_ROOT"/var/lib/apt/lists/*
