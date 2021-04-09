@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2021 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 #
@@ -53,7 +53,8 @@ EXCLUDE = ('/dev/',
            '/var/lib/dpkg/[^info]',
            '/var/log',
            '.*__pycache__.*',
-           '.wget-hsts'
+           '.wget-hsts',
+           '.*\.cache'
            )
 
 
