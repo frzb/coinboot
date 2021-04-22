@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB_Flux
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    user: admin
+    secureJsonData:
+      token: sahKoh8Jalooyael
+      password: admin
+    jsonData:
+      version: Flux
+      organization: coinboot.io
+      defaultBucket: default
