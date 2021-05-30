@@ -87,7 +87,8 @@ def main(arguments):
 
         files_for_plugin_archive.append(FINAL_DPKG_STATUS)
 
-        tar = tarfile.open(arguments['<plugin_name>'] + ".tar.gz", "w:gz")
+        archive_name = arguments['<plugin_name>'] + ".tar.gz
+        tar = tarfile.open(archive_name, "w:gz")
         for path in files_for_plugin_archive:
             # If a file was deleted which was in the lower directory
             # a whiteout file is created in the upper directory.
@@ -101,6 +102,7 @@ def main(arguments):
             else:
                 print('Whiteout file from lower dir:', path)
         tar.close()
+        print('Created Coinboot Plugin:', archive_name)
 
 
 if __name__ == '__main__':
