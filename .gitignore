@@ -1,7 +1,8 @@
-boot/vmlinuz
-boot/initramfs
-boot/undionly.kpxe
-boot/ipxe.efi
-bott/coinboot-initramfs*
-boot/coinboot-vmlinuz*
 **/logs
+.vagrant
+server/boot/coinboot-initramfs*
+server/boot/coinboot-vmlinuz*
+server/boot/initramfs
+server/boot/ipxe.efi
+server/boot/undionly.kpxe
+server/boot/vmlinuz
