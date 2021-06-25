@@ -1,0 +1,18 @@
+---
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    is_default: true
+    access: proxy
+    database: telegraf
+    url: http://influxdb:8086
+    jsonData:
+      httpMode: GET
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: 'Token sahKoh8Jalooyael'
+
+# https://ivanahuckova.medium.com/setting-up-influxdb-v2-flux-with-influxql-in-grafana-926599a19eeb
+# https://github.com/VictorRobellini/pfSense-Dashboard/issues/33#issuecomment-804361000

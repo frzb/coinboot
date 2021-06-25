@@ -103,7 +103,7 @@ EOF
 create_debootstrap() {
     msg "distro/suite: ${DEBIRF_DISTRO}/${DEBIRF_SUITE}"
 
-    local OPTS="--include=$INCLUDE${DEBIRF_EXTRA_PACKAGES:+,}$DEBIRF_EXTRA_PACKAGES --exclude=$EXCLUDE $DEBIRF_SUITE $DEBIRF_ROOT $DEBIRF_MIRROR"
+    local OPTS="--merged-usr --include=$INCLUDE${DEBIRF_EXTRA_PACKAGES:+,}$DEBIRF_EXTRA_PACKAGES --exclude=$EXCLUDE $DEBIRF_SUITE $DEBIRF_ROOT $DEBIRF_MIRROR"
 
     if [ "$DEBIRF_KEYRING" ] ; then
         OPTS="--keyring='$DEBIRF_KEYRING' $OPTS"

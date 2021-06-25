@@ -3,6 +3,7 @@ version: '3'
 
 volumes:
   grafana-data:
+  influxdb-data:
 
 services:
   coinboot:
@@ -34,12 +35,31 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - grafana-data:/var/lib/grafana
       - ./conf/grafana/provisioning:/etc/grafana/provisioning
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://localhost:3100/loki/api/v1/push"
+      - ./conf/grafana/dashboards:/var/lib/grafana/dashboards
+        #logging:
+        #  driver: loki
+        #  options:
+        #    loki-url: "http://localhost:3100/loki/api/v1/push"
+  influxdb:
+    image: influxdb:2.0.4
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    command: " --reporting-disabled"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: Aish5Rae8jeezaeg
+      DOCKER_INFLUXDB_INIT_ORG: coinboot.io
+      DOCKER_INFLUXDB_INIT_BUCKET: telegraf
+      V1_DB_NAME: telegraf
+      #DOCKER_INFLUXDB_INIT_RETENTION: 
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: sahKoh8Jalooyael
+    volumes:
+      - influxdb-data:/root/.influxdbv2
+      - ./conf/influxdb/config.yml:/etc/influxdb2/config.yml
+      - ./conf/influxdb/scripts/:/docker-entrypoint-initdb.d
   loki:
     image: grafana/loki:latest
     container_name: loki

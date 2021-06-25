@@ -1,4 +1,5 @@
 #!ipxe
+
 # Remote logging server is with the DHCP-server
 set syslog ${dhcp-server}
 

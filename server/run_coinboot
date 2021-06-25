@@ -28,6 +28,7 @@ DEFAULT_ROUTE=$(ip route | grep default | grep -v br0)
 DEFAULT_GW=$(ip route | grep default | grep -v br0 | cut -d ' ' -f 3)
 EXT_IF=$(ip route show default | grep -oP '(?<=dev )\w+')
 TIMEOUT=300
+VCPUS=$(nproc)
 
 if [ -d "/vagrant" ]; then
   if ip a | grep -q eth1; then
@@ -164,11 +165,11 @@ cleanup_virsh_domains() {
 }
 
 run_with_libvirt_bios() {
-  sudo virt-install --pxe --name coinboot-bios --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-bios --memory 1024 --vcpus=$VCPUS --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_BIOS --boot menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 run_with_libvirt_uefi() {
-  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
+  sudo virt-install --pxe --name coinboot-uefi --memory 1024 --vcpus=$VCPUS --disk none --network bridge=br0,mac=$MACHINE_MAC_ADDRESS_UEFI --boot uefi,menu=on,useserial=on --noautoconsole --graphics vnc,listen=0.0.0.0
 }
 
 verify_and_shutdown_over_ssh() {
@@ -287,22 +288,3 @@ verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
 
 cleanup_virsh_domains
 
-down_docker_compose
-
-configure_proxy_dhcp
-
-up_docker_compose_separate_dhcp_server
-
-wait_for_server_to_be_ready
-
-cleanup_virsh_domains
-
-run_with_libvirt_bios
-
-verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
-
-run_with_libvirt_uefi
-
-erify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
-
-cleanup_virsh_domains

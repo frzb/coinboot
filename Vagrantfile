@@ -56,6 +56,9 @@ Vagrant.configure(2) do |config|
     machine.vm.network "forwarded_port", guest: 3000, host: 3000
     # Port-forwarding for VNC of Qemu/KVM
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
+    # Port-forwarding for WebUI of InfluxDB 2
+    machine.vm.network "forwarded_port", guest: 8086, host: 8086
+
     interfaces = []
 
     Socket.getifaddrs.each do |addr_info|
@@ -144,9 +147,9 @@ Vagrant.configure(2) do |config|
     # Switch to rsync for syncing files to Vagrantbox caused by the initial
     # lack of the Virtualbox guest extension.
     # machine.vm.synced_folder "./plugins", "/vagrant", type: "rsync"
-    machine.vm.provision "shell", /vagrant/scripts/set_up_grub_ipxe_chainloading
-    machine.vm.provision "shel", sudo reboot_with_iPXE
-    machine.vm.provision "shel", sudo reboot
+    machine.vm.provision "shell", inline: "/vagrant/scripts/set_up_grub_ipxe_chainloading"
+    machine.vm.provision "shell", inline: "sudo reboot_with_iPXE"
+    machine.vm.provision "shell", inline: "sudo reboot"
     for addr_info in Socket.getifaddrs
       if addr_info.addr.ipv4?
         if addr_info.addr.ip_address.eql? "192.168.1.1"

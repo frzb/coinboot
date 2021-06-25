@@ -128,10 +128,16 @@ Configure the BIOS/Firmware of the worker nodes to boot over network with PXE.
 
 #### Hardware without PXE support
 
-Some mainboards for crypto mining don't have support for PXE network booting by the BIOS/Firmware.  
-In this case Coinboot can be booted via chainloading by a network bootloader from a local boot drive of the worker node.  
-Boot scheme in such a scenario is: GRUB(local SDD) →  iPXE(local SSD) →  iPXE(Network) →  Coinboot OS  
-To setup this chainloading run `scrips/set_up_grub_ipxe_chainloading` on the worker node and follow the instructions provided by the script.
+Some mainboards for blockchain hashing don't have support for PXE network booting by the BIOS/Firmware off the shelf.  
+In this case Coinboot can be booted via chainloading of a network bootloader from a local boot drive of the worker node.  
+Boot scheme in such a scenario is:  
+
+```
+GRUB(local SSD) → iPXE(local SSD) → iPXE(Network) → Coinboot OS
+```
+
+To setup this chainloading run `./scripts/set_up_grub_ipxe_chainloading` on the worker nodeand follow the instructions provided by the script.
+
 
 ### Start the Coinboot Server Docker container
 
