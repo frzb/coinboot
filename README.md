@@ -138,6 +138,7 @@ GRUB(local SSD) → iPXE(local SSD) → iPXE(Network) → Coinboot OS
 
 To setup this chainloading run `./scripts/set_up_grub_ipxe_chainloading` on the worker nodeand follow the instructions provided by the script.
 
+
 ### Start the Coinboot Server Docker container
 
 Just bring the Coinboot Server Docker and Graylog containers up with `docker-compose`.

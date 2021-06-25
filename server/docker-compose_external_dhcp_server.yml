@@ -1,0 +1,16 @@
+---
+version: '3'
+
+services:
+  dnsmasq:
+    image: andyshinn/dnsmasq:2.83
+    container_name: dnsmasq
+    cap_add:
+      - NET_ADMIN
+      - NET_BROADCAST
+    command: --port=0 --dhcp-ignore-clid --listen-address=192.168.1.1 --dhcp-range=192.168.1.10,192.168.1.100,6h -z -d
+    network_mode: "host"
+    #logging:
+    #  driver: loki
+    #  options:
+    #    loki-url: "http://localhost:3100/loki/api/v1/push"

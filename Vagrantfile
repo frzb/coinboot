@@ -58,6 +58,7 @@ Vagrant.configure(2) do |config|
     machine.vm.network "forwarded_port", guest: 5900, host: 5900
     # Port-forwarding for WebUI of InfluxDB 2
     machine.vm.network "forwarded_port", guest: 8086, host: 8086
+
     interfaces = []
 
     Socket.getifaddrs.each do |addr_info|
