@@ -1,0 +1,156 @@
+---
+# Copyright (C) 2018, 2020, 2021 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+#
+# Please notice even while this script is licensed with the
+# MIT license the software packaged by this script may be licensed by
+# an other license with different terms and conditions.
+# You have to agree to the license of the packaged software to use it.
+
+plugin: AMDGPU-Pro Polaris
+archive_name: amdgpupro_polaris
+version: 20.50-1234664
+description: AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for OpenCL 1.2
+maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
+source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-20-50
+run: |
+  set -x
+  sudo apt update
+
+  # Specfiy AMD Radeon GPU series codename.
+  # RX 400/500 series: polaris
+  # RX Vega series: vega
+  # RX 5000/6000 series: navi
+  GPU_CODENAME=polaris
+  AMDGPU_PRO_VERSION=amdgpu-pro-20.50-1234664-ubuntu-20.04
+  #https://drivers.amd.com/drivers/linux/amdgpu-pro-20.50-1234664-ubuntu-20.04.tar.xz
+  AMDGPU_PRO_ARCHIVE=$AMDGPU_PRO_VERSION.tar.xz
+  if [ ! -z $DEBIRF_KERNEL ]; then
+    KERNEL_RELEASE=$DEBIRF_KERNEL
+  fi
+  PACKAGES="wget xz-utils linux-headers-$KERNEL_RELEASE"
+  # We don't install any xserver stuff, similar to amdgpu-pro installer
+  # '--compute'
+  # libopencl1-amdgpu-pro is a dependcy of clinfo-amdgpu-pro
+  AMDGPU_OPENCL_PACKAGES='libopencl1-amdgpu-pro clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd libdrm2-amdgpu libdrm-amdgpu-amdgpu1'
+  # The DKMS package is installed explictily to purge it without wiping the dependcies.
+  AMDGPU_DKMS_PACKAGE='amdgpu-dkms'
+  AMDGPU_PRO_CACHE_PATH=/mnt/cache/amdgpu-pro
+  EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
+  EXTRA_MODULES_PACKAGE_FILE=$(apt-cache show $EXTRA_MODULES_PACKAGE | grep -oP $EXTRA_MODULES_PACKAGE.*deb)
+
+  sudo apt-get install $PACKAGES --yes
+
+  if [ -d $AMDGPU_PRO_CACHE_PATH ]; then
+    mkdir -p $AMDGPU_PRO_CACHE_PATH
+  fi
+
+  # Let's cache the downloaded archive and the decompressed
+  # archive on the build host - time saving once more.
+  # Download is only allowed with this referer!
+  if ! [ -f "$AMDGPU_PRO_CACHE_PATH"/"$AMDGPU_PRO_ARCHIVE" ]; then
+    wget --progress=bar:force --referer=http://support.amd.com \
+      http://drivers.amd.com/drivers/linux/"$AMDGPU_PRO_ARCHIVE" -P $AMDGPU_PRO_CACHE_PATH
+  else
+    echo "$AMDGPU_PRO_ARCHIVE is already in build cache."
+  fi
+
+  if ! [ -d $AMDGPU_PRO_CACHE_PATH/$AMDGPU_PRO_VERSION ]; then
+    tar -Jxvf $AMDGPU_PRO_CACHE_PATH/$AMDGPU_PRO_ARCHIVE -C $AMDGPU_PRO_CACHE_PATH
+  else
+    echo "$AMDGPU_PRO_ARCHIVE is already decompressed."
+  fi
+
+  if ! [ -f "$DEBIRF_ROOT/tmp/$AMDGPU_PRO_VERSION" ]; then
+   cp -r "$AMDGPU_PRO_CACHE_PATH/$AMDGPU_PRO_VERSION" /tmp/
+  else
+    echo "$AMDGPU_PRO_ARCHIVE is already copied to the chroot."
+  fi
+
+  # The amdgpu-pro-install script is not running properly non-interactive
+  # it uses 'apt-get install' and asks for (Y/n).
+  # So we install the packages on our own.
+  # 1. Create the local deb repository
+  # 2. Update the package list
+  # 3. Install the packages
+
+  # Take care that the file we write to has root permission - use 'sudo tee'
+  echo "deb [ trusted=yes ] file:/tmp/$AMDGPU_PRO_VERSION ./" | sudo tee /etc/apt/sources.list.d/amdgpu-pro-local.list
+
+  sudo apt-get update
+
+  # TODO mock update-initramfs called by /var/lib/dpkg/info/amdgpu-dkms.postinst
+
+  sudo tee /usr/bin/update-initramfs << EOF
+  #!/usr/bin/bash
+
+  true
+  EOF
+
+  sudo chmod 755 /usr/bin/update-initramfs
+
+  #create_plugin.py start
+
+  # FIXME: /opt/amdgpu-pro/lib/x86_64-linux-gnu/libOpenCL.so.1 missing when installing
+  # $AMDGPU_DKMS_PACKAGE and $AMDGPU_OPENCL_PACKAGES at once.
+  # sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES $AMDGPU_DKMS_PACKAGE
+  sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
+  sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
+
+
+  # Clean up temporary files and local deb repo refering to them
+  sudo rm -rvf /tmp/$AMDGPU_PRO_VERSION \
+               /tmp/$AMDGPU_PRO_ARCHIVE \
+               /etc/apt/sources.list.d/amdgpu-pro-local.list
+
+  # Purge installed packages of this modules to free up the space.
+  # But keep the OpenCL related packages.
+  # The DKMS package comes with sources at /usr/src/ which use a lot of space.
+  # As the DKMS package is a dependcy of 'opencl-amdgpu-pro' we set it on hold
+  # to keep the OpenCL stuff while we dump the DKMS package.
+
+  # The module amdgpu.ko requires amd_iommu_v2.ko which comes with the linux-modules-extra-
+  sudo apt-get download "$EXTRA_MODULES_PACKAGE"
+
+  # FIXME: Remove the hardwired deb file.
+  # dpkg-deb -x needs a full path!
+  sudo dpkg -x $PWD/$EXTRA_MODULES_PACKAGE_FILE /tmp/
+  sudo rm -rf $PWD/$EXTRA_MODULES_PACKAGE_FILE
+
+  sudo install -Dv /tmp/lib/modules/"$KERNEL_RELEASE"/kernel/drivers/iommu/amd_iommu_v2.ko /lib/modules/"$KERNEL_RELEASE"/kernel/drivers/iommu/amd_iommu_v2.ko
+  sudo rm -rf /tmp/lib
+
+  sudo cp -v /lib/modules/"$KERNEL_RELEASE"/updates/dkms/amd* /tmp/
+
+  sudo cp -Rv /lib/firmware /tmp/
+
+  sudo apt-get purge $PACKAGES --yes
+
+  # As removing the DKMS package ends in a dependcy mess
+  # so we just remove the source directory under '/usr/src'.
+  # TODO: Remove hardwired source directory
+  sudo rm -rf /usr/src/$AMDGPU_PRO_VERSION
+
+
+  # Clean up /var/lib/dkms (~ 135M)
+  #sudo rm -rf /var/lib/dkms
+
+  # Additional packages which can be removed to save space.
+  # TODO: Removing of libc-dev and libc6-dev should save even more space.
+  sudo apt-get purge --yes gcc libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1
+  sudo apt autoremove --yes
+
+  sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
+
+  sudo mkdir -p /lib/firmware/updates/amdgpu
+  sudo find /tmp/firmware -name "$GPU_CODENAME*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
+
+  sudo depmod $KERNEL_RELEASE
+
+  # Remove mocked update-initramfs
+  sudo rm -v /usr/bin/update-initramfs
+
+  #create_plugin.py finish coinboot-$AMDGPU_PRO_VERSION-$KERNEL_RELEASE-$GPU_CODENAME

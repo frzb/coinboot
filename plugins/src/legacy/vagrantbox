@@ -1,0 +1,37 @@
+#!/bin/bash -e
+
+# Copyright (C) 2018 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+#
+# Please notice even while this script is licensed with the
+# MIT license the software packaged by this script may be licensed by
+# an other license with different terms and conditions.
+# You have to agree to the license of the packaged software to use it.
+
+
+# Create a plugin archive to make the machine act as Vagrant box.
+# TODO: Try to achive most of this only by vagrant settings.
+
+sudo apt update
+
+create_plugin.py start
+
+useradd -m -p $(openssl passwd -1 vagrant) -s /bin/bash -G sudo vagrant
+
+echo "vagrant ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/vagrant
+
+mkdir /home/vagrant/.ssh
+
+echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key' | sudo tee /home/vagrant/.ssh/authorized_keys
+
+sudo chown vagrant:vagrant -R /home/vagrant/.ssh
+
+sudo chmod -R 700 /home/vagrant/.ssh
+sudo chmod -R 600 /home/vagrant/.ssh/authorized_keys
+
+sudo apt install virtualbox-guest-utils --no-install-recommends --yes
+
+create_plugin.py finish coinboot_$(basename $0)_$(date +%Y%m%d.%H%M)

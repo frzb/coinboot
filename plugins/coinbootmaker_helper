@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2021 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+#
+# Please notice even while this script is licensed with the
+# MIT license the software packaged by this script may be licensed by
+# an other license with different terms and conditions.
+# You have to agree to the license of the packaged software to use it.
+
+"""
+Usage:
+    coinbootmaker_helper create plugin <path>
+    coinbootmaker_helper create readme
+"""
+
+from strictyaml import load, Map, Str, Int, Seq, YAMLError
+import re
+import os
+import subprocess
+import boto3
+import logging
+import fileinput
+from tabulate import tabulate
+from docopt import docopt
+from botocore.exceptions import ClientError
+
+
+def call_coinbootmaker(script_name):
+    coinbootmaker_output = subprocess.run(
+        ["./coinbootmaker", "-p", script_name], stdout=subprocess.PIPE, check=True
+    )
+    return coinbootmaker_output
+
+
+def extract_full_archive_name(subprocess_output):
+    """Get composed full name of created Coinboot plugin archive
+
+    :param subprocess_output: Output of subprocess call
+    :return: filename of created Coinboot plugin archive
+    """
+    # We look for a line looking like that:
+    # 'Created Coinboot Plugin: coinboot_ethminer_v0.18.0_20210603.1555.tar.gz'
+    for line in subprocess_output.stdout.decode("utf-8").split("\n"):
+        match = re.search("Created Coinboot Plugin: (.*)", line)
+        if match:
+            fullname_created_archive = match.group(1)
+            return fullname_created_archive
+    return None
+
+
+def detect_kernel(subprocess_output):
+    for line in subprocess_output.stdout.decode("utf-8").split("\n"):
+        match = re.search("lib\/modules\/(.*-generic)\/.*$", line)
+        if match:
+            kernel = match.group(1)
+            return kernel
+    return None
+
+
+def upload_file(s3_client, file_name, bucket, yaml, object_name=None):
+    """Upload a file to an S3 bucket
+
+    :param file_name: File to upload
+    :param bucket: Bucket to upload to
+    :param object_name: S3 object name. If not specified then file_name is used
+    :return: True if file was uploaded, else False
+    """
+    # If S3 object_name was not specified, use file_name
+    if object_name is None:
+        object_name = file_name
+
+    # Upload the file
+    try:
+        response = s3_client.upload_file(
+            file_name,
+            bucket,
+            object_name,
+            # Metadata prefix 'x-amz-meta-' is added automatically.
+            ExtraArgs={
+                "ACL": "public-read",
+                "Metadata": {
+                    "archive_name": yaml["archive_name"],
+                    "description": yaml["description"],
+                    "maintainer": yaml["maintainer"],
+                    "plugin": yaml["plugin"],
+                    "source": yaml["source"],
+                    "version": yaml["version"],
+                },
+            },
+        )
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return True
+
+
+def create_list_of_plugins(s3_client, bucket):
+
+    metadata_keys_sorted = ["plugin", "version", "description", "maintainer", "source"]
+    header_keys_sorted = [
+        metadata_key.capitalize() for metadata_key in metadata_keys_sorted
+    ]
+    header_keys_sorted.append("URL")
+
+    list_of_plugins = []
+
+    list_of_plugins.append(header_keys_sorted)
+
+    # TODO: Error handling for S3 API call - failing API or objects, metadata missing
+
+    response_contents = s3_client.list_objects(Bucket=bucket)["Contents"]
+    for object in response_contents:
+        metadata = s3_client.head_object(Bucket=bucket, Key=object["Key"])["Metadata"]
+        line = []
+
+        for key in metadata_keys_sorted:
+            line.append(metadata[key])
+        line.append("https://s3.eu-central-1.wasabisys.com/coinboot/" + object["Key"])
+        list_of_plugins.append(line)
+    markdown_formatted = tabulate(
+        list_of_plugins, headers="firstrow", tablefmt="github"
+    )
+    return markdown_formatted.split("\n")
+
+
+def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
+    readme_file_content = []
+
+    for line in fileinput.input(readme_template_file):
+        line = line.rstrip("\r\n")
+        if line == "<!-- PLACEHOLDER FOR MARKDOWN PLUGIN TABLE -->":
+            readme_file_content.extend(list_of_plugins)
+        else:
+            readme_file_content.append(line)
+
+    with open(readme_file, "w") as f:
+        f.write("\n".join(readme_file_content))
+
+
+def main():
+    s3_client = boto3.client(
+        "s3",
+        endpoint_url="https://s3.eu-central-1.wasabisys.com",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+    args = docopt(__doc__)
+    if args["plugin"]:
+        path = args["<path>"]
+        schema = Map(
+            {
+                "plugin": Str(),
+                "archive_name": Str(),
+                "version": Str(),
+                "description": Str(),
+                "maintainer": Str(),
+                "source": Str(),
+                "run": Str(),
+            }
+        )
+
+        with open(path, "r") as f:
+            try:
+                yaml = load(f.read(), schema)
+                script_name = path.replace("src", "")
+                coinbootmaker_output = call_coinbootmaker(script_name)
+                archive_name = extract_full_archive_name(coinbootmaker_output)
+                print(archive_name)
+                kernel = detect_kernel(coinbootmaker_output)
+                if kernel:
+                    prefix = kernel
+                else:
+                    prefix = "all"
+                print("Bucket prefix is: " + prefix)
+                upload_file(
+                    s3_client,
+                    "build/" + archive_name,
+                    "coinboot",
+                    yaml.data,
+                    prefix + "/" + archive_name,
+                )
+            except YAMLError as error:
+                print(path + ": " + str(error))
+
+    if args["readme"]:
+        list_of_plugins = create_list_of_plugins(s3_client, "coinboot")
+        concat_with_readme("README_template.md", "README.md", list_of_plugins)
+
+
+if __name__ == "__main__":
+    main()
