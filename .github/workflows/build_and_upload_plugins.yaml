@@ -1,0 +1,49 @@
+---
+name: build and upload plugins
+on: [push, workflow_dispatch]
+jobs:
+  build_and_upload_artifacts:
+    runs-on: ubuntu-20.04
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup required packages
+        run: |
+          sudo apt update
+          sudo apt install --yes fakeroot bridge-utils pipenv
+      - name: Set up yq - portable yaml processor
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/v4.9.3/yq_linux_amd64 -O /usr/local/bin/yq &&\
+          sudo chmod +x /usr/local/bin/yq
+      - name: Install Python dependcies with pipenv
+        run: pipenv install
+      - id: changed_files
+        name: Collect changed files
+        uses: jitterbit/get-changed-files@v1
+      # Detect changed Coinboot plugin creation files and trigger build only for these.
+        # Omit all upstream code directories and only use yaml files in "src".
+      - name: Build Coinboot plugins with Coinbootmaker and upload to object storage
+        run: |
+          for plugin in ${{ steps.changed_files.outputs.added_modified }}; do
+            if [[ "$plugin" != */upstream/* ]]; then
+              if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
+                echo "Changes in $plugin, triggering build..."
+                pipenv run ./plugins/coinbootmaker_helper create plugin $plugin
+              fi
+            fi
+          done
+      - name: Create README with list of available Coinboot plugins
+        run: |
+          pipenv run ./plugins/coinbootmaker_helper create readme
+          cat plugins/README.md
+      - name: List build artifacts
+        run: |
+          ls -la plugins/build
+          #- name: Push automatic changes on README.md
+          #  uses: stefanzweifel/git-auto-commit-action@v4
+          #  with:
+          #    commit_message: Apply automatic changes of Coinboot plugin table [skip ci]
+          #    file_pattern: plugins/README.md
