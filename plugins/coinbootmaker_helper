@@ -150,7 +150,7 @@ def main():
     )
     args = docopt(__doc__)
     if args["plugin"]:
-        path = args["<path>"].replace("plugins","")
+        path = args["<path>"].replace("plugins/","")
         schema = Map(
             {
                 "plugin": Str(),
