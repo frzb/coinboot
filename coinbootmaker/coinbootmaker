@@ -1,7 +1,8 @@
-#!/bin/bash -e
-#set -x
+#!/bin/bash
+set -Eeo pipefail
+set -x
 
-# Copyright (C) 2018, 2019 Gunter Miegel coinboot.io
+# Copyright (C) 2018 - 2021 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 # This software may be modified and distributed under the terms
@@ -16,21 +17,35 @@ display_help() {
   echo
   echo 'Packaged Coinboot pluings are written to the ./builds directory'
   echo
-  echo 'Usage: coinbootmaker [-i] [-h] -p <file name> <path to initramfs> '
+  echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin name> <path to initramfs>]'
   echo
   echo '-i              Interactive mode - opens a shell in the build environment'
   echo '-p <file name>  Plugin to build'
+  echo '-l              List plugins available to build'
   echo '-h              Display this help'
   echo
 }
 
-while getopts "ip:h" opt; do
+list_plugins() {
+  pushd . > /dev/null
+  cd src
+  echo
+  find * -type f -print
+  echo
+  popd  > /dev/null
+}
+
+while getopts "ip:lh" opt; do
   case $opt in
     i)
       interactive=true
       ;;
     p)
       plugin=$OPTARG
+      ;;
+    l)
+      list_plugins
+      exit 1
       ;;
     h)
       display_help
@@ -44,26 +59,67 @@ done
 
 shift $((OPTIND -1))
 
+
+WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
+CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
+CACHE_DIR=$(readlink -f ./cache)
+GITHUB_REPO=frzb/coinboot
+RELEASE=latest
+## initramfs and kernel vmlinuz ##
+# RELEASE is set via an environment variable under ./conf/environment
+# If the value is 'latest' we determine the latest release, else we use the set value.
+
+
+
+if [ $RELEASE = latest ]; then
+  RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
+  sleep 5
+  while ! TAG=$(echo $RESPONSE | jq -r '.[0].name'); do
+    echo "Calling the Github API has failed, repeat ..."
+    RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
+      sleep 5
+    done
+  echo "Using latest coinboot-debirf release: $TAG"
+fi
+
+DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
+
+if [ -z $KERNEL ]; then
+  KERNEL=5.4.0-58-generic
+fi
+INITRAMFS=coinboot-initramfs-$KERNEL
+
+if ! [ -f $CACHE_DIR/$INITRAMFS ]; then
+$WGET $DOWNLOAD_URL/$INITRAMFS -P $CACHE_DIR
+fi
+
 BASEDIR=$PWD
-INITRAMFS=$(readlink -f $1)
+#INITRAMFS=$(readlink -f $1)
 LOWER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/lower
 UPPER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/upper
 WORKING_DIRECTORY=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/working_dir
 MERGED=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/merged
 
-#while ! sudo runc list | grep coinbootmaker | grep stopped; do
-#  echo 'Waiting for Coinbootmaker container to be stopped ...'
-#  sleep 1
-#done
-#sudo runc delete coinbootmaker
-sudo runc kill coinbootmaker KILL || true
-sudo runc delete coinbootmaker || true
-sudo ip link delete cbm-host || true
-sudo ip netns delete coinbootmaker || true
-if mountpoint $MERGED; then
-  sudo umount $MERGED
-fi
-sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+while sudo runc list | grep coinbootmaker | grep running; do
+  echo 'Waiting for Coinbootmaker container to be stopped ...'
+  sudo runc kill coinbootmaker KILL
+  sleep 1
+done
+
+while sudo runc list | grep coinbootmaker | grep stopped; do
+  echo 'Waiting for Coinbootmaker container to be cleaned up ...'
+  sudo runc delete coinbootmaker
+  sleep 1
+done
+
+  sudo runc delete coinbootmaker || true
+  sudo ip link delete cbm-host || true
+  sudo ip netns delete coinbootmaker || true
+  if mountpoint $MERGED; then
+    sudo umount $MERGED
+  fi
+  sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+  sleep 1
 
 
 sudo mkdir -p $UPPER $LOWER $WORKING_DIRECTORY $MERGED
@@ -80,22 +136,18 @@ cd $LOWER/rootfs
 
 # We have to use 'sudo' for 'cpio' else the ownership of the files in the
 # archive is messed up.
-zcat $INITRAMFS | sudo cpio -idm
-
-# Now we extract the nested initramfs
-# We force to overwrite existing files from busybox with '-u'
-zcat rootfs.cgz | sudo cpio -uidm
+# We just extract the nested initramfs archive
+zcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.cgz"
+zcat rootfs.cgz | sudo cpio -idm
 
 # The nested initramfs archive can be removed now
-echo $PWD
 sudo rm -v rootfs.cgz
 
 # Adapt nameserver settings.
-# For now we use the Google NS - sorry.
+# resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
 sudo rm etc/resolv.conf
-
 sudo tee etc/resolv.conf << EOF
-nameserver 8.8.8.8
+nameserver 1.1.1.1
 EOF
 
 sudo tee etc/hosts << EOF
@@ -120,8 +172,7 @@ sudo tee ./config.json << EOF
                         "uid": 0,
                         "gid": 0
                 },
-                "args": [
-                        "/bin/sleep", "infinity"
+                "args": ["/usr/bin/sleep", "infinity"
                 ],
                 "env": [
                         "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -400,9 +451,16 @@ sudo ip netns exec coinbootmaker ip link set eth0 up
 sudo ip netns exec coinbootmaker ip route add default via 172.17.0.1
 
 if [ ! -z $interactive ] && [ $interactive = 'true' ]; then
-  sudo runc exec -t coinbootmaker /bin/bash
+  sudo runc exec -t coinbootmaker /usr/bin/bash
+elif [[ ./src/$plugin  == *.yaml ]]; then
+ sudo runc exec --cwd /mnt/build coinbootmaker create_plugin.py start
+ sudo runc exec --cwd /mnt/build coinbootmaker /usr/bin/bash -e < <(yq eval '.run' $BASEDIR/src/$plugin)
+ NAME=$(yq eval '.archive_name' $BASEDIR/src/$plugin)
+ VERSION=$(yq eval '.version' $BASEDIR/src/$plugin)
+ BUILD_DATE=$(date +%Y%m%d.%H%M)
+ sudo runc exec --cwd /mnt/build coinbootmaker create_plugin.py finish coinboot_${NAME}_${VERSION}_$BUILD_DATE
 else
-  sudo runc exec -t coinbootmaker /bin/bash -c "cd /mnt/build/ && /mnt/src/$plugin"
+  sudo runc exec coinbootmaker /usr/bin/bash -c "cd /mnt/build/ && /mnt/src/$plugin"
 fi
 
 # Cleanup
