@@ -6,7 +6,7 @@ defaults:
     working-directory: plugins
 
 jobs:
-  build_and_upload_artifacts:
+  build_and_upload_plugins:
     runs-on: ubuntu-20.04
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
