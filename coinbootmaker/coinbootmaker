@@ -1,6 +1,5 @@
 #!/bin/bash
 set -Eeo pipefail
-set -x
 
 # Copyright (C) 2018 - 2021 Gunter Miegel coinboot.io
 #
