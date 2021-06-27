@@ -166,7 +166,7 @@ def main():
         with open(path, "r") as f:
             try:
                 yaml = load(f.read(), schema)
-                script_name = path.replace("src", "")
+                script_name = path.replace("plugins/src", "")
                 coinbootmaker_output = call_coinbootmaker(script_name)
                 archive_name = extract_full_archive_name(coinbootmaker_output)
                 print(archive_name)
