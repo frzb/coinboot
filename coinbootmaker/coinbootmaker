@@ -1,6 +1,5 @@
 #!/bin/bash
 set -Eeo pipefail
-set -x
 
 # Copyright (C) 2018 - 2021 Gunter Miegel coinboot.io
 #
@@ -435,8 +434,6 @@ sudo ip link set cbm-guest netns coinbootmaker
 
 cd $MERGED
 
-sudo mount
-sudo ls -la /mnt 
 # TODO: We should go rootless: https://github.com/opencontainers/runc/pull/774
 sudo runc run -d coinbootmaker
 
