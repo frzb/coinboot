@@ -45,7 +45,7 @@ jobs:
           cat README.md
       - name: List build artifacts
         run: |
-          ls -la plugins/build
+          ls -la build
       - name: Push automatic changes on README.md
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
