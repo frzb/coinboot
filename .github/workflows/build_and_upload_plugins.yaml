@@ -42,12 +42,12 @@ jobs:
       - name: Create README with list of available Coinboot plugins
         run: |
           pipenv run ./coinbootmaker_helper create readme
-          cat plugins/README.md
+          cat README.md
       - name: List build artifacts
         run: |
           ls -la plugins/build
-          #- name: Push automatic changes on README.md
-          #  uses: stefanzweifel/git-auto-commit-action@v4
-          #  with:
-          #    commit_message: Apply automatic changes of Coinboot plugin table [skip ci]
-          #    file_pattern: plugins/README.md
+      - name: Push automatic changes on README.md
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply automatic changes of Coinboot plugin table [skip ci]
+          file_pattern: README.md
