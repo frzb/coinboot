@@ -13,7 +13,7 @@
 plugin: ethminer
 archive_name: ethminer
 version: v0.18.0
-description: Ethereum miner with OpenCL, CUDA and stratum support, test12
+description: Ethereum miner with OpenCL, CUDA and stratum support, test13
 maintainer: Gunter Miegel <gunter.miegel@coinbboot.io>
 source: https://github.com/ethereum-mining/ethminer
 run: |
