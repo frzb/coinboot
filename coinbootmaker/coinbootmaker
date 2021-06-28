@@ -435,6 +435,8 @@ sudo ip link set cbm-guest netns coinbootmaker
 
 cd $MERGED
 
+sudo mount
+sudo ls -la /mnt 
 # TODO: We should go rootless: https://github.com/opencontainers/runc/pull/774
 sudo runc run -d coinbootmaker
 
@@ -453,8 +455,6 @@ sudo ip netns exec coinbootmaker ip route add default via 172.17.0.1
 if [ ! -z $interactive ] && [ $interactive = 'true' ]; then
   sudo runc exec -t coinbootmaker /usr/bin/bash
 elif [[ ./src/$plugin  == *.yaml ]]; then
- sudo mount
- ls -la /mnt 
  sudo runc exec --cwd /mnt/build coinbootmaker create_plugin.py start
  sudo runc exec --cwd /mnt/build coinbootmaker /usr/bin/bash -e < <(yq eval '.run' $BASEDIR/src/$plugin)
  NAME=$(yq eval '.archive_name' $BASEDIR/src/$plugin)
