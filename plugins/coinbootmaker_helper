@@ -13,7 +13,7 @@
 
 """
 Usage:
-    coinbootmaker_helper create plugin <path>
+    coinbootmaker_helper create plugin <path> [--upload]
     coinbootmaker_helper create readme
 """
 
@@ -150,7 +150,7 @@ def main():
     )
     args = docopt(__doc__)
     if args["plugin"]:
-        path = args["<path>"].replace("plugins/","")
+        path = args["<path>"].replace("plugins/", "")
         schema = Map(
             {
                 "plugin": Str(),
@@ -170,6 +170,10 @@ def main():
                 coinbootmaker_output = call_coinbootmaker(script_name)
                 archive_name = extract_full_archive_name(coinbootmaker_output)
                 print(archive_name)
+            except YAMLError as error:
+                print(path + ": " + str(error))
+
+            if args["--upload"]:
                 kernel = detect_kernel(coinbootmaker_output)
                 if kernel:
                     prefix = kernel
@@ -183,8 +187,6 @@ def main():
                     yaml.data,
                     prefix + "/" + archive_name,
                 )
-            except YAMLError as error:
-                print(path + ": " + str(error))
 
     if args["readme"]:
         list_of_plugins = create_list_of_plugins(s3_client, "coinboot")

@@ -28,14 +28,26 @@ jobs:
         name: Collect changed files
         uses: jitterbit/get-changed-files@v1
       # Detect changed Coinboot plugin creation files and trigger build only for these.
-        # Omit all upstream code directories and only use yaml files in "src".
+      # Omit all upstream code directories and only use yaml files in "src".
       - name: Build Coinboot plugins with Coinbootmaker and upload to object storage
+        if: github.ref == 'refs/heads/main' 
         run: |
           for plugin in ${{ steps.changed_files.outputs.added_modified }}; do
             if [[ "$plugin" != */upstream/* ]]; then
               if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
                 echo "Changes in $plugin, triggering build..."
-                pipenv run ./coinbootmaker_helper create plugin $plugin
+                pipenv run ./coinbootmaker_helper create plugin $plugin --upload
+              fi
+            fi
+          done
+      - name: Build Coinboot plugins with Coinbootmaker 
+        if: github.ref != 'refs/heads/main' 
+        run: |
+          for plugin in ${{ steps.changed_files.outputs.added_modified }}; do
+            if [[ "$plugin" != */upstream/* ]]; then
+              if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
+                echo "Changes in $plugin, triggering build..."
+                pipenv run ./coinbootmaker_helper create plugin $plugin 
               fi
             fi
           done
