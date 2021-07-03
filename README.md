@@ -98,9 +98,9 @@ The RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use are to be pl
 
 #### Plugins
 
-Coinboot plugins should be placed into  the directory `./plugins`
+Coinboot plugins should be placed into the directory `./server/plugins`
 
-You can create your own plugins (see below) or pick some at: https://coinboot.io/plugins
+You can create your own plugins (see below) or pick some at: [./plugins](./plugins)
 
 #### DHCP configuration
 
