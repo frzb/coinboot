@@ -17,7 +17,7 @@ description: AMD Polaris GPU (RX500/RX400 family) firmware and driver with suppo
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-20-50
 run: |
-  set -x
+  #set -x
   sudo apt update
 
   # Specfiy AMD Radeon GPU series codename.
