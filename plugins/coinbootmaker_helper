@@ -111,20 +111,28 @@ def create_list_of_plugins(s3_client, bucket):
     list_of_plugins.append(header_keys_sorted)
 
     # TODO: Error handling for S3 API call - failing API or objects, metadata missing
+    response = s3_client.list_objects(Bucket=bucket)
+    if "Contents" in response:
+        response_contents = response["Contents"]
+        for object in response_contents:
+            metadata = s3_client.head_object(Bucket=bucket, Key=object["Key"])[
+                "Metadata"
+            ]
+            line = []
 
-    response_contents = s3_client.list_objects(Bucket=bucket)["Contents"]
-    for object in response_contents:
-        metadata = s3_client.head_object(Bucket=bucket, Key=object["Key"])["Metadata"]
-        line = []
-
-        for key in metadata_keys_sorted:
-            line.append(metadata[key])
-        line.append("https://s3.eu-central-1.wasabisys.com/coinboot/" + object["Key"])
-        list_of_plugins.append(line)
-    markdown_formatted = tabulate(
-        list_of_plugins, headers="firstrow", tablefmt="github"
-    )
-    return markdown_formatted.split("\n")
+            for key in metadata_keys_sorted:
+                line.append(metadata[key])
+            line.append(
+                "https://s3.eu-central-1.wasabisys.com/coinboot/" + object["Key"]
+            )
+            list_of_plugins.append(line)
+        markdown_formatted = tabulate(
+            list_of_plugins, headers="firstrow", tablefmt="github"
+        )
+        return markdown_formatted.split("\n")
+    else:
+        print("Bucket is empty")
+        return None
 
 
 def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
@@ -190,7 +198,8 @@ def main():
 
     if args["readme"]:
         list_of_plugins = create_list_of_plugins(s3_client, "coinboot")
-        concat_with_readme("README_template.md", "README.md", list_of_plugins)
+        if list_of_plugins:
+            concat_with_readme("README_template.md", "README.md", list_of_plugins)
 
 
 if __name__ == "__main__":
