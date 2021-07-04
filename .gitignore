@@ -1,4 +1,6 @@
 **/logs
+**/build
+**/cache
 .vagrant
 server/boot/coinboot-initramfs*
 server/boot/coinboot-vmlinuz*

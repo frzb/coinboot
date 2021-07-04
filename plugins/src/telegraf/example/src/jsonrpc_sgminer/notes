@@ -1,0 +1,9 @@
+09:59:18.658099 IP (tos 0x0, ttl 64, id 29474, offset 0, flags [DF], proto TCP (6), length 102)
+    coinboot-server.57504 > 192.168.1.12.4028: Flags [P.], cksum 0x83b7 (incorrect -> 0x8a3f), seq 1:51, ack 1, win 502, options [nop,nop,TS val 1719762257 ecr 3275129295], length 50
+        0x0000:  4500 0066 7322 4000 4006 4411 c0a8 0102  E..fs"@.@.D.....
+        0x0010:  c0a8 010c e0a0 0fbc 960a 7010 8f4a 6664  ..........p..Jfd
+        0x0020:  8018 01f6 83b7 0000 0101 080a 6681 7d51  ............f.}Q
+        0x0030:  c336 81cf 7b22 6d65 7468 6f64 223a 2263  .6..{"method":"c
+        0x0040:  6f6d 6d61 6e64 2e73 756d 6d61 7279 222c  ommand.summary",
+        0x0050:  2270 6172 616d 7322 3a5b 2222 5d2c 2269  "params":[""],"i
+        0x0060:  6422 3a30 7d0a                           d":0}.

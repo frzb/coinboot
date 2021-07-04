@@ -1,0 +1,20 @@
+---
+# Copyright (C) 2021 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+#
+# Please notice even while this script is licensed with the
+# MIT license the software packaged by this script may be licensed by
+# an other license with different terms and conditions.
+# You have to agree to the license of the packaged software to use it.
+
+plugin: Displayed named for the plugin
+archive_name: Used in archive file name, lower case encouraged
+version: Version/Release of the included software
+description: Brief description of what the included software is about
+maintainer: Surname Name <mail@example.com>
+source: URL to the source of the included software
+run: |
+  # plug creation code goes here

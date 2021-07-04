@@ -98,9 +98,9 @@ The RootFS (`*initramfs*`) and Kernel (`*vmlinuz*`) you want to use are to be pl
 
 #### Plugins
 
-Coinboot plugins should be placed into  the directory `./plugins`
+Coinboot plugins should be placed into the directory `./server/plugins`
 
-You can create your own plugins (see below) or pick some at: https://coinboot.io/plugins
+You can create your own plugins (see below) or pick some at: [./plugins](./plugins)
 
 #### DHCP configuration
 
@@ -200,44 +200,8 @@ $ vagrant up
 A Coinboot plugin is the way to go to extend the functionality of machines that boot with Coinboot.  
 Basically a Coinboot plugin is just set of file system changes that is applied at boot time.  
 
-Clone the https://github.com/frzb/coinboot-plugins repository to get `coinbootmaker`.
+Coinboot plugins can be created with the helper tool called [`coinbootmaker`](./coinbootmaker).
 
-```
-$ git clone git@github.com:frzb/coinboot-plugins.git
-``` 
-### `coinbootmaker`
-
-```
-Usage: coinbootmaker [-i] -p <file name> <path to initramfs>
-
--i              Interactive mode - opens a shell in the build environment
--p <file name>  Plugin to build
--h              Display this help
-``` 
-
-### Example
-
-Run `coinbootmaker` interactivly (`-i`)
-
-```
-$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
-```
-
-* You are entering the build environment
-
-* Execute `$ create_plugin.py start `
-
-* Do your changes to the system - e.g. install packages and edit configuration files.
-
-* When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
-
-* Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
-
-Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
-
-Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin.py start` and `$ create_plugin.py finish <name-of-your-plugin>`.
-
-For more details about creating plugins and example plugins please refer to https://github.com/frzb/coinboot-plugins .
 ## License
 
 GNU GPLv3 

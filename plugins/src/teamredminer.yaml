@@ -1,0 +1,97 @@
+---
+# Copyright (C) 2021 Gunter Miegel coinboot.io
+#
+# This file is part of Coinboot.
+# This software may be modified and distributed under the terms
+# of the MIT license.  See the LICENSE file for details.
+#
+# Please notice even while this script is licensed with the
+# MIT license the software packaged by this script may be licensed by
+# an other license with different terms and conditions.
+# You have to agree to the license of the packaged software to use it.
+
+plugin: Team Red Miner
+archive_name: teamredminer
+version: v0.8.3
+description: This is an optimized miner for AMD GPUs created by todxx and kerney666
+maintainer: Gunter Miegel <gunter.miegel@coinbboot.io>
+source: https://github.com/todxx/teamredminer
+run: |
+  TEAMREDMINER_RELEASE=v0.8.3
+  TEAMREDMINER_ARCHIVE=teamredminer-$TEAMREDMINER_RELEASE-linux.tgz
+  TEAMREDMINER_URL=https://github.com/todxx/teamredminer/releases/download/$TEAMREDMINER_RELEASE/$TEAMREDMINER_ARCHIVE
+  WGET='wget'
+
+  apt install $WGET --yes --no-install-recommends
+
+  if ! [ -f /tmp/$TEAMREDMINER_ARCHIVE ]; then
+    wget --progress=bar:force \
+     $TEAMREDMINER_URL -P /tmp
+  else
+    echo "$TEAMREDMINER_ARCHIVE is already downloaded."
+  fi
+
+  if ! [ -f /tmp/$TEAMREDMINER_RELEASE ]; then
+    tar -zxvf /tmp/$TEAMREDMINER_ARCHIVE -C /tmp
+  else
+    echo "$TEAMREDMINER_ARCHIVE is already decompressed."
+  fi
+
+  if ! [ -f "/usr/local/bin/teamredminer" ]; then
+   cp -r "/tmp/teamredminer-$TEAMREDMINER_RELEASE-linux/teamredminer" "/usr/local/bin/"
+  else
+    echo "teamredminer $TEAMREDMINER_RELEASE binary is already copied to the chroot."
+  fi
+
+  # TODO: Configure API for monitoring
+  cat <<'EOF' > "/etc/systemd/system/teamredminer.service"
+  [Unit]
+  Description=teamredminer Ethereum Minining Software
+  After=network-online.target
+
+
+  [Service]
+  EnvironmentFile=/etc/environment
+  ExecStart=/usr/local/bin/teamredminer -a ethash \
+  -o stratum+tcp://us1.ethermine.org:4444 \
+  -u ${ETHEREUM_ADDRESS}.%H \
+  -o stratum+tcp://eu1.ethermine.org:4444 \
+  -u ${ETHEREUM_ADDRESS}.%H \
+  -o stratum+tcp://eu1.ethermine.org:14444 \
+  -u ${ETHEREUM_ADDRESS}.%H \
+  -o stratum+tcp://asia1.ethermine.org:4444 \
+  -u ${ETHEREUM_ADDRESS}.%H \
+  --api_listen=127.0.0.1:4028
+  Restart=on-failure
+
+  [Install]
+  WantedBy=multi-user.target
+
+  EOF
+
+  # Disable variable expansion by quoting the label
+  # of the here-doc.
+  cat <<'EOF' > "/usr/local/bin/teamredminerctl"
+  #!/bin/bash
+  # Small helper script for interacting with the teamredminer
+  # Systemd unit.
+
+  case "$1" in
+    start)
+      sudo systemctl start teamredminer
+      ;;
+    stop)
+      sudo systemctl stop teamredminer
+      ;;
+    status)
+      sudo systemctl status teamredminer
+      ;;
+    log)
+      # '--output cat' is used to restore colors.
+      sudo journalctl -fu teamredminer --output cat
+      ;;
+  esac
+
+  EOF
+
+  chmod a+x "/usr/local/bin/teamredminerctl"
