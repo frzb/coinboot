@@ -1,6 +1,3 @@
-
-![Logo of Coinboot](https://raw.githubusercontent.com/frzb/coinboot/master/coinboot.png)
-
 ## Plugins for Coinboot
 
 Coinboot is a framework for diskless computing.   
@@ -55,6 +52,29 @@ $ ./coinbootmaker -p ethminer /tmp/coinboot-initramfs-4.15.0-43-generic
 by converting the given Initramfs into a Container image and run it.  
 The plugin creation script located at `src` is executed in that `coinbootmaker` container and the resulting  
 plugin archive is written to the `build` directory.
+
+### Run `coinbootmaker` interactivly (`-i`)
+
+For developing and debugging 
+
+```
+$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
+```
+
+* You are entering the build environment
+
+* Execute `$ create_plugin.py start `
+
+* Do your changes to the system - e.g. install packages and edit configuration files.
+
+* When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
+
+* Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
+
+Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
+
+Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin.py start` and `$ create_plugin.py finish <name-of-your-plugin>`.
+
 
 ## License
 

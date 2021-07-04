@@ -1,6 +1,3 @@
-
-![Logo of Coinboot](https://raw.githubusercontent.com/frzb/coinboot/master/coinboot.png)
-
 ## Plugins for Coinboot
 
 Coinboot is a framework for diskless computing.   
