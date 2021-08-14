@@ -17,19 +17,24 @@ Usage:
     coinbootmaker_helper create readme
 """
 
-from strictyaml import load, Map, Str, Int, Seq, YAMLError
 import re
 import os
 import subprocess
-import boto3
-import logging
 import fileinput
+import boto3
 from tabulate import tabulate
 from docopt import docopt
 from botocore.exceptions import ClientError
+from strictcoinbootmaker_file import load, Map, Str, Int, Seq, YAMLError
 
 
 def call_coinbootmaker(script_name):
+    """Run plugin creation script with coinbootmaker
+
+    :param script_name: name of the plugin creation script
+    :returns: output of running the plugin creation script
+
+    """
     coinbootmaker_output = subprocess.run(
         ["./coinbootmaker", "-p", script_name], stdout=subprocess.PIPE, check=True
     )
@@ -39,8 +44,9 @@ def call_coinbootmaker(script_name):
 def extract_full_archive_name(subprocess_output):
     """Get composed full name of created Coinboot plugin archive
 
-    :param subprocess_output: Output of subprocess call
-    :return: filename of created Coinboot plugin archive
+    :param subprocess_output: output of subprocess call
+    :returns: filename of created Coinboot plugin archive
+
     """
     # We look for a line looking like that:
     # 'Created Coinboot Plugin: coinboot_ethminer_v0.18.0_20210603.1555.tar.gz'
@@ -53,6 +59,11 @@ def extract_full_archive_name(subprocess_output):
 
 
 def detect_kernel(subprocess_output):
+    """Determine kernel version of coinbootmaker built environment
+
+    :param subprocess_output:
+
+    """
     for line in subprocess_output.stdout.decode("utf-8").split("\n"):
         match = re.search("lib\/modules\/(.*-generic)\/.*$", line)
         if match:
@@ -61,13 +72,16 @@ def detect_kernel(subprocess_output):
     return None
 
 
-def upload_file(s3_client, file_name, bucket, yaml, object_name=None):
+def upload_file(s3_client, file_name, bucket, coinbootmaker_file, object_name=None):
     """Upload a file to an S3 bucket
 
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
+    :param file_name: file to upload
+    :param bucket: destination bucket
+    :param object_name: S3 object name. If not specified then file_name is used (Default value = None)
+    :param s3_client: S3-client instance created by boto
+    :param coinbootmaker_file: dict holding metadata and script of Coinbootmaker file
+    :returns: True if file was uploaded, else False
+
     """
     # If S3 object_name was not specified, use file_name
     if object_name is None:
@@ -83,12 +97,12 @@ def upload_file(s3_client, file_name, bucket, yaml, object_name=None):
             ExtraArgs={
                 "ACL": "public-read",
                 "Metadata": {
-                    "archive_name": yaml["archive_name"],
-                    "description": yaml["description"],
-                    "maintainer": yaml["maintainer"],
-                    "plugin": yaml["plugin"],
-                    "source": yaml["source"],
-                    "version": yaml["version"],
+                    "archive_name": coinbootmaker_file["archive_name"],
+                    "description": coinbootmaker_file["description"],
+                    "maintainer": coinbootmaker_file["maintainer"],
+                    "plugin": coinbootmaker_file["plugin"],
+                    "source": coinbootmaker_file["source"],
+                    "version": coinbootmaker_file["version"],
                 },
             },
         )
@@ -99,6 +113,12 @@ def upload_file(s3_client, file_name, bucket, yaml, object_name=None):
 
 
 def create_list_of_plugins(s3_client, bucket):
+    """Create a list of pluings present at a defined S3 bucket
+
+    :param s3_client: S3-client instance created by boto
+    :param bucket: destination bucket
+
+    """
 
     metadata_keys_sorted = ["plugin", "version", "description", "maintainer", "source"]
     header_keys_sorted = [
@@ -136,6 +156,13 @@ def create_list_of_plugins(s3_client, bucket):
 
 
 def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
+    """Create a markdown table in the README file with the provided list of plugins
+
+    :param readme_template_file: template file for the README
+    :param readme_file: the final README file 
+    :param list_of_plugins: list of plugins to create a markdown table from
+
+    """
     readme_file_content = []
 
     for line in fileinput.input(readme_template_file):
@@ -150,6 +177,7 @@ def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
 
 
 def main():
+    """ """
     s3_client = boto3.client(
         "s3",
         endpoint_url="https://s3.eu-central-1.wasabisys.com",
@@ -173,7 +201,7 @@ def main():
 
         with open(path, "r") as f:
             try:
-                yaml = load(f.read(), schema)
+                coinbootmaker_file = load(f.read(), schema)
                 script_name = path.replace("src", "")
                 coinbootmaker_output = call_coinbootmaker(script_name)
                 archive_name = extract_full_archive_name(coinbootmaker_output)
@@ -187,12 +215,14 @@ def main():
                     prefix = kernel
                 else:
                     prefix = "all"
+
                 print("Bucket prefix is: " + prefix)
+
                 upload_file(
                     s3_client,
                     "build/" + archive_name,
                     "coinboot",
-                    yaml.data,
+                    coinbootmaker_file.data,
                     prefix + "/" + archive_name,
                 )
 
