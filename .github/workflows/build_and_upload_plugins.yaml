@@ -1,9 +1,6 @@
 ---
 name: build and upload plugins
 on: [push, workflow_dispatch]
-defaults:
-  run:
-    working-directory: plugins
 
 jobs:
   build_and_upload_plugins:
@@ -30,30 +27,30 @@ jobs:
       # Detect changed Coinboot plugin creation files and trigger build only for these.
       # Omit all upstream code directories and only use yaml files in "src".
       - name: Build Coinboot plugins with Coinbootmaker and upload to object storage
-        if: github.ref == 'refs/heads/main' 
+        if: github.ref == 'refs/heads/main'
         run: |
           for plugin in ${{ steps.changed_files.outputs.added_modified }}; do
             if [[ "$plugin" != */upstream/* ]]; then
               if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
                 echo "Changes in $plugin, triggering build..."
-                pipenv run ./coinbootmaker_helper create plugin $plugin --upload
+                pipenv run ./plugins/coinbootmaker_helper create plugin $plugin --upload
               fi
             fi
           done
-      - name: Build Coinboot plugins with Coinbootmaker 
-        if: github.ref != 'refs/heads/main' 
+      - name: Build Coinboot plugins with Coinbootmaker
+        if: github.ref != 'refs/heads/main'
         run: |
           for plugin in ${{ steps.changed_files.outputs.added_modified }}; do
             if [[ "$plugin" != */upstream/* ]]; then
               if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
                 echo "Changes in $plugin, triggering build..."
-                pipenv run ./coinbootmaker_helper create plugin $plugin 
+                pipenv run ./plugins/coinbootmaker_helper create plugin $plugin
               fi
             fi
           done
       - name: Create README with list of available Coinboot plugins
         run: |
-          pipenv run ./coinbootmaker_helper create readme
+          pipenv run ./plugins/coinbootmaker_helper create readme
           cat README.md
       - name: List build artifacts
         run: |
