@@ -63,4 +63,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Apply automatic changes of Coinboot plugin table [skip ci]
-          file_pattern: README.md
+          file_pattern: plugins/README.md
