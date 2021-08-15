@@ -1,0 +1,270 @@
+
+```
+$ echo -n '{"command": "summary"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "STATUS" : [
+      {
+         "Code" : 11,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "Summary",
+         "STATUS" : "S",
+         "When" : 1618025365
+      }
+   ],
+   "SUMMARY" : [
+      {
+         "Accepted" : 811,
+         "Best Share" : 0,
+         "Device Hardware%" : 0,
+         "Device Rejected%" : 0,
+         "Difficulty Accepted" : 811,
+         "Difficulty Rejected" : 0,
+         "Difficulty Stale" : 0,
+         "Discarded" : 0,
+         "Elapsed" : 67649,
+         "Found Blocks" : 0,
+         "Get Failures" : 9,
+         "Getworks" : 28179,
+         "Hardware Errors" : 0,
+         "KHS 30s" : 48610,
+         "KHS av" : 48590,
+         "Last getwork" : 1618025365,
+         "Local Work" : 0,
+         "MHS 30s" : 48.61,
+         "MHS av" : 48.59,
+         "Network Blocks" : 281009,
+         "Pool Rejected%" : 0,
+         "Pool Stale%" : 0,
+         "Rejected" : 0,
+         "Remote Failures" : 0,
+         "Stale" : 3,
+         "Total MH" : 3287247782336,
+         "Utility" : 0.7193,
+         "Work Utility" : 0.7193
+      }
+   ],
+   "id" : 1
+}
+```
+
+```
+$ echo -n '{"command": "version"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "STATUS" : [
+      {
+         "Code" : 22,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "TeamRedMiner versions",
+         "STATUS" : "S",
+         "When" : 1618025418
+      }
+   ],
+   "VERSION" : [
+      {
+         "API" : "4.0",
+         "Miner" : "TeamRedMiner 0.8.1.1",
+         "SGMiner" : "5.4"
+   ],
+   "id" : 1
+}
+```
+
+```
+$ echo -n '{"command": "config"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "CONFIG" : [
+      {
+         "ADL" : "N",
+         "ADL in use" : "N:w",
+         "Device Code" : "GPU ",
+         "Expiry" : 60,
+         "Failover Switch Delay" : 60,
+         "Failover-Only" : false,
+         "GPU Count" : 2,
+         "Log Interval" : 30,
+         "OS" : "Linux",
+         "Pool Count" : 4,
+         "Queue" : 1,
+         "Rotate Period" : 0,
+         "ScanTime" : 1,
+         "Strategy" : "Priority"
+      }
+   ],
+   "STATUS" : [
+      {
+         "Code" : 33,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "TeamRedMiner config",
+         "STATUS" : "S",
+         "When" : 1618025458
+      }
+   ],
+   "id" : 1
+}
+```
+
+```
+$ echo -n '{"command": "devs"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "DEVS" : [
+      {
+         "Accepted" : 423,
+         "Device Elapsed" : 67796,
+         "Device Hardware%" : 0,
+         "Device Rejected%" : 0,
+         "Diff1 Work" : 423,
+         "Difficulty Accepted" : 423,
+         "Difficulty Rejected" : 0,
+         "Enabled" : "Y",
+         "Fan Percent" : 0,
+         "Fan Speed" : 0,
+         "GPU" : 0,
+         "GPU Activity" : 0,
+         "GPU Clock" : 10006,
+         "GPU Voltage" : 1.0100,
+         "Hardware Errors" : 0,
+         "Intensity" : "20",
+         "KHS 30s" : 24300,
+         "KHS av" : 24300,
+         "Last Share Difficulty" : 0,
+         "Last Share Pool" : 3,
+         "Last Share Time" : 0,
+         "Last Valid Work" : 0,
+         "MHS 30s" : 24.3,
+         "MHS av" : 24.3,
+         "Memory Clock" : 1750,
+         "Powertune" : 0,
+         "RawIntensity" : 0,
+         "Rejected" : 0,
+         "Status" : "Alive",
+         "Temperature" : 50,
+         "Total MH" : 1647231477376,
+         "Utility" : 0.3744,
+         "XIntensity" : 0
+      },
+      {
+         "Accepted" : 392,
+         "Device Elapsed" : 67796,
+         "Device Hardware%" : 0,
+         "Device Rejected%" : 0,
+         "Diff1 Work" : 392,
+         "Difficulty Accepted" : 392,
+         "Difficulty Rejected" : 0,
+         "Enabled" : "Y",
+         "Fan Percent" : 0,
+         "Fan Speed" : 0,
+         "GPU" : 1,
+         "GPU Activity" : 0,
+         "GPU Clock" : 10006,
+         "GPU Voltage" : 1.018,
+         "Hardware Errors" : 0,
+         "Intensity" : "20",
+         "KHS 30s" : 24300,
+         "KHS av" : 24300,
+         "Last Share Difficulty" : 0,
+         "Last Share Pool" : 3,
+         "Last Share Time" : 0,
+         "Last Valid Work" : 0,
+         "MHS 30s" : 24.3,
+         "MHS av" : 24.3,
+         "Memory Clock" : 1750,
+         "Powertune" : 0,
+         "RawIntensity" : 0,
+         "Rejected" : 0,
+         "Status" : "Alive",
+         "Temperature" : 40,
+         "Total MH" : 1647208454528,
+         "Utility" : 0.3469,
+         "XIntensity" : 0
+      }
+   ],
+   "STATUS" : [
+      {
+         "Code" : 9,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "2 GPU(s)",
+         "STATUS" : "S",
+         "When" : 1618025513
+      }
+   ],
+   "id" : 1
+}
+```
+
+```
+$ echo -n '{"command": "gpu", "parameter": "0"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "GPU" : [
+      {
+         "Accepted" : 423,
+         "Device Elapsed" : 67917,
+         "Device Hardware%" : 0,
+         "Device Rejected%" : 0,
+         "Diff1 Work" : 423,
+         "Difficulty Accepted" : 423,
+         "Difficulty Rejected" : 0,
+         "Enabled" : "Y",
+         "Fan Percent" : 0,
+         "Fan Speed" : 0,
+         "GPU" : 0,
+         "GPU Activity" : 0,
+         "GPU Clock" : 1206,
+         "GPU Voltage" : 1.012,
+         "Hardware Errors" : 0,
+         "Intensity" : "20",
+         "KHS 30s" : 24300,
+         "KHS av" : 24300,
+         "Last Share Difficulty" : 0,
+         "Last Share Pool" : 3,
+         "Last Share Time" : 0,
+         "Last Valid Work" : 0,
+         "MHS 30s" : 24.3,
+         "MHS av" : 24.3,
+         "Memory Clock" : 1750,
+         "Powertune" : 0,
+         "RawIntensity" : 0,
+         "Rejected" : 0,
+         "Status" : "Alive",
+         "Temperature" : 50,
+         "Total MH" : 1650171616128,
+         "Utility" : 0.3737,
+         "XIntensity" : 0
+      }
+   ],
+   "STATUS" : [
+      {
+         "Code" : 17,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "GPU0",
+         "STATUS" : "S",
+         "When" : 1618025634
+      }
+   ],
+   "id" : 1
+}
+```
+
+
+
+```
+$ echo -n '{"command": "gpucount"}' | nc 192.168.1.100 4028 | json_pp
+{
+   "GPUS" : [
+      {
+         "Count" : 2
+      }
+   ],
+   "STATUS" : [
+      {
+         "Code" : 20,
+         "Description" : "TeamRedMiner 0.8.1.1",
+         "Msg" : "GPU count",
+         "STATUS" : "S",
+         "When" : 1618025743
+      }
+   ],
+   "id" : 1
+}
+
+```
+
