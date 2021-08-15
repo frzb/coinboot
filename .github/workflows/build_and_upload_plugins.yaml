@@ -38,7 +38,7 @@ jobs:
             if [[ "$plugin" != */upstream/* ]]; then
               if [[ "$plugin" == *.yaml ]] && [[ "$plugin" == *plugins/src* ]]; then
                 echo "Changes in $plugin, triggering build..."
-                pipenv run ./plugins/coinbootmaker_helper create plugin $plugin --upload
+                pipenv run coinbootmaker_helper create plugin $plugin --upload
               fi
             fi
           done
@@ -55,7 +55,8 @@ jobs:
           done
       - name: Create README with list of available Coinboot plugins
         run: |
-          pipenv run ./plugins/coinbootmaker_helper create readme
+          pwd
+          pipenv run coinbootmaker_helper create readme
           cat README.md
       - name: List build artifacts
         run: |
