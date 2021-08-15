@@ -25,7 +25,7 @@ import boto3
 from tabulate import tabulate
 from docopt import docopt
 from botocore.exceptions import ClientError
-from strictcoinbootmaker_file import load, Map, Str, Int, Seq, YAMLError
+from strictyaml import load, Map, Str, Int, Seq, YAMLError
 
 
 def call_coinbootmaker(script_name):
