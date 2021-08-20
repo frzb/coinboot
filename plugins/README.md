@@ -6,16 +6,18 @@ It also contains `coinbootmaker` - a little helper to build your own Coinboot pl
   
 For more information how to boot your machines with Coinboot visit: https://coinboot.io
 
+## Coinboot Plugins 
+
 | Plugin             | Version       | Description                                                                          | Maintainer                                 | Source                                                                        | URL                                                                                                                           |
 |--------------------|---------------|--------------------------------------------------------------------------------------|--------------------------------------------|-------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| AMDGPU-Pro Polaris | 20.50-1234664 | AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for OpenCL 1.2 | Gunter Miegel <gunter.miegel@coiboot.io>   | https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-20-50 | https://s3.eu-central-1.wasabisys.com/coinboot/5.4.0-58-generic/coinboot_amdgpupro_polaris_20.50-1234664_20210623.0623.tar.gz |
-| ethminer           | v0.18.0       | Ethereum miner with OpenCL, CUDA and stratum support                                 | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/ethereum-mining/ethminer                                   | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_ethminer_v0.18.0_20210623.0615.tar.gz                             |
-| ethminer           | v0.18.0       | Ethereum miner with OpenCL, CUDA and stratum support, test13                         | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/ethereum-mining/ethminer                                   | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_ethminer_v0.18.0_20210624.1848.tar.gz                             |
-| ethminer           | v0.18.0       | Ethereum miner with OpenCL, CUDA and stratum support, test16                         | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/ethereum-mining/ethminer                                   | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_ethminer_v0.18.0_20210625.0036.tar.gz                             |
-| Team Red Miner     | v0.8.3        | This is an optimized miner for AMD GPUs created by todxx and kerney666               | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/todxx/teamredminer                                         | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_teamredminer_v0.8.3_20210623.0615.tar.gz                          |
-| Telegraf           | v1.18.1       | The plugin-driven server agent for collecting & reporting metrics.                   | Gunter Miegel <gunter.miegel@coinboot.io>  | https://github.com/influxdata/telegraf                                        | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_telegraf_v1.18.1_20210625.0110.tar.gz                             |
+| AMDGPU-Pro Polaris | 20.50-1234664 | AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for OpenCL 1.2 | Gunter Miegel <gunter.miegel@coiboot.io>   | https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-20-50 | https://s3.eu-central-1.wasabisys.com/coinboot/5.4.0-58-generic/coinboot_amdgpupro_polaris_20.50-1234664_20210815.1628.tar.gz |
+| ethminer           | v0.18.0       | Ethereum miner with OpenCL, CUDA and stratum support                                 | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/ethereum-mining/ethminer                                   | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_ethminer_v0.18.0_20210815.1630.tar.gz                             |
+| Team Red Miner     | v0.8.3        | This is an optimized miner for AMD GPUs created by todxx and kerney666               | Gunter Miegel <gunter.miegel@coinbboot.io> | https://github.com/todxx/teamredminer                                         | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_teamredminer_v0.8.3_20210815.1630.tar.gz                          |
+| Telegraf           | v1.18.1       | The plugin-driven server agent for collecting & reporting metrics.                   | Gunter Miegel <gunter.miegel@coinboot.io>  | https://github.com/influxdata/telegraf                                        | https://s3.eu-central-1.wasabisys.com/coinboot/all/coinboot_telegraf_v1.18.1_20210815.1632.tar.gz                             |
 
 ## Requirements
+
+* Coinboot with kernel `5.4.0-58-generic`
 
 ### If you want to build plugins on your own: 
 
@@ -55,6 +57,29 @@ $ ./coinbootmaker -p ethminer /tmp/coinboot-initramfs-4.15.0-43-generic
 by converting the given Initramfs into a Container image and run it.  
 The plugin creation script located at `src` is executed in that `coinbootmaker` container and the resulting  
 plugin archive is written to the `build` directory.
+
+### Run `coinbootmaker` interactivly (`-i`)
+
+For developing and debugging 
+
+```
+$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
+```
+
+* You are entering the build environment
+
+* Execute `$ create_plugin.py start `
+
+* Do your changes to the system - e.g. install packages and edit configuration files.
+
+* When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
+
+* Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
+
+Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
+
+Creation of plugins can also be scripted. Just do whatever you want to do between the lines `$ create_plugin.py start` and `$ create_plugin.py finish <name-of-your-plugin>`.
+
 
 ## License
 
