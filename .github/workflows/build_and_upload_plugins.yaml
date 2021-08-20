@@ -27,7 +27,11 @@ jobs:
         run: pipenv install
       - id: changed_files
         name: Collect changed files
-        uses: jitterbit/get-changed-files@v1
+        # Until "the HEAD commit ahead of base commit" is fixed we switch to a
+        # fork with a fix by Ana06.
+        # https://github.com/jitterbit/get-changed-files/issues/11
+        # uses: jitterbit/get-changed-files@v1
+        uses: Ana06/get-changed-files@v1.2
       # Detect changed Coinboot plugin creation files and trigger build only for these.
       # Omit all upstream code directories and only use yaml files in "src".
       - name: Build Coinboot plugins with Coinbootmaker and upload to object storage
@@ -60,7 +64,7 @@ jobs:
         run: |
           ls -la build
       - name: Push automatic changes on README.md
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v4 
         with:
           commit_message: Apply automatic changes of Coinboot plugin table [skip ci]
           file_pattern: plugins/README.md
