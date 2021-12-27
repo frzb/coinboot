@@ -13,31 +13,47 @@
 
 plugin: Telegraf
 archive_name: telegraf
-version: v1.18.1
+version: v1.21.1
 description: The plugin-driven server agent for collecting & reporting metrics.
 maintainer: Gunter Miegel <gunter.miegel@coinboot.io>
 source: https://github.com/influxdata/telegraf
 run: |
-  set -e -x
+  set -e
 
-  TELEGRAF_RELEASE=v1.18.1
+  GOLANG_CACHE_PATH=/mnt/cache/golang/
+  GOLANG_ARCHIVE=go1.17.5.linux-amd64.tar.gz
+  GOLANG_ARCHIVE_SHA256_CHECKSUM=bd78114b0d441b029c8fe0341f4910370925a4d270a6a590668840675b0c653e
+
+  if [ -d $GOLANG_CACHE_PATH ]; then
+    mkdir -p $GOLANG_CACHE_PATH
+  fi
 
   sudo apt update
-  sudo apt install make git golang-1.14 --yes
-  
+  sudo apt install make git coreutils --yes
+
+
+  if ! [ -f "$GOLANG_CACHE_PATH"/"$GOLANG_ARCHIVE" ]; then
+      wget --progress=bar:force https://go.dev/dl/"$GOLANG_ARCHIVE" -P $GOLANG_CACHE_PATH
+  else
+    echo "$GOLANG_ARCHIVE is already in build cache."
+  fi
+
+  echo "$GOLANG_ARCHIVE_SHA256_CHECKSUM" "$GOLANG_CACHE_PATH"/"$GOLANG_ARCHIVE" | sha256sum --check || exit 1 
+
+  sudo tar -C /usr/local -xzf "$GOLANG_CACHE_PATH"/"$GOLANG_ARCHIVE"
+
   pwd
   cd /mnt/src/telegraf/upstream
-  export PATH=$PATH:/usr/lib/go-1.14/bin
-  export GOPATH=$HOME/work
-  mkdir -vp $HOME/work $HOME/go
+  export PATH=$PATH:/usr/local/go/bin
+  export GOPATH=$GOLANG_CACHE_PATH
 
   make
 
-  sudo apt purge make git golang-1.14 --yes
+  sudo apt purge make git --yes 
   sudo apt autoremove --yes
   sudo apt autoclean
 
-  sudo rm -rf $GOPATH
+  sudo rm -rf /usr/local/go 
 
   cp -v /mnt/src/telegraf/upstream/telegraf /usr/local/bin/telegraf
 
