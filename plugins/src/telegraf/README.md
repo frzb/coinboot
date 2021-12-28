@@ -10,9 +10,15 @@ $ git subtree pull --prefix plugins/src/telegraf/upstream git@github.com:influxd
 
 ## Custom configuration
 
+### Reduced subset of plugins
+
 Telegraf supports a wide range of plugins which create a quite huge binary.  
-To minize the Telegraf binary we provide a minimal subset of plugins to be include.  
+To minize the Telegraf binary we provide a redcued subset of plugins to be include.  
 The custom configuration which plugins are included in our custom Telegraf binary resided inside the `conf` directory and is appliad against the local copy of the upstream source and overwrites the upstream plugin include configuration.
+
+### Shrinked binary size
+
+By striping off symbol tables and debugging information during compilation with `-ldflags="-s -w"` we can reduce the binary size by 25%.
 
 ## Build with `coinbootmaker_helper`
 
