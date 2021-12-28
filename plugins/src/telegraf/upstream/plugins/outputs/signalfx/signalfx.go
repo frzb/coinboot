@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	"sync"
-
-	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/plugins/outputs"
 	"github.com/signalfx/golib/v3/datapoint"
 	"github.com/signalfx/golib/v3/datapoint/dpsink"
 	"github.com/signalfx/golib/v3/event"
 	"github.com/signalfx/golib/v3/sfxclient"
+
+	"github.com/influxdata/telegraf"
+	"github.com/influxdata/telegraf/plugins/outputs"
 )
 
 //init initializes the plugin context
@@ -37,7 +36,6 @@ type SignalFx struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
-	wg     sync.WaitGroup
 }
 
 var sampleConfig = `
@@ -109,7 +107,7 @@ func (s *SignalFx) Connect() error {
 	if s.IngestURL != "" {
 		client.DatapointEndpoint = datapointEndpointForIngestURL(s.IngestURL)
 		client.EventEndpoint = eventEndpointForIngestURL(s.IngestURL)
-	} else if s.SignalFxRealm != "" {
+	} else if s.SignalFxRealm != "" { //nolint: revive // "Simplifying" if c {...} else {... return } would not simplify anything at all in this case
 		client.DatapointEndpoint = datapointEndpointForRealm(s.SignalFxRealm)
 		client.EventEndpoint = eventEndpointForRealm(s.SignalFxRealm)
 	} else {
@@ -133,10 +131,8 @@ func (s *SignalFx) ConvertToSignalFx(metrics []telegraf.Metric) ([]*datapoint.Da
 	for _, metric := range metrics {
 		s.Log.Debugf("Processing the following measurement: %v", metric)
 		var timestamp = metric.Time()
-		var metricType datapoint.MetricType
 
-		metricType = GetMetricType(metric.Type())
-
+		metricType := GetMetricType(metric.Type())
 		for field, val := range metric.Fields() {
 			// Copy the metric tags because they are meant to be treated as
 			// immutable
@@ -149,7 +145,7 @@ func (s *SignalFx) ConvertToSignalFx(metrics []telegraf.Metric) ([]*datapoint.Da
 			if metricValue, err := datapoint.CastMetricValueWithBool(val); err == nil {
 				var dp = datapoint.New(metricName,
 					metricDims,
-					metricValue.(datapoint.Value),
+					metricValue,
 					metricType,
 					timestamp)
 

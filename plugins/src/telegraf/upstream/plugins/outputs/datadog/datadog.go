@@ -8,19 +8,22 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/internal"
+	"github.com/influxdata/telegraf/config"
+	"github.com/influxdata/telegraf/plugins/common/proxy"
 	"github.com/influxdata/telegraf/plugins/outputs"
 )
 
 type Datadog struct {
-	Apikey  string            `toml:"apikey"`
-	Timeout internal.Duration `toml:"timeout"`
-	URL     string            `toml:"url"`
-	Log     telegraf.Logger   `toml:"-"`
+	Apikey  string          `toml:"apikey"`
+	Timeout config.Duration `toml:"timeout"`
+	URL     string          `toml:"url"`
+	Log     telegraf.Logger `toml:"-"`
 
 	client *http.Client
+	proxy.HTTPProxy
 }
 
 var sampleConfig = `
@@ -32,6 +35,9 @@ var sampleConfig = `
 
   ## Write URL override; useful for debugging.
   # url = "https://app.datadoghq.com/api/v1/series"
+
+  ## Set http_proxy (telegraf uses the system wide proxy settings if it isn't set)
+  # http_proxy_url = "http://localhost:8888"
 `
 
 type TimeSeries struct {
@@ -54,11 +60,16 @@ func (d *Datadog) Connect() error {
 		return fmt.Errorf("apikey is a required field for datadog output")
 	}
 
+	proxyFunc, err := d.Proxy()
+	if err != nil {
+		return err
+	}
+
 	d.client = &http.Client{
 		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
+			Proxy: proxyFunc,
 		},
-		Timeout: d.Timeout.Duration,
+		Timeout: time.Duration(d.Timeout),
 	}
 	return nil
 }
@@ -189,7 +200,7 @@ func (p *Point) setValue(v interface{}) error {
 	case uint64:
 		p[1] = float64(d)
 	case float64:
-		p[1] = float64(d)
+		p[1] = d
 	case bool:
 		p[1] = float64(0)
 		if d {

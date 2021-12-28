@@ -11,7 +11,6 @@ import (
 )
 
 func getMountStatsPath() string {
-
 	path := "./testdata/mountstats"
 	if os.Getenv("MOUNT_PROC") != "" {
 		path = os.Getenv("MOUNT_PROC")
@@ -111,13 +110,13 @@ func TestNFSClientProcessStat(t *testing.T) {
 		"exe":     uint64(607),
 	}
 
-	read_tags := map[string]string{
+	readTags := map[string]string{
 		"serverexport": "1.2.3.4:/storage/NFS",
 		"mountpoint":   "/A",
 		"operation":    "READ",
 	}
 
-	acc.AssertContainsTaggedFields(t, "nfsstat", fieldsReadstat, read_tags)
+	acc.AssertContainsTaggedFields(t, "nfsstat", fieldsReadstat, readTags)
 
 	fieldsWritestat := map[string]interface{}{
 		"ops":     uint64(700),
@@ -127,12 +126,12 @@ func TestNFSClientProcessStat(t *testing.T) {
 		"exe":     uint64(707),
 	}
 
-	write_tags := map[string]string{
+	writeTags := map[string]string{
 		"serverexport": "1.2.3.4:/storage/NFS",
 		"mountpoint":   "/A",
 		"operation":    "WRITE",
 	}
-	acc.AssertContainsTaggedFields(t, "nfsstat", fieldsWritestat, write_tags)
+	acc.AssertContainsTaggedFields(t, "nfsstat", fieldsWritestat, writeTags)
 }
 
 func TestNFSClientProcessFull(t *testing.T) {

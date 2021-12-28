@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/internal"
+	"github.com/influxdata/telegraf/config"
 	"github.com/influxdata/telegraf/plugins/common/tls"
 	"github.com/influxdata/telegraf/plugins/outputs"
 	"github.com/influxdata/telegraf/plugins/serializers/influx"
@@ -87,7 +87,7 @@ type InfluxDB struct {
 	Bucket           string            `toml:"bucket"`
 	BucketTag        string            `toml:"bucket_tag"`
 	ExcludeBucketTag bool              `toml:"exclude_bucket_tag"`
-	Timeout          internal.Duration `toml:"timeout"`
+	Timeout          config.Duration   `toml:"timeout"`
 	HTTPHeaders      map[string]string `toml:"http_headers"`
 	HTTPProxy        string            `toml:"http_proxy"`
 	UserAgent        string            `toml:"user_agent"`
@@ -170,31 +170,32 @@ func (i *InfluxDB) Write(metrics []telegraf.Metric) error {
 	return err
 }
 
-func (i *InfluxDB) getHTTPClient(url *url.URL, proxy *url.URL) (Client, error) {
+func (i *InfluxDB) getHTTPClient(address *url.URL, proxy *url.URL) (Client, error) {
 	tlsConfig, err := i.ClientConfig.TLSConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	config := &HTTPConfig{
-		URL:              url,
+	httpConfig := &HTTPConfig{
+		URL:              address,
 		Token:            i.Token,
 		Organization:     i.Organization,
 		Bucket:           i.Bucket,
 		BucketTag:        i.BucketTag,
 		ExcludeBucketTag: i.ExcludeBucketTag,
-		Timeout:          i.Timeout.Duration,
+		Timeout:          time.Duration(i.Timeout),
 		Headers:          i.HTTPHeaders,
 		Proxy:            proxy,
 		UserAgent:        i.UserAgent,
 		ContentEncoding:  i.ContentEncoding,
 		TLSConfig:        tlsConfig,
 		Serializer:       i.newSerializer(),
+		Log:              i.Log,
 	}
 
-	c, err := NewHTTPClient(config)
+	c, err := NewHTTPClient(httpConfig)
 	if err != nil {
-		return nil, fmt.Errorf("error creating HTTP client [%s]: %v", url, err)
+		return nil, fmt.Errorf("error creating HTTP client [%s]: %v", address, err)
 	}
 
 	return c, nil
@@ -212,7 +213,7 @@ func (i *InfluxDB) newSerializer() *influx.Serializer {
 func init() {
 	outputs.Add("influxdb_v2", func() telegraf.Output {
 		return &InfluxDB{
-			Timeout:         internal.Duration{Duration: time.Second * 5},
+			Timeout:         config.Duration(time.Second * 5),
 			ContentEncoding: "gzip",
 		}
 	})

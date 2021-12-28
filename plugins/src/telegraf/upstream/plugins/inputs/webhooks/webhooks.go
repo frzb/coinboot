@@ -7,9 +7,9 @@ import (
 	"reflect"
 
 	"github.com/gorilla/mux"
+
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/inputs"
-
 	"github.com/influxdata/telegraf/plugins/inputs/webhooks/filestack"
 	"github.com/influxdata/telegraf/plugins/inputs/webhooks/github"
 	"github.com/influxdata/telegraf/plugins/inputs/webhooks/mandrill"
@@ -19,7 +19,7 @@ import (
 )
 
 type Webhook interface {
-	Register(router *mux.Router, acc telegraf.Accumulator)
+	Register(router *mux.Router, acc telegraf.Accumulator, log telegraf.Logger)
 }
 
 func init() {
@@ -79,7 +79,7 @@ func (wb *Webhooks) Gather(_ telegraf.Accumulator) error {
 	return nil
 }
 
-// Looks for fields which implement Webhook interface
+// AvailableWebhooks Looks for fields which implement Webhook interface
 func (wb *Webhooks) AvailableWebhooks() []Webhook {
 	webhooks := make([]Webhook, 0)
 	s := reflect.ValueOf(wb).Elem()
@@ -104,15 +104,14 @@ func (wb *Webhooks) Start(acc telegraf.Accumulator) error {
 	r := mux.NewRouter()
 
 	for _, webhook := range wb.AvailableWebhooks() {
-		webhook.Register(r, acc)
+		webhook.Register(r, acc, wb.Log)
 	}
 
 	wb.srv = &http.Server{Handler: r}
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s", wb.ServiceAddress))
+	ln, err := net.Listen("tcp", wb.ServiceAddress)
 	if err != nil {
 		return fmt.Errorf("error starting server: %v", err)
-
 	}
 
 	go func() {
@@ -129,6 +128,8 @@ func (wb *Webhooks) Start(acc telegraf.Accumulator) error {
 }
 
 func (wb *Webhooks) Stop() {
+	// Ignore the returned error as we cannot do anything about it anyway
+	//nolint:errcheck,revive
 	wb.srv.Close()
 	wb.Log.Infof("Stopping the Webhooks service")
 }

@@ -1,3 +1,4 @@
+//go:build !solaris
 // +build !solaris
 
 package tail
@@ -22,8 +23,7 @@ import (
 )
 
 const (
-	defaultWatchMethod         = "inotify"
-	defaultMaxUndeliveredLines = 1000
+	defaultWatchMethod = "inotify"
 )
 
 var (
@@ -162,7 +162,7 @@ func (t *Tail) Init() error {
 	return err
 }
 
-func (t *Tail) Gather(acc telegraf.Accumulator) error {
+func (t *Tail) Gather(_ telegraf.Accumulator) error {
 	return t.tailNewFiles(true)
 }
 
@@ -288,25 +288,17 @@ func (t *Tail) tailNewFiles(fromBeginning bool) error {
 }
 
 // ParseLine parses a line of text.
-func parseLine(parser parsers.Parser, line string, firstLine bool) ([]telegraf.Metric, error) {
+func parseLine(parser parsers.Parser, line string) ([]telegraf.Metric, error) {
 	switch parser.(type) {
 	case *csv.Parser:
-		// The csv parser parses headers in Parse and skips them in ParseLine.
-		// As a temporary solution call Parse only when getting the first
-		// line from the file.
-		if firstLine {
-			return parser.Parse([]byte(line))
-		}
-
-		m, err := parser.ParseLine(line)
+		m, err := parser.Parse([]byte(line))
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil, nil
+			}
 			return nil, err
 		}
-
-		if m != nil {
-			return []telegraf.Metric{m}, nil
-		}
-		return []telegraf.Metric{}, nil
+		return m, err
 	default:
 		return parser.Parse([]byte(line))
 	}
@@ -315,8 +307,6 @@ func parseLine(parser parsers.Parser, line string, firstLine bool) ([]telegraf.M
 // Receiver is launched as a goroutine to continuously watch a tailed logfile
 // for changes, parse any incoming msgs, and add to the accumulator.
 func (t *Tail) receiver(parser parsers.Parser, tailer *tail.Tail) {
-	var firstLine = true
-
 	// holds the individual lines of multi-line log entries.
 	var buffer bytes.Buffer
 
@@ -326,7 +316,7 @@ func (t *Tail) receiver(parser parsers.Parser, tailer *tail.Tail) {
 	// The multiline mode requires a timer in order to flush the multiline buffer
 	// if no new lines are incoming.
 	if t.multiline.IsEnabled() {
-		timer = time.NewTimer(t.MultilineConfig.Timeout.Duration)
+		timer = time.NewTimer(time.Duration(*t.MultilineConfig.Timeout))
 		timeout = timer.C
 	}
 
@@ -338,7 +328,7 @@ func (t *Tail) receiver(parser parsers.Parser, tailer *tail.Tail) {
 		line = nil
 
 		if timer != nil {
-			timer.Reset(t.MultilineConfig.Timeout.Duration)
+			timer.Reset(time.Duration(*t.MultilineConfig.Timeout))
 		}
 
 		select {
@@ -378,13 +368,12 @@ func (t *Tail) receiver(parser parsers.Parser, tailer *tail.Tail) {
 			continue
 		}
 
-		metrics, err := parseLine(parser, text, firstLine)
+		metrics, err := parseLine(parser, text)
 		if err != nil {
 			t.Log.Errorf("Malformed log line in %q: [%q]: %s",
 				tailer.Filename, text, err.Error())
 			continue
 		}
-		firstLine = false
 
 		if t.PathTag != "" {
 			for _, metric := range metrics {

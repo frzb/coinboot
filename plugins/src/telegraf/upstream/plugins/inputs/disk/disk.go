@@ -13,7 +13,7 @@ type DiskStats struct {
 	ps system.PS
 
 	// Legacy support
-	Mountpoints []string `toml:"mountpoints"`
+	LegacyMountPoints []string `toml:"mountpoints"`
 
 	MountPoints []string `toml:"mount_points"`
 	IgnoreFS    []string `toml:"ignore_fs"`
@@ -38,8 +38,8 @@ func (ds *DiskStats) SampleConfig() string {
 
 func (ds *DiskStats) Gather(acc telegraf.Accumulator) error {
 	// Legacy support:
-	if len(ds.Mountpoints) != 0 {
-		ds.MountPoints = ds.Mountpoints
+	if len(ds.LegacyMountPoints) != 0 {
+		ds.MountPoints = ds.LegacyMountPoints
 	}
 
 	disks, partitions, err := ds.ps.DiskUsage(ds.MountPoints, ds.IgnoreFS)
@@ -52,7 +52,7 @@ func (ds *DiskStats) Gather(acc telegraf.Accumulator) error {
 			// Skip dummy filesystem (procfs, cgroupfs, ...)
 			continue
 		}
-		mountOpts := parseOptions(partitions[i].Opts)
+		mountOpts := MountOptions(partitions[i].Opts)
 		tags := map[string]string{
 			"path":   du.Path,
 			"device": strings.Replace(partitions[i].Device, "/dev/", "", -1),
@@ -99,10 +99,6 @@ func (opts MountOptions) exists(opt string) bool {
 		}
 	}
 	return false
-}
-
-func parseOptions(opts string) MountOptions {
-	return strings.Split(opts, ",")
 }
 
 func init() {

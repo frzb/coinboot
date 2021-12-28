@@ -242,7 +242,6 @@ func (n *NFSClient) parseStat(mountpoint string, export string, version string, 
 				acc.AddFields("nfs_ops", fields, tags)
 			}
 		}
-
 	}
 
 	return nil
@@ -256,10 +255,9 @@ func (n *NFSClient) processText(scanner *bufio.Scanner, acc telegraf.Accumulator
 
 	for scanner.Scan() {
 		line := strings.Fields(scanner.Text())
+		lineLength := len(line)
 
-		line_len := len(line)
-
-		if line_len == 0 {
+		if lineLength == 0 {
 			continue
 		}
 
@@ -267,10 +265,10 @@ func (n *NFSClient) processText(scanner *bufio.Scanner, acc telegraf.Accumulator
 
 		// This denotes a new mount has been found, so set
 		// mount and export, and stop skipping (for now)
-		if line_len > 4 && choice.Contains("fstype", line) && (choice.Contains("nfs", line) || choice.Contains("nfs4", line)) {
+		if lineLength > 4 && choice.Contains("fstype", line) && (choice.Contains("nfs", line) || choice.Contains("nfs4", line)) {
 			mount = line[4]
 			export = line[1]
-		} else if line_len > 5 && (choice.Contains("(nfs)", line) || choice.Contains("(nfs4)", line)) {
+		} else if lineLength > 5 && (choice.Contains("(nfs)", line) || choice.Contains("(nfs4)", line)) {
 			version = strings.Split(line[5], "/")[1]
 		}
 
@@ -311,7 +309,6 @@ func (n *NFSClient) processText(scanner *bufio.Scanner, acc telegraf.Accumulator
 }
 
 func (n *NFSClient) getMountStatsPath() string {
-
 	path := "/proc/self/mountstats"
 	if os.Getenv("MOUNT_PROC") != "" {
 		path = os.Getenv("MOUNT_PROC")
@@ -321,7 +318,6 @@ func (n *NFSClient) getMountStatsPath() string {
 }
 
 func (n *NFSClient) Gather(acc telegraf.Accumulator) error {
-
 	file, err := os.Open(n.mountstatsPath)
 	if err != nil {
 		n.Log.Errorf("Failed opening the [%s] file: %s ", file, err)
@@ -330,8 +326,7 @@ func (n *NFSClient) Gather(acc telegraf.Accumulator) error {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	err = n.processText(scanner, acc)
-	if err != nil {
+	if err := n.processText(scanner, acc); err != nil {
 		return err
 	}
 
@@ -344,7 +339,6 @@ func (n *NFSClient) Gather(acc telegraf.Accumulator) error {
 }
 
 func (n *NFSClient) Init() error {
-
 	var nfs3Fields = []string{
 		"NULL",
 		"GETATTR",
@@ -472,6 +466,9 @@ func (n *NFSClient) Init() error {
 			}
 		}
 	}
+
+	n.nfs3Ops = nfs3Ops
+	n.nfs4Ops = nfs4Ops
 
 	if len(n.IncludeMounts) > 0 {
 		n.Log.Debugf("Including these mount patterns: %v", n.IncludeMounts)

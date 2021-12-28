@@ -5,9 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	wavefront "github.com/wavefronthq/wavefront-sdk-go/senders"
+
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/plugins/outputs"
-	wavefront "github.com/wavefronthq/wavefront-sdk-go/senders"
 )
 
 const maxTagLength = 254
@@ -51,7 +52,7 @@ var strictSanitizedChars = strings.NewReplacer(
 )
 
 // instead of Replacer which may miss some special characters we can use a regex pattern, but this is significantly slower than Replacer
-var sanitizedRegex = regexp.MustCompile("[^a-zA-Z\\d_.-]")
+var sanitizedRegex = regexp.MustCompile(`[^a-zA-Z\d_.-]`)
 
 var tagValueReplacer = strings.NewReplacer("*", "-")
 
@@ -125,7 +126,6 @@ type MetricPoint struct {
 }
 
 func (w *Wavefront) Connect() error {
-
 	if len(w.StringToNumber) > 0 {
 		w.Log.Warn("The string_to_number option is deprecated; please use the enum processor instead")
 	}
@@ -168,12 +168,14 @@ func (w *Wavefront) Connect() error {
 }
 
 func (w *Wavefront) Write(metrics []telegraf.Metric) error {
-
 	for _, m := range metrics {
 		for _, point := range w.buildMetrics(m) {
 			err := w.sender.SendMetric(point.Metric, point.Value, point.Timestamp, point.Source, point.Tags)
 			if err != nil {
 				if isRetryable(err) {
+					if flushErr := w.sender.Flush(); flushErr != nil {
+						w.Log.Errorf("wavefront flushing error: %v", flushErr)
+					}
 					return fmt.Errorf("wavefront sending error: %v", err)
 				}
 				w.Log.Errorf("non-retryable error during Wavefront.Write: %v", err)
@@ -233,7 +235,6 @@ func (w *Wavefront) buildMetrics(m telegraf.Metric) []*MetricPoint {
 }
 
 func (w *Wavefront) buildTags(mTags map[string]string) (string, map[string]string) {
-
 	// Remove all empty tags.
 	for k, v := range mTags {
 		if v == "" {
@@ -319,7 +320,7 @@ func buildValue(v interface{}, name string, w *Wavefront) (float64, error) {
 		for prefix, mappings := range w.StringToNumber {
 			if strings.HasPrefix(name, prefix) {
 				for _, mapping := range mappings {
-					val, hasVal := mapping[string(p)]
+					val, hasVal := mapping[p]
 					if hasVal {
 						return val, nil
 					}

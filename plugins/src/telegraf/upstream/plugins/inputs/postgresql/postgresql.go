@@ -6,17 +6,18 @@ import (
 	"strings"
 
 	// register in driver.
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/internal"
+	"github.com/influxdata/telegraf/config"
 	"github.com/influxdata/telegraf/plugins/inputs"
 )
 
 type Postgresql struct {
 	Service
-	Databases        []string
-	IgnoredDatabases []string
+	Databases          []string `toml:"databases"`
+	IgnoredDatabases   []string `toml:"ignored_databases"`
+	PreparedStatements bool     `toml:"prepared_statements"`
 }
 
 var ignoredColumns = map[string]bool{"stats_reset": true}
@@ -53,6 +54,11 @@ var sampleConfig = `
   ## A list of databases to pull metrics about. If not specified, metrics for all
   ## databases are gathered.  Do NOT use with the 'ignored_databases' option.
   # databases = ["app_production", "testing"]
+
+  ## Whether to use prepared statements when connecting to the database.
+  ## This should be set to false when connecting through a PgBouncer instance
+  ## with pool_mode set to transaction.
+  # prepared_statements = true
 `
 
 func (p *Postgresql) SampleConfig() string {
@@ -65,6 +71,11 @@ func (p *Postgresql) Description() string {
 
 func (p *Postgresql) IgnoredColumns() map[string]bool {
 	return ignoredColumns
+}
+
+func (p *Postgresql) Init() error {
+	p.Service.IsPgBouncer = !p.PreparedStatements
+	return nil
 }
 
 func (p *Postgresql) Gather(acc telegraf.Accumulator) error {
@@ -156,13 +167,19 @@ func (p *Postgresql) accRow(row scanner, acc telegraf.Accumulator, columns []str
 	if columnMap["datname"] != nil {
 		// extract the database name from the column map
 		if dbNameStr, ok := (*columnMap["datname"]).(string); ok {
-			dbname.WriteString(dbNameStr)
+			if _, err := dbname.WriteString(dbNameStr); err != nil {
+				return err
+			}
 		} else {
 			// PG 12 adds tracking of global objects to pg_stat_database
-			dbname.WriteString("postgres_global")
+			if _, err := dbname.WriteString("postgres_global"); err != nil {
+				return err
+			}
 		}
 	} else {
-		dbname.WriteString("postgres")
+		if _, err := dbname.WriteString("postgres"); err != nil {
+			return err
+		}
 	}
 
 	var tagAddress string
@@ -189,13 +206,11 @@ func init() {
 	inputs.Add("postgresql", func() telegraf.Input {
 		return &Postgresql{
 			Service: Service{
-				MaxIdle: 1,
-				MaxOpen: 1,
-				MaxLifetime: internal.Duration{
-					Duration: 0,
-				},
-				IsPgBouncer: false,
+				MaxIdle:     1,
+				MaxOpen:     1,
+				MaxLifetime: config.Duration(0),
 			},
+			PreparedStatements: true,
 		}
 	})
 }

@@ -3,26 +3,27 @@ package postgresql_extensible
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"time"
 
-	_ "github.com/jackc/pgx/stdlib" //to register stdlib from PostgreSQL Driver and Toolkit
+	_ "github.com/jackc/pgx/v4/stdlib" //to register stdlib from PostgreSQL Driver and Toolkit
 
 	"github.com/influxdata/telegraf"
-	"github.com/influxdata/telegraf/internal"
+	"github.com/influxdata/telegraf/config"
 	"github.com/influxdata/telegraf/plugins/inputs"
 	"github.com/influxdata/telegraf/plugins/inputs/postgresql"
 )
 
 type Postgresql struct {
 	postgresql.Service
-	Databases      []string
-	AdditionalTags []string
-	Timestamp      string
-	Query          query
-	Debug          bool
+	Databases          []string
+	AdditionalTags     []string
+	Timestamp          string
+	Query              query
+	Debug              bool
+	PreparedStatements bool `toml:"prepared_statements"`
 
 	Log telegraf.Logger
 }
@@ -59,6 +60,11 @@ var sampleConfig = `
   ## default is forever (0s)
   max_lifetime = "0s"
 
+  ## Whether to use prepared statements when connecting to the database.
+  ## This should be set to false when connecting through a PgBouncer instance
+  ## with pool_mode set to transaction.
+  # prepared_statements = true
+
   ## A list of databases to pull metrics about. If not specified, metrics for all
   ## databases are gathered.
   ## databases = ["app_production", "testing"]
@@ -83,16 +89,16 @@ var sampleConfig = `
   ## output measurement name ("postgresql").
   ##
   ## The script option can be used to specify the .sql file path.
-  ## If script and sqlquery options specified at same time, sqlquery will be used 
+  ## If script and sqlquery options specified at same time, sqlquery will be used
   ##
   ## the tagvalue field is used to define custom tags (separated by comas).
   ## the query is expected to return columns which match the names of the
   ## defined tags. The values in these columns must be of a string-type,
   ## a number-type or a blob-type.
-  ## 
+  ##
   ## The timestamp field is used to override the data points timestamp value. By
   ## default, all rows inserted with current time. By setting a timestamp column,
-  ## the row will be inserted with that column's value. 
+  ## the row will be inserted with that column's value.
   ##
   ## Structure :
   ## [[inputs.postgresql_extensible.query]]
@@ -125,6 +131,7 @@ func (p *Postgresql) Init() error {
 			}
 		}
 	}
+	p.Service.IsPgBouncer = !p.PreparedStatements
 	return nil
 }
 
@@ -147,7 +154,7 @@ func ReadQueryFromFile(filePath string) (string, error) {
 	}
 	defer file.Close()
 
-	query, err := ioutil.ReadAll(file)
+	query, err := io.ReadAll(file)
 	if err != nil {
 		return "", err
 	}
@@ -161,10 +168,7 @@ func (p *Postgresql) Gather(acc telegraf.Accumulator) error {
 		queryAddon string
 		dbVersion  int
 		query      string
-		tagValue   string
 		measName   string
-		timestamp  string
-		columns    []string
 	)
 
 	// Retrieving the database version
@@ -177,8 +181,6 @@ func (p *Postgresql) Gather(acc telegraf.Accumulator) error {
 	// Query is not run if Database version does not match the query version.
 	for i := range p.Query {
 		sqlQuery = p.Query[i].Sqlquery
-		tagValue = p.Query[i].Tagvalue
-		timestamp = p.Query[i].Timestamp
 
 		if p.Query[i].Measurement != "" {
 			measName = p.Query[i].Measurement
@@ -198,40 +200,46 @@ func (p *Postgresql) Gather(acc telegraf.Accumulator) error {
 		sqlQuery += queryAddon
 
 		if p.Query[i].Version <= dbVersion {
-			rows, err := p.DB.Query(sqlQuery)
-			if err != nil {
-				p.Log.Error(err.Error())
-				continue
-			}
-
-			defer rows.Close()
-
-			// grab the column information from the result
-			if columns, err = rows.Columns(); err != nil {
-				p.Log.Error(err.Error())
-				continue
-			}
-
-			p.AdditionalTags = nil
-			if tagValue != "" {
-				tagList := strings.Split(tagValue, ",")
-				for t := range tagList {
-					p.AdditionalTags = append(p.AdditionalTags, tagList[t])
-				}
-			}
-
-			p.Timestamp = timestamp
-
-			for rows.Next() {
-				err = p.accRow(measName, rows, acc, columns)
-				if err != nil {
-					p.Log.Error(err.Error())
-					break
-				}
-			}
+			p.gatherMetricsFromQuery(acc, sqlQuery, p.Query[i].Tagvalue, p.Query[i].Timestamp, measName)
 		}
 	}
 	return nil
+}
+
+func (p *Postgresql) gatherMetricsFromQuery(acc telegraf.Accumulator, sqlQuery string, tagValue string, timestamp string, measName string) {
+	var columns []string
+
+	rows, err := p.DB.Query(sqlQuery)
+	if err != nil {
+		acc.AddError(err)
+		return
+	}
+
+	defer rows.Close()
+
+	// grab the column information from the result
+	if columns, err = rows.Columns(); err != nil {
+		acc.AddError(err)
+		return
+	}
+
+	p.AdditionalTags = nil
+	if tagValue != "" {
+		tagList := strings.Split(tagValue, ",")
+		for t := range tagList {
+			p.AdditionalTags = append(p.AdditionalTags, tagList[t])
+		}
+	}
+
+	p.Timestamp = timestamp
+
+	for rows.Next() {
+		err = p.accRow(measName, rows, acc, columns)
+		if err != nil {
+			acc.AddError(err)
+			break
+		}
+	}
 }
 
 type scanner interface {
@@ -268,12 +276,18 @@ func (p *Postgresql) accRow(measName string, row scanner, acc telegraf.Accumulat
 		// extract the database name from the column map
 		switch datname := (*c).(type) {
 		case string:
-			dbname.WriteString(datname)
+			if _, err := dbname.WriteString(datname); err != nil {
+				return err
+			}
 		default:
-			dbname.WriteString("postgres")
+			if _, err := dbname.WriteString("postgres"); err != nil {
+				return err
+			}
 		}
 	} else {
-		dbname.WriteString("postgres")
+		if _, err := dbname.WriteString("postgres"); err != nil {
+			return err
+		}
 	}
 
 	if tagAddress, err = p.SanitizedAddress(); err != nil {
@@ -336,13 +350,12 @@ func init() {
 	inputs.Add("postgresql_extensible", func() telegraf.Input {
 		return &Postgresql{
 			Service: postgresql.Service{
-				MaxIdle: 1,
-				MaxOpen: 1,
-				MaxLifetime: internal.Duration{
-					Duration: 0,
-				},
+				MaxIdle:     1,
+				MaxOpen:     1,
+				MaxLifetime: config.Duration(0),
 				IsPgBouncer: false,
 			},
+			PreparedStatements: true,
 		}
 	})
 }

@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/signalfx/golib/v3/datapoint"
+	"github.com/signalfx/golib/v3/event"
+	"github.com/stretchr/testify/require"
+
 	"github.com/influxdata/telegraf"
 	"github.com/influxdata/telegraf/metric"
 	"github.com/influxdata/telegraf/plugins/outputs"
 	"github.com/influxdata/telegraf/testutil"
-	"github.com/signalfx/golib/v3/datapoint"
-	"github.com/signalfx/golib/v3/event"
-	"github.com/stretchr/testify/require"
 )
 
 type sink struct {
@@ -21,11 +22,11 @@ type sink struct {
 	evs []*event.Event
 }
 
-func (s *sink) AddDatapoints(ctx context.Context, points []*datapoint.Datapoint) error {
+func (s *sink) AddDatapoints(_ context.Context, points []*datapoint.Datapoint) error {
 	s.dps = append(s.dps, points...)
 	return nil
 }
-func (s *sink) AddEvents(ctx context.Context, events []*event.Event) error {
+func (s *sink) AddEvents(_ context.Context, events []*event.Event) error {
 	s.evs = append(s.evs, events...)
 	return nil
 }
@@ -35,10 +36,10 @@ type errorsink struct {
 	evs []*event.Event
 }
 
-func (e *errorsink) AddDatapoints(ctx context.Context, points []*datapoint.Datapoint) error {
+func (e *errorsink) AddDatapoints(_ context.Context, _ []*datapoint.Datapoint) error {
 	return errors.New("not sending datapoints")
 }
-func (e *errorsink) AddEvents(ctx context.Context, events []*event.Event) error {
+func (e *errorsink) AddEvents(_ context.Context, _ []*event.Event) error {
 	return errors.New("not sending events")
 }
 func TestSignalFx_SignalFx(t *testing.T) {
@@ -429,16 +430,16 @@ func TestSignalFx_SignalFx(t *testing.T) {
 			measurements := []telegraf.Metric{}
 
 			for _, measurement := range tt.measurements {
-				m, err := metric.New(
+				m := metric.New(
 					measurement.name, measurement.tags, measurement.fields, measurement.time, measurement.tp,
 				)
-				if err != nil {
-					t.Errorf("Error creating measurement %v", measurement)
-				}
+
 				measurements = append(measurements, m)
 			}
 
-			s.Write(measurements)
+			err := s.Write(measurements)
+			require.NoError(t, err)
+
 			require.Eventually(t, func() bool { return len(s.client.(*sink).dps) == len(tt.want.datapoints) }, 5*time.Second, 100*time.Millisecond)
 			require.Eventually(t, func() bool { return len(s.client.(*sink).evs) == len(tt.want.events) }, 5*time.Second, 100*time.Millisecond)
 
@@ -594,13 +595,12 @@ func TestSignalFx_Errors(t *testing.T) {
 			}
 
 			for _, measurement := range tt.measurements {
-				m, err := metric.New(
+				m := metric.New(
 					measurement.name, measurement.tags, measurement.fields, measurement.time, measurement.tp,
 				)
-				if err != nil {
-					t.Errorf("Error creating measurement %v", measurement)
-				}
-				s.Write([]telegraf.Metric{m})
+
+				err := s.Write([]telegraf.Metric{m})
+				require.Error(t, err)
 			}
 			for !(len(s.client.(*errorsink).dps) == len(tt.want.datapoints) && len(s.client.(*errorsink).evs) == len(tt.want.events)) {
 				time.Sleep(1 * time.Second)

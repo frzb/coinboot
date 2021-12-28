@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 type Process interface {
@@ -43,13 +43,13 @@ type Proc struct {
 }
 
 func NewProc(pid PID) (Process, error) {
-	process, err := process.NewProcess(int32(pid))
+	p, err := process.NewProcess(int32(pid))
 	if err != nil {
 		return nil, err
 	}
 
 	proc := &Proc{
-		Process:     process,
+		Process:     p,
 		hasCPUTimes: false,
 		tags:        make(map[string]string),
 	}
@@ -68,7 +68,7 @@ func (p *Proc) Username() (string, error) {
 	return p.Process.Username()
 }
 
-func (p *Proc) Percent(interval time.Duration) (float64, error) {
+func (p *Proc) Percent(_ time.Duration) (float64, error) {
 	cpuPerc, err := p.Process.Percent(time.Duration(0))
 	if !p.hasCPUTimes && err == nil {
 		p.hasCPUTimes = true
