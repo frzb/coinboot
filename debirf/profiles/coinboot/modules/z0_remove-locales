@@ -10,15 +10,16 @@
 # They are Copyright 2007, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018,2021 Gunter Miegel coinboot.io
 
 cd "$DEBIRF_ROOT"
 
 debirf_exec echo 'en_US.UTF-8 UTF-8' > etc/locale.gen
-debirf_exec cat etc/locale.gen
-
 debirf_exec echo 'LANG="en_US.UTF-8"' > etc/default/locale
-debirf_exec locale-gen --purge en_US
-locale -a
+debirf_exec mkdir -vp var/lib/locales/supported.d
+debirf_exec echo 'en_US.UTF-8 UTF-8' > var/lib/locales/supported.d/en
+debirf_exec rm -rfv usr/lib/locale/*
+debirf_exec locale-gen --purge
+locale -a -v
 
-find usr/share/locale -maxdepth 1 -mindepth 1 -type d ! -iname '*en_US' -execdir rm -rvf '{}' \+
+find usr/share/locale -maxdepth 1 -mindepth 1 -type d ! -iname 'en_US' -execdir rm -rvf '{}' \+
