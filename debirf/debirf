@@ -211,17 +211,11 @@ create_initrd_plugin() {
     rm -rf "$DEBIRF_ROOT"/var/lib/apt/lists/*
     mkdir "$DEBIRF_ROOT/var/lib/apt/lists/partial"
 
-    # Zstd is in the kernel since 4.14 (released November 2017).
-    # We currently only support 4.4, 4.15 or 4.18.
-    if ! [[ $DEBIRF_KERNEL =~ '4.4'|'4.15' ]]; then
     local ZSTD_MODULE=/lib/modules/${KERNEL_VERS}/kernel/crypto/zstd.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_MODULE" "$NEST_ROOT"/"$ZSTD_MODULE"
 
     local ZSTD_COMPRESS_MODULE=/lib/modules/${KERNEL_VERS}/kernel/lib/zstd/zstd_compress.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_COMPRESS_MODULE" "$NEST_ROOT"/"$ZSTD_COMPRESS_MODULE"
-    else
-      echo 'Kernel < 4.14: No support for Zstd compression algorithm.'
-    fi
 
     # symlink /lib64 if that is done on host
     # FIXME: is this necessary?

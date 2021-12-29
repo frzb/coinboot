@@ -7,8 +7,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - kernel: "4.15.0-72-generic"
-            suite: "xenial"
           - kernel: "5.4.0-58-generic"
             suite: "focal"
     steps:
@@ -71,9 +69,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Download build artifacts
         uses: actions/download-artifact@v2
-      - name: Set up Coinboot requirements 
+      - name: Set up Coinboot requirements
         shell: bash
-        # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash 
+        # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash
         run: ./setup_coinboot_requirements
       - name: Run Coinboot server and boot workers
         env:
@@ -136,4 +134,4 @@ jobs:
           git remote rm origin
           git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
           git push origin :refs/tags/"${PRE_RELEASE_TAG}"
-          git push origin --tags 
+          git push origin --tags
