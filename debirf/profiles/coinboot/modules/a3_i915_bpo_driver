@@ -41,17 +41,7 @@
 # Files are located here:
 # /lib/firmware/i915/
 
-# For the kernel 4.15 the package with the i915 module is called
-# linux-modules-extra-4.15.0-*-generic
-# And there is no backuported module.
-
-KERNEL_RELEASE=$DEBIRF_KERNEL
-if ! [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
-  EXTRA_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
-else
-  EXTRA_PACKAGE="linux-image-extra-$KERNEL_RELEASE"
-  MODULE_I915_BPO_PACKAGE_PATH="/lib/modules/$KERNEL_RELEASE/kernel/ubuntu/i915/i915_bpo.ko"
-fi
+EXTRA_PACKAGE="linux-image-extra-$KERNEL_RELEASE"
 EXTRA_PACKAGE_FILE=$(debirf_exec apt-cache show $EXTRA_PACKAGE | grep -oP $EXTRA_PACKAGE.*deb)
 MODULE_I915_PACKAGE_PATH="/lib/modules/$KERNEL_RELEASE/kernel/drivers/gpu/drm/i915/i915.ko"
 
@@ -66,15 +56,8 @@ debirf_exec dpkg -x /$EXTRA_PACKAGE_FILE /tmp/i915/
 
 debirf_exec rm -rf /$EXTRA_PACKAGE_FILE
 
-# TODO: Put the i915_bpo module at a better place than the root of the module directory.
+# TODO: Put the i915 module at a better place than the root of the module directory.
 debirf_exec cp -v "/tmp/i915/$MODULE_I915_PACKAGE_PATH" "/lib/modules/$KERNEL_RELEASE"
-if [[ $DEBIRF_KERNEL =~ '4.4' ]]; then
-debirf_exec cp -v "/tmp/i915/$MODULE_I915_BPO_PACKAGE_PATH" "/lib/modules/$KERNEL_RELEASE"
-
-# The intel_ips module is a dependency of the i915_bpo module.
-# Add a version of this module with 'i915_bpo_enabled' symbol enabled.
-debirf_exec cp -v "/tmp/i915/lib/modules/$KERNEL_RELEASE/kernel/drivers/platform/x86/intel_ips.ko" "/lib/modules/$KERNEL_RELEASE"
-fi
 
 # Clean up the directories extracted from the extra package.
 debirf_exec rm -rf /tmp/i915
