@@ -15,11 +15,9 @@
 cd "$DEBIRF_ROOT"
 
 debirf_exec echo 'en_US.UTF-8 UTF-8' > etc/locale.gen
-debirf_exec cat etc/locale.gen
-
 debirf_exec echo 'LANG="en_US.UTF-8"' > etc/default/locale
 debirf_exec mkdir -vp var/lib/locales/supported.d
-debirf_exec echo '"en_US.UTF-8 UTF-8"' > var/lib/locales/supported.d/en
+debirf_exec echo 'en_US.UTF-8 UTF-8' > var/lib/locales/supported.d/en
 debirf_exec rm -rfv usr/lib/locale/*
 debirf_exec locale-gen --purge
 locale -a -v
