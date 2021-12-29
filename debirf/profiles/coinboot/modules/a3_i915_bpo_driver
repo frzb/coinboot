@@ -41,7 +41,7 @@
 # Files are located here:
 # /lib/firmware/i915/
 
-EXTRA_PACKAGE="linux-image-extra-$KERNEL_RELEASE"
+EXTRA_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
 EXTRA_PACKAGE_FILE=$(debirf_exec apt-cache show $EXTRA_PACKAGE | grep -oP $EXTRA_PACKAGE.*deb)
 MODULE_I915_PACKAGE_PATH="/lib/modules/$KERNEL_RELEASE/kernel/drivers/gpu/drm/i915/i915.ko"
 
