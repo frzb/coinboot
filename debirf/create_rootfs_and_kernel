@@ -20,7 +20,6 @@
 # The Kernel to use is set by the environment variable DEBIRF_KERNEL
 # Don't mix this up with DEBIRF_KERNEL_PACKAGE which defines a locally available
 # Debian package to be used.
-#export DEBIRF_KERNEL=4.4.0-133-generic
 
 apt update
 apt install --yes debirf bc sudo
