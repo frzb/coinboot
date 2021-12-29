@@ -26,7 +26,7 @@ or
 
 ## Hardware support
 
-All hardware which is supported by a 4.4 `generic` kernel of Debian/Ubuntu should just work out of the box.
+All hardware which is supported by a 5.4 `generic` kernel of Debian/Ubuntu should just work out of the box.
 The reference hardware setup is build around a Gigabyte GA-H110-D3A mainboard.
 
 * Architecture: AMD64
