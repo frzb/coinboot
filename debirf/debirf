@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
+set -x
 
 # debirf: script to build debirf system.
 #
@@ -157,7 +158,8 @@ pack_rootfs() {
     # abort with a failure if our attempts to build the rootfs fail:
     msg "pack_rootfs"
     set -o pipefail
-    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | gzip -9 > "$1"
+    #fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | gzip -9 > "$1"
+    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | zstd -19 > "$1"
 }
 export -f pack_rootfs
 
@@ -193,6 +195,17 @@ create_initrd_plugin() {
     # copy in run-init and needed libraries
     cp -f /usr/lib/klibc/bin/run-init "$NEST_ROOT"/bin/
     cp -f /lib/klibc-* "$NEST_ROOT"/lib/
+
+    # Upstream ZSTD
+    wget https://github.com/facebook/zstd/releases/download/v1.5.1/zstd-1.5.1.tar.gz -P /tmp
+    echo "e28b2f2ed5710ea0d3a1ecac3f6a947a016b972b9dd30242369010e5f53d7002 /tmp/zstd*" | sha256sum --check
+    tar -xvzf /tmp/zstd-1.5.1.tar.gz -C $DEBIRF_ROOT/tmp
+    debirf_exec make -C zstd-1.5.1/programs/ zstd-decompress'
+    install -vD "$DEBIRF_ROOT/tmp/zstd-1.5.1/programs/zstd-compress" "$NEST_ROOT"/"bin"
+
+    for libary in $(debirf_exec ldd "$NEST_ROOT"/bin/zstd-compress" |grep -oP '/lib.*); do
+         install -vD "$DEBIRF_ROOT"/"$libary" "$NEST_ROOT"/"$libary"
+     done
 
     # Copy in the modules for ZRAM and for Zstandard
     # We need an recent package list to determine the following variables
@@ -380,14 +393,14 @@ fi
 exec /sbin/init
 EOF
     chmod a+x "$DEBIRF_ROOT"/init2
-    #pack_rootfs "$1"
 
     msg "creating rootfs.cgz..."
     fakeroot_if_needed ln -sf /sbin/init "$DEBIRF_ROOT/init"
     pack_rootfs "$NEST_ROOT"/rootfs.cgz
 
-    msg "creating wrapper cgz..."
+    msg "creating wrapper czst..."
     fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
+    #fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | zstd -6 > "$INITRD"
 }
 
 # initrd method: nested cpio archives
@@ -435,7 +448,7 @@ if (grep -q break=preunpack /proc/cmdline); then
 fi
 cd /newroot
 echo unpacking rootfs...
-gunzip - < /rootfs.cgz | cpio -i
+unzstd - < /rootfs.czst | cpio -i
 if (grep -q break=bottom /proc/cmdline); then
   echo "honoring break=bottom kernel arg"
   /bin/sh
