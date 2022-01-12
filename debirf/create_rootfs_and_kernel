@@ -22,7 +22,7 @@
 # Debian package to be used.
 
 apt update
-apt install --yes debirf bc sudo
+apt install --yes debirf bc sudo zstd
 
 # We have a customized version of debirf
 # with an adapted 'init' script able to
