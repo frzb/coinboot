@@ -159,7 +159,7 @@ pack_rootfs() {
     msg "pack_rootfs"
     set -o pipefail
     #fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | gzip -9 > "$1"
-    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | zstd -19 > "$1"
+    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | zstd -19 -T0 > "$1"
 }
 export -f pack_rootfs
 
