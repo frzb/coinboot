@@ -213,7 +213,6 @@ create_initrd_plugin() {
 
     # Copy in the modules for ZRAM and for Zstandard
     # We need an recent package list to determine the following variables
-    debirf_exec apt-get update
     local KERNEL_VERS=$(ls -1 "${DEBIRF_ROOT}/lib/modules" | head -n1)
     local EXTRA_PACKAGE="linux-modules-extra-$KERNEL_VERS"
     local EXTRA_PACKAGE_ARCHIVE=$(debirf_exec apt-cache show $EXTRA_PACKAGE | grep -oP $EXTRA_PACKAGE.*deb)
@@ -269,12 +268,11 @@ fi
 MEMSIZE=\$(free | grep 'Mem:' | awk '{ print \$2 }')
 mkdir /newroot
 
-# TODO: Try zstd as compression algorithm
 # TODO: Find out of using "mem_limit' makes sense
 # TODO: Fine tune mount options (atime ... )
 # https://www.kernel.org/doc/Documentation/blockdev/zram.txt
 if (grep -q zram /proc/cmdline); then
-  echo "honoring zram kernel arg"
+  echo "Honoring zram kernel arg"
   depmod
   modprobe -v  zram
   modprobe -v  zstd
@@ -316,7 +314,6 @@ EOF
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
-
 mkdir -p /dev /proc /sys /run
 # Mount the /proc and /sys filesystems.
 mount -t proc none /proc
@@ -343,7 +340,6 @@ fi
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
-
 
 # Determine IP-address of HTTP-server that
 # delivers the plugin archives.
@@ -389,7 +385,6 @@ else
   # necessary links and cache to use them.
   # TODO: Found a way to do this only when necessary - e.g. when
   # libary is added by a plugin.
-
   /sbin/ldconfig
 fi
 
@@ -437,6 +432,7 @@ create_initrd_nested() {
     # create nest init
     cat > "$NEST_ROOT"/init <<EOF
 #!/bin/sh
+
 mkdir /proc
 mount -t proc proc /proc
 if (grep -q break=top /proc/cmdline); then
@@ -461,6 +457,7 @@ umount /proc
 echo running /sbin/init...
 exec /bin/run-init . /sbin/init < ./dev/console > ./dev/console
 EOF
+
     chmod a+x "$NEST_ROOT"/init
 
     msg "Creating rootfs.cgz..."
@@ -471,8 +468,7 @@ EOF
     fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
 }
 
-# determine what the host system distro is, and set debirf build defaults
-# accordingly
+# Determine what the host system distro is, set debirf build defaults accordingly
 set_distro() {
     local distro
     local suite
