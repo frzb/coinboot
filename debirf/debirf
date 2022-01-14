@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e -o pipefail
-set -x
 
 # debirf: script to build debirf system.
 #
@@ -230,8 +229,11 @@ create_initrd_plugin() {
     local ZSTD_MODULE=/lib/modules/${KERNEL_VERS}/kernel/crypto/zstd.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_MODULE" "$NEST_ROOT"/"$ZSTD_MODULE"
 
+    # Kernels above 5.4 have zstd compression in the kernel
+    if [[ $DEBIRF_KERNEL =~ '5.4' ]]; then 
     local ZSTD_COMPRESS_MODULE=/lib/modules/${KERNEL_VERS}/kernel/lib/zstd/zstd_compress.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_COMPRESS_MODULE" "$NEST_ROOT"/"$ZSTD_COMPRESS_MODULE"
+    fi
 
     # symlink /lib64 if that is done on host
     # FIXME: is this necessary?
@@ -398,8 +400,12 @@ EOF
     pack_rootfs "$NEST_ROOT"/rootfs.czst
 
     msg "Creating wrapper initrafms..."
-    fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
-    #fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | zstd -6 > "$INITRD"
+    # For 20.04 only .3 HWE Kernels support initrd with zstd compression
+    if [[ $DEBIRF_KERNEL =~ '5.4' ]]; then
+        fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
+    else
+        fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | zstd -19 -T0 > "$INITRD"
+    fi
 }
 
 # initrd method: nested cpio archives
