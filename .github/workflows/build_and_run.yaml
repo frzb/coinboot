@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - kernel: "5.4.0-58-generic"
+          - kernel: "5.11.0-46-generic"
             suite: "focal"
     steps:
       - name: Checkout repository
