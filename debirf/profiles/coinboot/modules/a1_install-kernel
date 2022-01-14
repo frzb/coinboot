@@ -1,5 +1,4 @@
 #!/bin/bash -e
-set -x
 
 # debirf module: a1_install-kernel
 
@@ -22,6 +21,14 @@ set -x
 # version 3 or later.
 #
 # Copyright (C) 2018, 2019, 2020 Gunter Miegel coinboot.io
+
+# General note
+# In contrast to a conventional disk-based Linux OS installation
+# a Coinboot machine has from the perspective of package management
+# no kernel or kernel modules installed.
+# There is no kernel and initrd under /boot.
+# /lib/modules/<kernel> is populated by unpacking the linux-modules-<kernel> package
+# by this the dependency to install the kernel package is avoided.
 
 # clear out old modules if they exist, to avoid confusion
 rm -rf "$DEBIRF_ROOT/lib/modules"
@@ -49,8 +56,6 @@ if [ -z "$DEBIRF_KERNEL_PACKAGE" ] ; then
     # to just use "apt-get download", but that's only supported since
     # wheezy.
   fi
-  #debirf_exec apt-get install -d -y "$KNAME"
-  # debirf_exec apt-get install -d -y --no-install-recommends "$KNAME"
   debirf_exec apt-get download "$KNAME"
   # Attention: For a Kernel > 4.4 Ubuntu kernel and modules are in separate packages.
   debirf_exec apt-get download linux-modules-$DEBIRF_KERNEL
@@ -63,7 +68,7 @@ fi
 KPKG=$(basename "$DEBIRF_ROOT"/linux-image-*)
 
 # Before cosmic 'dpkg --extract <pkg> /' was used instead of '--unpack'.
-# But at cosmic it changed its behavior to cleanup destination directories 
+# But at cosmic it changed its behavior to cleanup destination directories
 # before extracting data to them which breaks the whole debootstraped rootfs.
 echo "Unpacking kernel package $KPKG..."
 debirf_exec dpkg --unpack "$KPKG"
@@ -77,7 +82,8 @@ debirf_exec rm -v "$MODPKG"
 # install the module init tools, since they are needed for depmod
 # these are in kmod in current releases
 # also add 'cpio' which is need for packing the kernel
-#debirf_exec apt-get install -y kmod cpio 
+# TODO: check if cpio and kmod utils like depmod and insmod can be provide
+# by busybox.
 debirf_exec apt-get install -y linux-base cpio kmod
 
 # depmod to create module list
