@@ -63,5 +63,5 @@ time debirf make -n --root-build --no-warning /tmp/coinboot
 sudo install -Dv /tmp/coinboot/vmlinuz-* /mnt/build/${DEBIRF_SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL}
 sudo install -Dv /tmp/coinboot/*.cgz /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL}
 
-sudo ln -srv /mnt/build/${DEBIRF_SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL} /mnt/build/coinboot-vmlinuz-${DEBIRF_KERNEL}
-sudo ln -srv /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL} /mnt/build/coinboot-initramfs-${DEBIRF_KERNEL}
+sudo ln -sfrv /mnt/build/${DEBIRF_SUITE}/coinboot-vmlinuz-${DEBIRF_KERNEL} /mnt/build/coinboot-vmlinuz-${DEBIRF_KERNEL}
+sudo ln -sfrv /mnt/build/${DEBIRF_SUITE}/coinboot-initramfs-${DEBIRF_KERNEL} /mnt/build/coinboot-initramfs-${DEBIRF_KERNEL}
