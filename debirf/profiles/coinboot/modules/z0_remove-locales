@@ -10,17 +10,39 @@
 # They are Copyright 2007, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018,2021 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2021, 2022 Gunter Miegel coinboot.io
 
 cd "$DEBIRF_ROOT"
 
-debirf_exec echo 'en_US.UTF-8 UTF-8' > etc/locale.gen
-debirf_exec echo 'LANG="en_US.UTF-8"' > etc/default/locale
-debirf_exec mkdir -vp var/lib/locales/supported.d
-debirf_exec echo 'en_US.UTF-8 UTF-8' > var/lib/locales/supported.d/en
-debirf_exec rm -rfv usr/lib/locale/*
-debirf_exec find /usr/share/i18n/locales ! -name 'en_US' -type f -exec rm -v {} +
-debirf_exec locale-gen --purge
-locale -a -v
+echo 'en_US.UTF-8 UTF-8' > etc/locale.gen
+echo 'LANG="en_US.UTF-8"' > etc/default/locale
+mkdir -vp var/lib/locales/supported.d
+echo 'en_US.UTF-8 UTF-8' > var/lib/locales/supported.d/en
+rm -rfv usr/lib/locale/*
+mv usr/share/i18n/locales tmp/
 
-find usr/share/locale -maxdepth 1 -mindepth 1 -type d ! -iname 'en_US' -execdir rm -rvf '{}' \+
+while read line; do
+  install -vD tmp/locales/$line usr/share/i18n/locales/$line
+done << EOF
+en_GB
+en_US
+i18n
+i18n_ctype
+iso14651_t1
+iso14651_t1_common
+translit_circle
+translit_cjk_compat
+translit_combining
+translit_compat
+translit_font
+translit_fraction
+translit_narrow
+translit_neutral
+translit_small
+translit_wide
+EOF
+
+rm -rf tmp/locales
+find usr/share/locale -maxdepth 1 -mindepth 1 -type d ! -name 'en_US' -execdir rm -rvf '{}' \+
+debirf_exec locale-gen --purge
+debirf_exec locale -a -v
