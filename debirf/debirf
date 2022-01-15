@@ -200,11 +200,14 @@ create_initrd_plugin() {
     echo "e28b2f2ed5710ea0d3a1ecac3f6a947a016b972b9dd30242369010e5f53d7002 /tmp/zstd-1.5.1.tar.gz" | sha256sum --check
     tar -xvzf /tmp/zstd-1.5.1.tar.gz -C $DEBIRF_ROOT/tmp
     debirf_exec apt update
-    debirf_exec apt install --yes gcc
+    debirf_exec apt install --yes build-essential
     debirf_exec make -C /tmp/zstd-1.5.1/programs/ zstd-decompress
     install -vD "$DEBIRF_ROOT/tmp/zstd-1.5.1/programs/zstd-decompress" "$NEST_ROOT"/"bin"
-    rm -rvf $DEBIRF_ROOT/tmp/zstd*
-    debirf_exec apt purge --yes gcc cpp*
+    rm -rf $DEBIRF_ROOT/tmp/zstd*
+    debirf_exec apt purge --yes ^gcc-9 build-essential
+    debirf_exec apt autoremove --yes
+    debirf_exec apt autoclean
+
 
     for libary in $(ldd "$NEST_ROOT"/bin/zstd-decompress | grep -oP '/lib.*\s+'); do
         install -vD "$DEBIRF_ROOT"/"$libary" "$NEST_ROOT"/"$libary"

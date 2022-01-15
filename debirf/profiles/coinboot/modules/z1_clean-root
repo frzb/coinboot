@@ -1,4 +1,6 @@
 #!/bin/bash -e
+set -x
+
 # debirf module: clean-root
 # clean up debirf root
 #
@@ -13,11 +15,11 @@
 # They are Copyright 2007, and are all released under the GPL,
 # version 3 or later.
 #
-# Copyright (C) 2018 Gunter Miegel coinboot.io
+# Copyright (C) 2018,2022 Gunter Miegel coinboot.io
 
 # Additional packages which can be removed to save space.
 #debirf_exec apt-get purge --yes linux-headers-* libgcc1 gcc cpp-5 libgcc-5-dev cpp-6 cpp-8 libc6-dev gcc-8 libgcc-8-dev file libmagic1
-debirf_exec apt-get purge --yes linux-headers-* gcc* cpp libgcc-*-dev lib*dev file libmagic1 | grep -v 'is not installed, so not removed'
+debirf_exec apt-get purge --yes  ^gcc-9 cpp libmagic1 | grep -v 'is not installed, so not removed'
 
 # Do the autoremove dance
 debirf_exec apt-get --yes --purge autoremove | grep -v 'is not installed, so not removed'
