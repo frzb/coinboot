@@ -38,6 +38,7 @@ def call_coinbootmaker(script_name):
     coinbootmaker_output = subprocess.run(
         ["./coinbootmaker", "-p", script_name], stdout=subprocess.PIPE, check=True
     )
+    #print(coinbootmaker_output)
     return coinbootmaker_output
 
 
@@ -116,7 +117,7 @@ def upload_file(s3_client, file_name, bucket, coinbootmaker_file, kernel, object
     return True
 
 
-def create_list_of_plugins(s3_client, bucket):
+def create_markdown_table_of_plugins(s3_client, bucket):
     """Create a list of pluings present at a defined S3 bucket
 
     :param s3_client: S3-client instance created by boto
@@ -145,7 +146,7 @@ def create_list_of_plugins(s3_client, bucket):
             line = []
 
             for key in metadata_keys_sorted:
-                line.append(metadata[key])
+                line.append(metadata.get(key))
             line.append(
                 "https://s3.eu-central-1.wasabisys.com/coinboot/" + object["Key"]
             )
@@ -179,6 +180,14 @@ def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
     with open(readme_file, "w") as f:
         f.write("\n".join(readme_file_content))
 
+def setup_s3_client():
+    s3_client = boto3.client(
+        "s3",
+        endpoint_url="https://s3.eu-central-1.wasabisys.com",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+    return s3_client
 
 def main():
     """ """
@@ -208,12 +217,7 @@ def main():
                 print(path + ": " + str(error))
 
             if args["--upload"]:
-                s3_client = boto3.client(
-                    "s3",
-                    endpoint_url="https://s3.eu-central-1.wasabisys.com",
-                    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-                    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-                )
+                s3_client = setup_s3_client()
                 kernel = detect_kernel(coinbootmaker_output)
                 if kernel:
                     prefix = kernel
@@ -232,9 +236,10 @@ def main():
                 )
 
     if args["readme"]:
-        list_of_plugins = create_list_of_plugins(s3_client, "coinboot")
-        if list_of_plugins:
-            concat_with_readme("README_template.md", "README.md", list_of_plugins)
+        s3_client =  setup_s3_client()
+        table_of_plugins = create_markdown_table_of_plugins(s3_client, "coinboot")
+        if table_of_plugins:
+            concat_with_readme("README_template.md", "README.md", table_of_plugins)
 
 
 if __name__ == "__main__":
