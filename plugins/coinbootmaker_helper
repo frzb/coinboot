@@ -182,12 +182,6 @@ def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
 
 def main():
     """ """
-    s3_client = boto3.client(
-        "s3",
-        endpoint_url="https://s3.eu-central-1.wasabisys.com",
-        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-    )
     args = docopt(__doc__)
     if args["plugin"]:
         path = args["<path>"].replace("plugins/", "")
@@ -214,6 +208,12 @@ def main():
                 print(path + ": " + str(error))
 
             if args["--upload"]:
+                s3_client = boto3.client(
+                    "s3",
+                    endpoint_url="https://s3.eu-central-1.wasabisys.com",
+                    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+                )
                 kernel = detect_kernel(coinbootmaker_output)
                 if kernel:
                     prefix = kernel
