@@ -106,7 +106,7 @@ def upload_file(s3_client, file_name, bucket, coinbootmaker_file, kernel, object
                     "plugin": coinbootmaker_file["plugin"],
                     "source": coinbootmaker_file["source"],
                     "version": coinbootmaker_file["version"],
-                    "kernel" kernel,
+                    "kernel": kernel,
                 },
             },
         )
