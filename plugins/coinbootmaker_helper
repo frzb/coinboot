@@ -72,7 +72,9 @@ def detect_kernel(subprocess_output):
     return None
 
 
-def upload_file(s3_client, file_name, bucket, coinbootmaker_file, kernel, object_name=None):
+def upload_file(
+    s3_client, file_name, bucket, coinbootmaker_file, kernel, object_name=None
+):
     """Upload a file to an S3 bucket
 
     :param file_name: file to upload
@@ -124,7 +126,14 @@ def create_markdown_table_of_plugins(s3_client, bucket):
 
     """
 
-    metadata_keys_sorted = ["plugin", "version", "kernel", "description", "maintainer", "source"]
+    metadata_keys_sorted = [
+        "plugin",
+        "version",
+        "kernel",
+        "description",
+        "maintainer",
+        "source",
+    ]
     header_keys_sorted = [
         metadata_key.capitalize() for metadata_key in metadata_keys_sorted
     ]
@@ -179,8 +188,9 @@ def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
     with open(readme_file, "w") as f:
         f.write("\n".join(readme_file_content))
 
+
 def setup_s3_client():
-    """ Setup the S3 client
+    """Setup the S3 client
 
     :returns: S3 client object
 
@@ -192,6 +202,7 @@ def setup_s3_client():
         aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
     )
     return s3_client
+
 
 def main():
     """ """
@@ -240,7 +251,7 @@ def main():
                 )
 
     if args["readme"]:
-        s3_client =  setup_s3_client()
+        s3_client = setup_s3_client()
         table_of_plugins = create_markdown_table_of_plugins(s3_client, "coinboot")
         if table_of_plugins:
             concat_with_readme("README_template.md", "README.md", table_of_plugins)
