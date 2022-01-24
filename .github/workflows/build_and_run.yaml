@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - kernel: "5.4.0-58-generic"
+          - kernel: "5.11.0-46-generic"
             suite: "focal"
     steps:
       - name: Checkout repository
@@ -75,7 +75,7 @@ jobs:
         run: ./setup_coinboot_requirements
       - name: Run Coinboot server and boot workers
         env:
-          KERNEL: "5.4.0-58-generic"
+          KERNEL: "5.11.0-46-generic"
           SUITE: "focal"
         shell: bash
         run: |

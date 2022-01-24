@@ -101,7 +101,7 @@ EOF
 }
 
 create_debootstrap() {
-    msg "distro/suite: ${DEBIRF_DISTRO}/${DEBIRF_SUITE}"
+    msg "Distro/suite: ${DEBIRF_DISTRO}/${DEBIRF_SUITE}"
 
     local OPTS="--merged-usr --include=$INCLUDE${DEBIRF_EXTRA_PACKAGES:+,}$DEBIRF_EXTRA_PACKAGES --exclude=$EXCLUDE $DEBIRF_SUITE $DEBIRF_ROOT $DEBIRF_MIRROR"
 
@@ -130,7 +130,7 @@ create_debootstrap() {
 # used with debootstrap (default non-privileged behavior)
 fix_dev() {
     if [ -L "$DEBIRF_ROOT"/dev -o ! -d "$DEBIRF_ROOT"/dev ] ; then
-	msg "fixing debirf root dev tree..."
+	msg "Fixing debirf root dev tree..."
 
         # remove old dev
 	fakeroot_if_needed rm -f "$DEBIRF_ROOT"/dev
@@ -157,7 +157,8 @@ pack_rootfs() {
     # abort with a failure if our attempts to build the rootfs fail:
     msg "pack_rootfs"
     set -o pipefail
-    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | gzip -9 > "$1"
+    #fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | gzip -9 > "$1"
+    fakeroot_if_needed bash -c ". $DEBIRF_COMMON && FAKECHROOT_EXCLUDE_PATH=/does-not-exist debirf_exec sh -c 'find * | grep -a -v -e ^run/ | cpio --create -H newc'" | zstd -19 -T0 > "$1"
 }
 export -f pack_rootfs
 
@@ -187,16 +188,33 @@ create_initrd_plugin() {
     # copy in busybox-static from root, and link executables
     #cp -f "$DEBIRF_ROOT"/bin/busybox "$NEST_ROOT"/bin/
     for util in awk cpio cat free grep gunzip ls mkdir mount rm sh sleep umount modprobe mkfs.ext2 depmod; do
-	ln "$NEST_ROOT"/bin/busybox "$NEST_ROOT"/bin/"$util"
+	      ln "$NEST_ROOT"/bin/busybox "$NEST_ROOT"/bin/"$util"
     done
 
     # copy in run-init and needed libraries
     cp -f /usr/lib/klibc/bin/run-init "$NEST_ROOT"/bin/
     cp -f /lib/klibc-* "$NEST_ROOT"/lib/
 
+    # Upstream ZSTD
+    wget https://github.com/facebook/zstd/releases/download/v1.5.1/zstd-1.5.1.tar.gz -P /tmp
+    echo "e28b2f2ed5710ea0d3a1ecac3f6a947a016b972b9dd30242369010e5f53d7002 /tmp/zstd-1.5.1.tar.gz" | sha256sum --check
+    tar -xvzf /tmp/zstd-1.5.1.tar.gz -C $DEBIRF_ROOT/tmp
+    debirf_exec apt update
+    debirf_exec apt install --yes build-essential
+    debirf_exec make -C /tmp/zstd-1.5.1/programs/ zstd-decompress
+    install -vD "$DEBIRF_ROOT/tmp/zstd-1.5.1/programs/zstd-decompress" "$NEST_ROOT"/"bin"
+    rm -rf $DEBIRF_ROOT/tmp/zstd*
+    debirf_exec apt purge --yes ^gcc-9 build-essential
+    debirf_exec apt autoremove --yes
+    debirf_exec apt autoclean
+
+
+    for libary in $(ldd "$NEST_ROOT"/bin/zstd-decompress | grep -oP '/lib.*\s+'); do
+        install -vD "$DEBIRF_ROOT"/"$libary" "$NEST_ROOT"/"$libary"
+    done
+
     # Copy in the modules for ZRAM and for Zstandard
     # We need an recent package list to determine the following variables
-    debirf_exec apt-get update
     local KERNEL_VERS=$(ls -1 "${DEBIRF_ROOT}/lib/modules" | head -n1)
     local EXTRA_PACKAGE="linux-modules-extra-$KERNEL_VERS"
     local EXTRA_PACKAGE_ARCHIVE=$(debirf_exec apt-cache show $EXTRA_PACKAGE | grep -oP $EXTRA_PACKAGE.*deb)
@@ -214,8 +232,11 @@ create_initrd_plugin() {
     local ZSTD_MODULE=/lib/modules/${KERNEL_VERS}/kernel/crypto/zstd.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_MODULE" "$NEST_ROOT"/"$ZSTD_MODULE"
 
+    # Kernels above 5.4 have zstd compression in the kernel
+    if [[ $DEBIRF_KERNEL =~ '5.4' ]]; then 
     local ZSTD_COMPRESS_MODULE=/lib/modules/${KERNEL_VERS}/kernel/lib/zstd/zstd_compress.ko
     install -vD "$DEBIRF_ROOT/$ZSTD_COMPRESS_MODULE" "$NEST_ROOT"/"$ZSTD_COMPRESS_MODULE"
+    fi
 
     # symlink /lib64 if that is done on host
     # FIXME: is this necessary?
@@ -252,12 +273,11 @@ fi
 MEMSIZE=\$(free | grep 'Mem:' | awk '{ print \$2 }')
 mkdir /newroot
 
-# TODO: Try zstd as compression algorithm
 # TODO: Find out of using "mem_limit' makes sense
 # TODO: Fine tune mount options (atime ... )
 # https://www.kernel.org/doc/Documentation/blockdev/zram.txt
 if (grep -q zram /proc/cmdline); then
-  echo "honoring zram kernel arg"
+  echo "Honoring zram kernel arg"
   depmod
   modprobe -v  zram
   modprobe -v  zstd
@@ -279,8 +299,8 @@ if (grep -q break=preunpack /proc/cmdline); then
 fi
 
 cd /newroot
-echo unpacking rootfs...
-gunzip - < /rootfs.cgz | cpio -i
+echo Unpacking rootfs...
+zstd-decompress -d /rootfs.czst -c | cpio -i
 
 if (grep -q break=bottom /proc/cmdline); then
   echo "Honoring break=bottom kernel arg"
@@ -298,7 +318,6 @@ EOF
 #!/bin/sh
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-
 
 mkdir -p /dev /proc /sys /run
 # Mount the /proc and /sys filesystems.
@@ -326,7 +345,6 @@ fi
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
-
 
 # Determine IP-address of HTTP-server that
 # delivers the plugin archives.
@@ -372,7 +390,6 @@ else
   # necessary links and cache to use them.
   # TODO: Found a way to do this only when necessary - e.g. when
   # libary is added by a plugin.
-
   /sbin/ldconfig
 fi
 
@@ -380,14 +397,18 @@ fi
 exec /sbin/init
 EOF
     chmod a+x "$DEBIRF_ROOT"/init2
-    #pack_rootfs "$1"
 
-    msg "creating rootfs.cgz..."
+    msg "Creating rootfs.czst..."
     fakeroot_if_needed ln -sf /sbin/init "$DEBIRF_ROOT/init"
-    pack_rootfs "$NEST_ROOT"/rootfs.cgz
+    pack_rootfs "$NEST_ROOT"/rootfs.czst
 
-    msg "creating wrapper cgz..."
-    fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
+    msg "Creating wrapper initrafms..."
+    # For 20.04 only .3 HWE Kernels support initrd with zstd compression
+    if [[ $DEBIRF_KERNEL =~ '5.4' ]]; then
+        fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
+    else
+        fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | zstd -19 -T0 > "$INITRD"
+    fi
 }
 
 # initrd method: nested cpio archives
@@ -420,6 +441,7 @@ create_initrd_nested() {
     # create nest init
     cat > "$NEST_ROOT"/init <<EOF
 #!/bin/sh
+
 mkdir /proc
 mount -t proc proc /proc
 if (grep -q break=top /proc/cmdline); then
@@ -434,8 +456,8 @@ if (grep -q break=preunpack /proc/cmdline); then
   /bin/sh
 fi
 cd /newroot
-echo unpacking rootfs...
-gunzip - < /rootfs.cgz | cpio -i
+echo Unpacking rootfs...
+zstd-decompress -d /rootfs.czst -c | cpio -i
 if (grep -q break=bottom /proc/cmdline); then
   echo "honoring break=bottom kernel arg"
   /bin/sh
@@ -444,9 +466,10 @@ umount /proc
 echo running /sbin/init...
 exec /bin/run-init . /sbin/init < ./dev/console > ./dev/console
 EOF
+
     chmod a+x "$NEST_ROOT"/init
 
-    msg "creating rootfs.cgz..."
+    msg "Creating rootfs.cgz..."
     fakeroot_if_needed ln -sf /sbin/init "$DEBIRF_ROOT/init"
     pack_rootfs "$NEST_ROOT"/rootfs.cgz
 
@@ -454,8 +477,7 @@ EOF
     fakeroot_if_needed sh -c "cd $NEST_ROOT && find * | cpio --create -H newc" | gzip -9 > "$INITRD"
 }
 
-# determine what the host system distro is, and set debirf build defaults
-# accordingly
+# Determine what the host system distro is, set debirf build defaults accordingly
 set_distro() {
     local distro
     local suite
@@ -492,7 +514,7 @@ setup_environment() {
 
     # check profile
     if [ -d "$DEBIRF_PROFILE" ] ; then
-	msg "loading profile '$DEBIRF_PROFILE_NAME'..."
+	msg "Loading profile '$DEBIRF_PROFILE_NAME'..."
 	DEBIRF_CONF="$DEBIRF_PROFILE/debirf.conf"
 	DEBIRF_MODULES="$DEBIRF_PROFILE/modules"
     else
@@ -551,7 +573,7 @@ setup_environment() {
 
     # check variables
     if [ "$CHECK_VARS" ] ; then
-	msg "debirf variables:"
+	msg "Debirf variables:"
 	env | /bin/grep "^DEBIRF_"
 	read -p "enter to continue: " OK
     fi
@@ -642,7 +664,7 @@ EOF
 
     if [ "$DEBIRF_KERNEL_PACKAGE" ] ; then
 	if [ -f "$DEBIRF_KERNEL_PACKAGE" ] ; then
-	    msg "using kernel package '$DEBIRF_KERNEL_PACKAGE'"
+	    msg "Using kernel package '$DEBIRF_KERNEL_PACKAGE'"
 	else
 	    failure "Kernel package '$DEBIRF_KERNEL_PACKAGE' not found."
 	fi
@@ -653,7 +675,7 @@ EOF
         # determine write mode
 	if [ -d "$DEBIRF_ROOT" ] ; then
 	    if [ -z "$WRITE_MODE" ] ; then
-		msg "debirf root already exists.  select one of the following:"
+		msg "Debirf root already exists.  select one of the following:"
 		CASE1='new: delete the old root and create a new one'
 		CASE2='overwrite: leave the old root and debootstrap on top of it'
 		CASE3='skip: skip building the root and go right to installing modules'
@@ -681,23 +703,23 @@ EOF
 	fi
 	case "$WRITE_MODE" in
 	    'new')
-		msg "creating debirf root..."
+		msg "Creating debirf root..."
 		> "$DEBIRF_FAKEROOT_STATE"
 		create_debootstrap
 		;;
 	    'rewrite')
-		msg "clearing old debirf root..."
+		msg "Clearing old debirf root..."
 		rm -rf "$DEBIRF_ROOT"
-		msg "creating debirf root..."
+		msg "Creating debirf root..."
 		> "$DEBIRF_FAKEROOT_STATE"
 		create_debootstrap
 		;;
 	    'overwrite')
-		msg "overwriting old debirf root..."
+		msg "Overwriting old debirf root..."
 		create_debootstrap
 		;;
 	    'skip')
-		msg "skipping debootstrap..."
+		msg "Skipping debootstrap..."
 		;;
 	    *)
 		failure "aborting."
@@ -708,7 +730,7 @@ EOF
 	fix_dev
 
     else
-	msg "not building root"
+	msg "Not building root"
     fi
     ### END BUILD ROOT
 
@@ -716,9 +738,9 @@ EOF
     if [ "$STAGE_MODULES" = 'true' ] ; then
 	msg "executing modules..."
 	run_modules
-	msg "modules complete"
+	msg "Modules complete"
     else
-	msg "not running modules"
+	msg "Not running modules"
     fi
     ### END RUN MODULES
 
@@ -731,18 +753,18 @@ EOF
 	local KERNEL_VERS=$(ls -1 "${DEBIRF_ROOT}/lib/modules" | head -n1)
 	local INITRD="${DEBIRF_LABEL}_${DEBIRF_SUITE}_${KERNEL_VERS}.cgz"
 
-	msg "creating debirf initrd ('$DEBIRF_METHOD')..."
+	msg "Creating debirf initrd ('$DEBIRF_METHOD')..."
 	create_initrd_${DEBIRF_METHOD} "${DEBIRF_BUILDD}/${INITRD}"
 
         # final output
 	local KERNEL=$(ls "$DEBIRF_BUILDD" | grep "vmlinu" | grep "$KERNEL_VERS$")
-	msg "debirf initrd created."
+	msg "Debirf initrd created."
 	if [ "${DEBIRF_BUILDD}/${KERNEL}" ] ; then
-	    msg "kernel: ${DEBIRF_BUILDD}/${KERNEL}"
+	    msg "Kernel: ${DEBIRF_BUILDD}/${KERNEL}"
 	fi
-	msg "initrd: ${DEBIRF_BUILDD}/${INITRD}"
+	msg "Initrd: ${DEBIRF_BUILDD}/${INITRD}"
     else
-	msg "not creating initramfs."
+	msg "Not creating initramfs."
     fi
     ### END BUILD INITRD
 }
@@ -774,7 +796,7 @@ makeiso() {
 	    failure "Failed to find a kernel.  Maybe you need to run 'debirf make $DEBIRF_PROFILE' first?"
 	    ;;
 	1)
-	    msg "kernel found."
+	    msg "Kernel found."
 	    local KERNEL=${KERNEL:-$(cd "${DEBIRF_BUILDD}" && ls -1 vmlinu*)}
 	    ;;
 	*)
@@ -788,7 +810,7 @@ makeiso() {
 	    failure "Failed to find a single initramfs.  Maybe you need to run 'debirf make $DEBIRF_PROFILE' first?"
 	    ;;
 	1)
-	    msg "initramfs found."
+	    msg "Initramfs found."
 	    local INITRAMFS=${INITRAMFS:-$(cd "${DEBIRF_BUILDD}" && ls -1 "${DEBIRF_LABEL}"_*.cgz)}
 	    ;;
 	*)
@@ -807,7 +829,7 @@ makeiso() {
 	fi
     fi
 
-    msg "creating debirf iso..."
+    msg "Creating debirf iso..."
 
     # determine the iso name from the initramfs
     local ISO=$(basename "$INITRAMFS" .cgz).iso
@@ -819,7 +841,7 @@ makeiso() {
 
     case "$DEBIRF_ISO_BOOTLOADER" in
 	grub)
-	    msg "using GRUB as bootloader..."
+	    msg "Using GRUB as bootloader..."
 
 	    # use hard links to avoid massive copying time (we're almost certainly on the same filesystem)
 	    ln "${DEBIRF_BUILDD}/${KERNEL}" "${ISODIR}/" || failure "Failed to link kernel into iso"
@@ -851,7 +873,7 @@ EOF
 	    ;;
 
 	isolinux)
-	    msg "using isolinux as bootloader..."
+	    msg "Using isolinux as bootloader..."
 
             (which xorriso > /dev/null) || failure "xorriso is not in your path.  Maybe you need to install it?"
 
@@ -914,8 +936,8 @@ EOF
 
     # do we need to clean up the iso/ directory so that this can be run again?
 
-    msg "debirf iso created."
-    msg "iso: ${DEBIRF_BUILDD}/${ISO}"
+    msg "Debirf ISO created."
+    msg "ISO: ${DEBIRF_BUILDD}/${ISO}"
 }
 
 

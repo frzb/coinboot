@@ -148,6 +148,7 @@ down_docker_compose() {
 wait_for_server_to_be_ready() {
   while ! [ $(curl --silent http://192.168.1.2 | jq length) -gt 4 ]; do
     curl --silent http://192.168.1.2 | jq '.[].name'
+    echo 'Waiting for Coinboot server to provide the necessary files'
     echo '------------'
     sleep 10
   done
