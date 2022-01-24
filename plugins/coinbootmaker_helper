@@ -38,7 +38,6 @@ def call_coinbootmaker(script_name):
     coinbootmaker_output = subprocess.run(
         ["./coinbootmaker", "-p", script_name], stdout=subprocess.PIPE, check=True
     )
-    #print(coinbootmaker_output)
     return coinbootmaker_output
 
 
@@ -181,6 +180,11 @@ def concat_with_readme(readme_template_file, readme_file, list_of_plugins):
         f.write("\n".join(readme_file_content))
 
 def setup_s3_client():
+    """ Setup the S3 client
+
+    :returns: S3 client object
+
+    """
     s3_client = boto3.client(
         "s3",
         endpoint_url="https://s3.eu-central-1.wasabisys.com",
