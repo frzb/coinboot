@@ -146,7 +146,6 @@ def create_markdown_table_of_plugins(s3_client, bucket):
 
     # TODO: Error handling for S3 API call - failing API or objects, metadata missing
     response = s3_client.list_objects(Bucket=bucket)
-    print(response)
     if "Contents" in response:
         response_contents = response["Contents"]
         for object in response_contents:
@@ -203,7 +202,6 @@ def setup_s3_client():
         aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
     )
-    print(s3_client)
     return s3_client
 
 
