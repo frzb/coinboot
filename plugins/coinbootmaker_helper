@@ -21,6 +21,7 @@ import re
 import os
 import subprocess
 import fileinput
+import logging
 import boto3
 from tabulate import tabulate
 from docopt import docopt
