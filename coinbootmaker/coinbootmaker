@@ -29,7 +29,7 @@ list_plugins() {
   pushd . > /dev/null
   cd src
   echo
-  find * -type f -print
+  find . -type f  ! -wholename '*\/upstream*' -name "*.yaml" -printf '%P\n'
   echo
   popd  > /dev/null
 }
