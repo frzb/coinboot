@@ -84,7 +84,7 @@ fi
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
 if [ -z $KERNEL ]; then
-  KERNEL=5.4.0-58-generic
+  KERNEL=5.11.0-46-generic
 fi
 INITRAMFS=coinboot-initramfs-$KERNEL
 
