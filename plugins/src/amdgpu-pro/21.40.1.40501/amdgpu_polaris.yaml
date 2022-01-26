@@ -143,7 +143,7 @@ run: |
   # TODO: Removing of libc-dev and libc6-dev should save even more space.
   #sudo apt-cache rdepends grub-efi-amd64
 
-  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub2-common shim-signed
+  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub-common shim-signed
   sudo apt autoremove --yes
 
   sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
