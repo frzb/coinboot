@@ -26,11 +26,6 @@ run: |
   # RX 5000/6000 series: navi
   GPU_CODENAME=polaris
   AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.1.40501-1_all.deb
-  
-
-  #https://repo.radeon.com/amdgpu-install/21.40.1/ubuntu/focal/amdgpu-install_21.40.1.40501-1_all.deb
-
-
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
@@ -100,7 +95,7 @@ run: |
   # $AMDGPU_DKMS_PACKAGE and $AMDGPU_OPENCL_PACKAGES at once.
   # sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES $AMDGPU_DKMS_PACKAGE
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
-  
+
   #cat /var/lib/dkms/amdgpu/5.9.10.69-1234664/build/make.log
 
   sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
@@ -142,11 +137,13 @@ run: |
 
 
   # Clean up /var/lib/dkms (~ 135M)
-  #sudo rm -rf /var/lib/dkms
+  sudo rm -rf /var/lib/dkms
 
   # Additional packages which can be removed to save space.
   # TODO: Removing of libc-dev and libc6-dev should save even more space.
-  sudo apt-get purge --yes gcc libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1
+  #sudo apt-cache rdepends grub-efi-amd64
+
+  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub2-common shim-signed
   sudo apt autoremove --yes
 
   sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
