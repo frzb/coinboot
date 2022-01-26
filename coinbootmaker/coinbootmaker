@@ -136,11 +136,11 @@ cd $LOWER/rootfs
 # We have to use 'sudo' for 'cpio' else the ownership of the files in the
 # archive is messed up.
 # We just extract the nested initramfs archive
-zcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.cgz"
-zcat rootfs.cgz | sudo cpio -idm
+zstd -d $CACHE_DIR/$INITRAMFS -c | sudo cpio -idvm "rootfs.czst"
+zstd -d rootfs.czst -c | sudo cpio -idm
 
 # The nested initramfs archive can be removed now
-sudo rm -v rootfs.cgz
+sudo rm -v rootfs.czst
 
 # Adapt nameserver settings.
 # resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
