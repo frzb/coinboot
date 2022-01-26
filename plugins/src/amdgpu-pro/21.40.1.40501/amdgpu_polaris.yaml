@@ -17,7 +17,6 @@ description: AMD Polaris GPU (RX500/RX400 family) firmware and driver with suppo
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-1
 run: |
-  #set -x
   sudo apt update
 
   # Specfiy AMD Radeon GPU series codename.
@@ -33,8 +32,6 @@ run: |
   PACKAGES="wget linux-headers-$KERNEL_RELEASE"
   # We don't install any xserver stuff, similar to amdgpu-pro installer
   # '--compute'
-  # libopencl1-amdgpu-pro is a dependcy of clinfo-amdgpu-pro
-  #AMDGPU_OPENCL_PACKAGES='libopencl1-amdgpu-pro clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd libdrm2-amdgpu libdrm-amdgpu-amdgpu1'
   AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
   # The DKMS package is installed explictily to purge it without wiping the dependcies.
   AMDGPU_DKMS_PACKAGE='amdgpu-dkms'
@@ -89,17 +86,12 @@ run: |
 
   sudo chmod 755 /usr/bin/update-initramfs
 
-  #create_plugin.py start
-
   # FIXME: /opt/amdgpu-pro/lib/x86_64-linux-gnu/libOpenCL.so.1 missing when installing
   # $AMDGPU_DKMS_PACKAGE and $AMDGPU_OPENCL_PACKAGES at once.
   # sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES $AMDGPU_DKMS_PACKAGE
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
 
-  #cat /var/lib/dkms/amdgpu/5.9.10.69-1234664/build/make.log
-
   sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
-
 
   # Clean up temporary files and local deb repo refering to them
   sudo rm -rvf /tmp/$AMDGPU_PRO_VERSION \
@@ -143,7 +135,7 @@ run: |
   # TODO: Removing of libc-dev and libc6-dev should save even more space.
   #sudo apt-cache rdepends grub-efi-amd64
 
-  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub-common shim-signed
+  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub-common shim-signed amdgpu-install autoconf dialog
   sudo apt autoremove --yes
 
   sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
@@ -155,5 +147,3 @@ run: |
 
   # Remove mocked update-initramfs
   sudo rm -v /usr/bin/update-initramfs
-
-  #create_plugin.py finish coinboot-$AMDGPU_PRO_VERSION-$KERNEL_RELEASE-$GPU_CODENAME
