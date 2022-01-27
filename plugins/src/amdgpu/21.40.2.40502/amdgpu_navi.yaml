@@ -128,7 +128,7 @@ run: |
 
   dpkg -l|grep opencl
 
-  sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
+  sudo cp -v /tmp/amd*.ko /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
 
   sudo mkdir -p /lib/firmware/updates/amdgpu
   sudo find /tmp/firmware -name "$GPU_CODENAME*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
