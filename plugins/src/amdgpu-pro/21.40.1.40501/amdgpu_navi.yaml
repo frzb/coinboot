@@ -141,7 +141,7 @@ run: |
 
   #sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub-common shim-signed amdgpu-install autoconf dialog
   #sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 
-  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 
+  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common
   sudo apt autoremove --yes
 
   #exit 1
