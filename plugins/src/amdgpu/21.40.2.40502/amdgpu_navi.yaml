@@ -11,11 +11,11 @@
 # You have to agree to the license of the packaged software to use it.
 
 plugin: AMDGPU Polaris
-archive_name: amdgpu_navi
-version: 21.40.1.40501
-description: AMD Navi GPU (RX 5000/RX 6000 family) firmware and driver with support for OpenCL 1.2
+archive_name: amdgpu_navi_rocr_opencl
+version: 21.40.2.40502
+description: AMD Navi GPU (RX 5000/RX 6000 family) firmware and driver with support for ROCr OpenCL 2.1
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
-source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-1
+source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-2
 run: |
   sudo apt update
 
@@ -24,7 +24,7 @@ run: |
   # RX Vega series: vega
   # RX 5000/6000 series: navi
   GPU_CODENAME=navi
-  AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.1.40501-1_all.deb
+  AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.2.40502-1_all.deb
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
@@ -51,7 +51,7 @@ run: |
   # Download is only allowed with this referer!
   if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_PRO_ARCHIVE" ]; then
     wget --progress=bar:force \
-       https://repo.radeon.com/amdgpu-install/21.40.1/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
+       https://repo.radeon.com/amdgpu-install/21.40.2/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
   else
     echo "$AMDGPU_INSTALL_PACKAGE is already in build cache."
   fi
