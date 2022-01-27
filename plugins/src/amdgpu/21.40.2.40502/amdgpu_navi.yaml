@@ -1,5 +1,5 @@
 ---
-# Copyright (C) 2018, 2020, 2021 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2020 - 2022 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 # This software may be modified and distributed under the terms
@@ -17,6 +17,8 @@ description: AMD Navi GPU (RX 5000/RX 6000 family) firmware and driver with supp
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-2
 run: |
+  set -e
+
   sudo apt update
 
   # Specfiy AMD Radeon GPU series codename.
@@ -96,11 +98,6 @@ run: |
 
   sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
 
-  # Clean up temporary files and local deb repo refering to them
-  sudo rm -rvf /tmp/$AMDGPU_PRO_VERSION \
-               /tmp/$AMDGPU_PRO_ARCHIVE \
-               /etc/apt/sources.list.d/amdgpu-pro-local.list
-
   # Purge installed packages of this modules to free up the space.
   # But keep the OpenCL related packages.
   # The DKMS package comes with sources at /usr/src/ which use a lot of space.
@@ -122,23 +119,10 @@ run: |
   sudo cp -v /lib/modules/"$KERNEL_RELEASE"/updates/dkms/amd* /tmp/
 
   sudo cp -Rv /lib/firmware /tmp/
-
   
   sudo apt-get purge $PACKAGES --yes
 
-  # As removing the DKMS package ends in a dependcy mess
-  # so we just remove the source directory under '/usr/src'.
-  # TODO: Remove hardwired source directory
-  sudo rm -rf /usr/src/$AMDGPU_PRO_VERSION
-
-
-  # Clean up /var/lib/dkms (~ 135M)
-  sudo rm -rf /var/lib/dkms
-
   # Additional packages which can be removed to save space.
-  # TODO: Removing of libc-dev and libc6-dev should save even more space.
-  #sudo apt-cache rdepends grub-efi-amd64
-
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
   sudo apt autoremove --yes
 
