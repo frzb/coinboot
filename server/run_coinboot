@@ -152,7 +152,7 @@ EOF
   pwd
   ls -la
 
-  cp -v build/coinboot_test-plugin* ./enable/
+  cp -v build/coinboot_test-plugin* enabled/
 
   popd
   }
