@@ -12,11 +12,13 @@
 
 plugin: AMDGPU Polaris
 archive_name: amdgpu_polaris
-version: 21.40.1.40501
-description: AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for OpenCL 1.2
+version: 21.40.2.40502
+description:  AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for Legacy OpenCL 1.2
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
-source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-1
+source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-40-2
 run: |
+  set -e
+
   sudo apt update
 
   # Specfiy AMD Radeon GPU series codename.
@@ -24,7 +26,7 @@ run: |
   # RX Vega series: vega
   # RX 5000/6000 series: navi
   GPU_CODENAME=polaris
-  AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.1.40501-1_all.deb
+  AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.2.40502-1_all.deb
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
@@ -50,7 +52,7 @@ run: |
   # Download is only allowed with this referer!
   if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_PRO_ARCHIVE" ]; then
     wget --progress=bar:force \
-       https://repo.radeon.com/amdgpu-install/21.40.1/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
+       https://repo.radeon.com/amdgpu-install/21.40.2/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
   else
     echo "$AMDGPU_INSTALL_PACKAGE is already in build cache."
   fi
@@ -91,12 +93,9 @@ run: |
   # sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES $AMDGPU_DKMS_PACKAGE
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
 
-  sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
+  #sudo apt-mark hold $AMDGPU_OPENCL_PACKAGES
 
-  # Clean up temporary files and local deb repo refering to them
-  sudo rm -rvf /tmp/$AMDGPU_PRO_VERSION \
-               /tmp/$AMDGPU_PRO_ARCHIVE \
-               /etc/apt/sources.list.d/amdgpu-pro-local.list
+  sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
 
   # Purge installed packages of this modules to free up the space.
   # But keep the OpenCL related packages.
@@ -119,26 +118,16 @@ run: |
   sudo cp -v /lib/modules/"$KERNEL_RELEASE"/updates/dkms/amd* /tmp/
 
   sudo cp -Rv /lib/firmware /tmp/
-
+  
   sudo apt-get purge $PACKAGES --yes
 
-  # As removing the DKMS package ends in a dependcy mess
-  # so we just remove the source directory under '/usr/src'.
-  # TODO: Remove hardwired source directory
-  sudo rm -rf /usr/src/$AMDGPU_PRO_VERSION
-
-
-  # Clean up /var/lib/dkms (~ 135M)
-  sudo rm -rf /var/lib/dkms
-
   # Additional packages which can be removed to save space.
-  # TODO: Removing of libc-dev and libc6-dev should save even more space.
-  #sudo apt-cache rdepends grub-efi-amd64
-
-  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 libc-dev libc6-dev cpp linux-headers-$KERNEL_RELEASE linux-headers* file libmagic1 grub-common shim-signed amdgpu-install autoconf dialog
+  sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
   sudo apt autoremove --yes
 
-  sudo cp -v /tmp/amd* /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
+  dpkg -l|grep opencl
+
+  sudo cp -v /tmp/amd*.ko /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
 
   sudo mkdir -p /lib/firmware/updates/amdgpu
   sudo find /tmp/firmware -name "$GPU_CODENAME*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
