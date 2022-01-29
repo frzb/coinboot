@@ -41,6 +41,7 @@ run: |
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
   EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
   EXTRA_MODULES_PACKAGE_FILE=$(apt-cache show $EXTRA_MODULES_PACKAGE | grep -oP $EXTRA_MODULES_PACKAGE.*deb)
+  UPSTREAM_FIRMWARE_ARCHIVE=linux-firmware-20211216.tar.gz
 
   sudo apt-get install $PACKAGES --yes
 
@@ -51,18 +52,30 @@ run: |
   # Let's cache the downloaded archive and the decompressed
   # archive on the build host - time saving once more.
   # Download is only allowed with this referer!
-  if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_PRO_ARCHIVE" ]; then
+  if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_INSTALL_PACKAGE" ]; then
     wget --progress=bar:force \
        https://repo.radeon.com/amdgpu-install/21.40.2/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
   else
     echo "$AMDGPU_INSTALL_PACKAGE is already in build cache."
   fi
 
-
   if ! [ -f "$DEBIRF_ROOT/tmp/$AMDGPU_INSTALL_PACKAGE" ]; then
    cp -r "$AMDGPU_CACHE_PATH/$AMDGPU_INSTALL_PACKAGE" /tmp/
   else
     echo "$AMDGPU_INSTALL_PACKAGE is already copied to the chroot."
+  fi
+
+  if ! [ -f "$AMDGPU_CACHE_PATH"/"$UPSTREAM_FIRMWARE_ARCHIVE" ]; then
+    wget --progress=bar:force \
+       https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/$UPSTREAM_FIRMWARE_ARCHIVE -P $AMDGPU_CACHE_PATH
+  else
+    echo "$UPSTREAM_FIRMWARE_ARCHIVE is already in build cache."
+  fi
+
+  if ! [ -f "$DEBIRF_ROOT/tmp/$UPSTREAM_FIRMWARE_ARCHIVE" ]; then
+   cp -r "$AMDGPU_CACHE_PATH/$UPSTREAM_FIRMWARE_ARCHIVE" /tmp/
+  else
+    echo "$UPSTREAM_FIRMWARE_ARCHIVE is already copied to the chroot."
   fi
 
   # The amdgpu-pro-install script is not running properly non-interactive
@@ -128,6 +141,10 @@ run: |
 
   sudo mkdir -p /lib/firmware/updates/amdgpu
   sudo find /tmp/firmware -name "$GPU_CODENAME*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
+
+  UPSTREAM_FIRMWARE_DIRECTORY=$(basename -s '.tar.gz' $UPSTREAM_FIRMWARE_ARCHIVE)/amdgpu
+  sudo tar -xzvf /tmp/$UPSTREAM_FIRMWARE_ARCHIVE -C /tmp -P $UPSTREAM_FIRMWARE_DIRECTORY
+  sudo cp -rv /tmp/$UPSTREAM_FIRMWARE_DIRECTORY /lib/firmware/updates/
 
   sudo depmod $KERNEL_RELEASE
 
