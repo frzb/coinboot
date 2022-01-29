@@ -100,26 +100,22 @@ run: |
 
   # Purge installed packages of this modules to free up the space.
   # But keep the OpenCL related packages.
-  # The DKMS package comes with sources at /usr/src/ which use a lot of space.
-  # As the DKMS package is a dependcy of 'opencl-amdgpu-pro' we set it on hold
-  # to keep the OpenCL stuff while we dump the DKMS package.
 
-  # The module amdgpu.ko requires amd_iommu_v2.ko which comes with the linux-modules-extra-
+  # The module amdgpu.ko requires iommu_v2.ko which comes with the linux-modules-extra-
   sudo apt-get download "$EXTRA_MODULES_PACKAGE"
 
-  # FIXME: Remove the hardwired deb file.
   # dpkg-deb -x needs a full path!
   sudo dpkg -x $PWD/$EXTRA_MODULES_PACKAGE_FILE /tmp/
   sudo rm -rf $PWD/$EXTRA_MODULES_PACKAGE_FILE
 
-  sudo find /tmp/lib -name 'amd_iommu_v2.ko' -exec cp -v {} /lib/modules/"$KERNEL_RELEASE"/kernel/drivers/iommu/amd_iommu_v2.ko \;
+  sudo find /tmp/lib -name 'iommu_v2.ko' -exec install -vD {} /lib/modules/"$KERNEL_RELEASE"/kernel/drivers/iommu/amd/iommu_v2.ko \;
 
   sudo rm -rf /tmp/lib
 
   sudo cp -v /lib/modules/"$KERNEL_RELEASE"/updates/dkms/amd* /tmp/
 
   sudo cp -Rv /lib/firmware /tmp/
-  
+
   sudo apt-get purge $PACKAGES --yes
 
   # Additional packages which can be removed to save space.
