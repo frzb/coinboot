@@ -35,7 +35,7 @@ run: |
   # We don't install any xserver stuff, similar to amdgpu-pro installer
   # '--compute'
   #AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'rocm-opencl-runtime
-  AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime'
+  AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime libnuma1'
   # The DKMS package is installed explictily to purge it without wiping the dependcies.
   AMDGPU_DKMS_PACKAGE='amdgpu-dkms'
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
