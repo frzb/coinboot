@@ -49,17 +49,9 @@ run: |
   Description=teamredminer AMD GPU optimized minining software
   After=network-online.target
 
-
   [Service]
   EnvironmentFile=/etc/environment
-  ExecStart=/usr/local/bin/teamredminer -a ethash \
-  -o stratum+ssl://us-east.ezil.me:25443 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  -o stratum+ssl://us-east.ezil.me:24443 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  --api_listen=127.0.0.1:4028 \
-  -p x\
-  --eth_dag_cache=0
+  ExecStart=/usr/local/bin/teamredminer ${TEAMREDMINER_ARGS}
   Restart=on-failure
 
   [Install]
