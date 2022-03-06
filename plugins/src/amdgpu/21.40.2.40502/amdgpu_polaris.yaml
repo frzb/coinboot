@@ -21,11 +21,16 @@ run: |
 
   sudo apt update
 
-  # Specfiy AMD Radeon GPU series codename.
+  # Specfiy AMD Radeon GPU series codename
+  # As quoted string with whitespace as delimiter e.g.
+  # 'tonga fuji polaris' or 'all' to include all available firmware,
+  # approx. 59 MB uncompressed.
+  # https://wiki.gentoo.org/wiki/AMDGPU#Known_firmware_blobs
+  # R9 300 series: tonga, fuji
   # RX 400/500 series: polaris
   # RX Vega series: vega
   # RX 5000/6000 series: navi
-  GPU_CODENAME=polaris
+  GPU_CODENAME='tonga polaris'
   AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.40.2.40502-1_all.deb
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
@@ -118,7 +123,7 @@ run: |
   sudo cp -v /lib/modules/"$KERNEL_RELEASE"/updates/dkms/amd* /tmp/
 
   sudo cp -Rv /lib/firmware /tmp/
-  
+
   sudo apt-get purge $PACKAGES --yes
 
   # Additional packages which can be removed to save space.
@@ -130,7 +135,16 @@ run: |
   sudo cp -v /tmp/amd*.ko /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
 
   sudo mkdir -p /lib/firmware/updates/amdgpu
-  sudo find /tmp/firmware -name "$GPU_CODENAME*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
+
+  if [ "$GPU_CODENAME" = "all" ]; then
+    sudo find /tmp/firmware -type f -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
+  else
+    for gpu_codename in $GPU_CODENAME; do
+      sudo find /tmp/firmware -name "${gpu_codename}*" -exec cp -v {} /lib/firmware/updates/amdgpu/ \;
+    done
+  fi
+
+  du -ch /lib/firmware/updates/amdgpu/*
 
   sudo depmod $KERNEL_RELEASE
 
