@@ -12,12 +12,12 @@
 
 plugin: Team Red Miner
 archive_name: teamredminer
-version: v0.9.2.1
+version: v0.9.4
 description: This is an optimized miner for AMD GPUs created by todxx and kerney666
 maintainer: Gunter Miegel <gunter.miegel@coinbboot.io>
 source: https://github.com/todxx/teamredminer
 run: |
-  TEAMREDMINER_RELEASE=v0.9.2.1
+  TEAMREDMINER_RELEASE=v0.9.4
   TEAMREDMINER_ARCHIVE=teamredminer-$TEAMREDMINER_RELEASE-linux.tgz
   TEAMREDMINER_URL=https://github.com/todxx/teamredminer/releases/download/$TEAMREDMINER_RELEASE/$TEAMREDMINER_ARCHIVE
   WGET='wget'
