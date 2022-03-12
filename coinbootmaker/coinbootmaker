@@ -79,7 +79,7 @@ if [ $RELEASE = latest ]; then
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
     done
-  echo "Using latest coinboot-debirf release: $TAG"
+  echo "Using latest Coinboot rootfs: $TAG"
 fi
 
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
