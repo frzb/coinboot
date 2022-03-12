@@ -151,11 +151,11 @@ sudo rm -v rootfs.czst
 # Adapt nameserver settings.
 # resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
 sudo rm etc/resolv.conf
-sudo tee etc/resolv.conf << EOF
+sudo tee etc/resolv.conf << EOF 1> /dev/null
 nameserver 1.1.1.1
 EOF
 
-sudo tee etc/hosts << EOF
+sudo tee etc/hosts << EOF 1> /dev/null
 127.0.1.1 coinbootmaker
 EOF
 
@@ -168,7 +168,7 @@ cd $LOWER
 # So we omit the jq limbo and the dependency to jq.
 # We use the same set of capabilities as Docker by default does.
 #https://github.com/moby/moby/blob/master/oci/defaults.go#L14-L30
-sudo tee ./config.json << EOF
+sudo tee ./config.json << EOF 1> /dev/null
 {
         "ociVersion": "1.0.0",
         "process": {
