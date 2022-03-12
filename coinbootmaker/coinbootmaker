@@ -99,6 +99,8 @@ UPPER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/upper
 WORKING_DIRECTORY=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/working_dir
 MERGED=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/merged
 
+# Initial Cleanup
+
 while sudo runc list | grep coinbootmaker | grep running; do
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sudo runc kill coinbootmaker KILL
@@ -111,17 +113,19 @@ while sudo runc list | grep coinbootmaker | grep stopped; do
   sleep 1
 done
 
-while sudo ip link | grep cbm-host; do 
+while sudo ip link | grep cbm-host; do
   echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
   sudo ip link delete cbm-host
   sleep 1
 done
 
-if mountpoint $MERGED; then
+if mountpoint -q $MERGED; then
   sudo umount $MERGED
 fi
 
 sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+
+# End of initial Cleanup
 
 sudo mkdir -p $UPPER $LOWER $WORKING_DIRECTORY $MERGED
 # We create our own TMPFS.
