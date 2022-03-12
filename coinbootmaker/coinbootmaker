@@ -116,11 +116,12 @@ while sudo runc list | grep coinbootmaker | grep -q stopped; do
   sleep 1
 done
 
-while sudo ip link | grep -q cbm-host; do
+while sudo ip link | grep cbm-host; do 
   echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
   sudo ip link delete cbm-host
   sleep 1
 done
+
 
 while sudo ip netns | grep -q coinbootmaker; do
   echo 'Waiting for Coinbootmaker network namespace to be cleaned up ...'
