@@ -74,7 +74,7 @@ RELEASE=latest
 if [ $RELEASE = latest ]; then
   RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
   sleep 5
-  while ! TAG=$(echo $RESPONSE | jq -r '.[0].name'); do
+  while ! TAG=$(echo $RESPONSE | jq -r '[ .[].name | select(test("^pre.*") | not) ] | sort | last'  ); do
     echo "Calling the Github API has failed, repeat ..."
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
