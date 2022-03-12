@@ -111,15 +111,17 @@ while sudo runc list | grep coinbootmaker | grep stopped; do
   sleep 1
 done
 
-  sudo runc delete coinbootmaker || true
-  sudo ip link delete cbm-host || true
-  sudo ip netns delete coinbootmaker || true
-  if mountpoint $MERGED; then
-    sudo umount $MERGED
-  fi
-  sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+while sudo ip link | grep cbm-host; do 
+  echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
+  sudo ip link delete cbm-host
   sleep 1
+done
 
+if mountpoint $MERGED; then
+  sudo umount $MERGED
+fi
+
+sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
 
 sudo mkdir -p $UPPER $LOWER $WORKING_DIRECTORY $MERGED
 # We create our own TMPFS.
