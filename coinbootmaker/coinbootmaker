@@ -18,20 +18,24 @@ display_help() {
   echo
   echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin name> <path to initramfs>]'
   echo
-  echo '-i              Interactive mode - opens a shell in the build environment'
-  echo '-p <file name>  Plugin to build'
-  echo '-l              List plugins available to build'
-  echo '-h              Display this help'
+  echo '-i                             Interactive mode - opens a shell in the build environment'
+  echo '-p <plugin build script path>  Plugin to build'
+  echo '-l                             List plugins available to build'
+  echo '-h                             Display this help'
   echo
 }
 
 list_plugins() {
+  echo
+  echo 'Available plugin build scripts'
+  echo
   pushd . > /dev/null
   cd src
-  echo
   find . -type f  ! -wholename '*\/upstream*' -name "*.yaml" -printf '%P\n'
-  echo
   popd  > /dev/null
+  echo
+  echo 'Usage: ./coinbootmaker -p <plugin build script path>'
+  echo
 }
 
 while getopts "ip:lh" opt; do
