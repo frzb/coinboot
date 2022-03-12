@@ -470,7 +470,7 @@ fi
 
 # Cleanup
 sudo runc kill coinbootmaker KILL
-while ! sudo runc list | grep coinbootmaker | grep stopped; do
+while ! sudo runc list | grep coinbootmaker | grep -q stopped; do
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sleep 1
 done
