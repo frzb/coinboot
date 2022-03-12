@@ -16,7 +16,7 @@ display_help() {
   echo
   echo 'Packaged Coinboot pluings are written to the ./builds directory'
   echo
-  echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin build script path> <path to initramfs>]'
+  echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin build script path>]'
   echo
   echo '-i                             Interactive mode - opens a shell in the build environment'
   echo '-p <plugin build script path>  Plugin to build'
@@ -94,7 +94,6 @@ $WGET $DOWNLOAD_URL/$INITRAMFS -P $CACHE_DIR
 fi
 
 BASEDIR=$PWD
-#INITRAMFS=$(readlink -f $1)
 LOWER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/lower
 UPPER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/upper
 WORKING_DIRECTORY=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/working_dir
