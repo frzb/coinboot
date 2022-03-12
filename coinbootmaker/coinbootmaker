@@ -146,7 +146,7 @@ zstd -d $CACHE_DIR/$INITRAMFS -c | sudo cpio -idm --quiet "rootfs.czst"
 zstd -d rootfs.czst -c | sudo cpio -idm --quiet
 
 # The nested initramfs archive can be removed now
-sudo rm -v rootfs.czst
+sudo rm rootfs.czst
 
 # Adapt nameserver settings.
 # resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
@@ -480,7 +480,7 @@ sudo runc delete coinbootmaker
 sudo ip link delete cbm-host
 sudo ip netns delete coinbootmaker
 
-echo "Cleaning up directories"
+echo "Cleaning up temporary working directories ..."
 cd $BASEDIR
-sudo umount -v $MERGED
+sudo umount --quiet $MERGED
 sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
