@@ -104,7 +104,11 @@ MERGED=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/merged
 
 # Initial Cleanup
 
+<<<<<<< HEAD
 while sudo runc list | grep coinbootmaker | grep -q running; do
+=======
+while sudo runc list | grep coinbootmaker | grep running; do
+>>>>>>> e96c0cd3 (Made existence check for merged mountpoint quiet)
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sudo runc kill coinbootmaker KILL
   sleep 1
@@ -116,12 +120,13 @@ while sudo runc list | grep coinbootmaker | grep -q stopped; do
   sleep 1
 done
 
-while sudo ip link | grep cbm-host; do 
+while sudo ip link | grep cbm-host; do
   echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
   sudo ip link delete cbm-host
   sleep 1
 done
 
+<<<<<<< HEAD
 
 while sudo ip netns | grep -q coinbootmaker; do
   echo 'Waiting for Coinbootmaker network namespace to be cleaned up ...'
@@ -129,6 +134,8 @@ while sudo ip netns | grep -q coinbootmaker; do
   sleep 1
 done
 
+=======
+>>>>>>> e96c0cd3 (Made existence check for merged mountpoint quiet)
 if mountpoint -q $MERGED; then
   sudo umount $MERGED
 fi
