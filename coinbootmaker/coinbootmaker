@@ -36,7 +36,6 @@ list_plugins() {
   echo
   echo 'Usage: ./coinbootmaker -p <plugin build script path>'
   echo
-
 }
 
 while getopts "ip:lh" opt; do
