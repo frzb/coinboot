@@ -142,8 +142,8 @@ cd $LOWER/rootfs
 # We have to use 'sudo' for 'cpio' else the ownership of the files in the
 # archive is messed up.
 # We just extract the nested initramfs archive
-zstd -d $CACHE_DIR/$INITRAMFS -c | sudo cpio -idvm "rootfs.czst"
-zstd -d rootfs.czst -c | sudo cpio -idm
+zstd -d $CACHE_DIR/$INITRAMFS -c | sudo cpio -idm --quiet "rootfs.czst"
+zstd -d rootfs.czst -c | sudo cpio -idm --quiet
 
 # The nested initramfs archive can be removed now
 sudo rm -v rootfs.czst
