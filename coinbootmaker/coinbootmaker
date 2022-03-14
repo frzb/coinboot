@@ -101,21 +101,27 @@ MERGED=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/merged
 
 # Initial Cleanup
 
-while sudo runc list | grep coinbootmaker | grep running; do
+while sudo runc list | grep coinbootmaker | grep -q running; do
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sudo runc kill coinbootmaker KILL
   sleep 1
 done
 
-while sudo runc list | grep coinbootmaker | grep stopped; do
+while sudo runc list | grep coinbootmaker | grep -q stopped; do
   echo 'Waiting for Coinbootmaker container to be cleaned up ...'
   sudo runc delete coinbootmaker
   sleep 1
 done
 
-while sudo ip link | grep cbm-host; do
+while sudo ip link | grep -q cbm-host; do
   echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
   sudo ip link delete cbm-host
+  sleep 1
+done
+
+while sudo ip netns | grep -q coinbootmaker; do
+  echo 'Waiting for Coinbootmaker network namespace to be cleaned up ...'
+  sudo ip netns delete coinbootmaker
   sleep 1
 done
 
@@ -445,7 +451,7 @@ sudo runc run -d coinbootmaker
 
 # This commands can only be executed if the container is already running.
 # So let's wait until it is ready.
-while ! sudo runc list | grep coinbootmaker; do
+while ! sudo runc list | grep -q coinbootmaker; do
   echo 'Waiting for Coinbootmaker container...'
   sleep 1
 done
