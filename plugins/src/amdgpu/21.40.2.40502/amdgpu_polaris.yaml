@@ -19,15 +19,17 @@ source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-
 run: |
   set -e
 
-  sudo apt update
+  sudo apt-get update
 
   # Specfiy AMD Radeon GPU series codename
   # As quoted string with whitespace as delimiter e.g.
   # 'tonga fuji polaris' or 'all' to include all available firmware,
   # approx. 59 MB uncompressed.
-  # https://wiki.gentoo.org/wiki/AMDGPU#Known_firmware_blobs
+  # https://wikil.gentoo.org/wiki/AMDGPU#Known_firmware_blobs
+  # --- Legacy OpenCL stack (supports hardware older than Vega 10) ---
   # R9 300 series: tonga, fuji
   # RX 400/500 series: polaris
+  # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
   GPU_CODENAME='tonga polaris'
@@ -35,11 +37,20 @@ run: |
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
-
   PACKAGES="wget linux-headers-$KERNEL_RELEASE"
-  # We don't install any xserver stuff, similar to amdgpu-pro installer
-  # '--compute'
-  AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
+  if [[ $GPU_CODENAME =~ vega|navi ]]; then
+    if [[ $GPU_CODENAME =~ tonga|fuji|polaris ]]; then
+    echo 'Attention: Using Legacy and ROCr OpenCL at same time is not possible!'
+    echo 'Plugin build script is stopped now.'
+      exit 1
+    else
+      echo 'Building Coinboot plugin with ROCr OpenCl stack'
+      AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime libnuma1'
+    fi
+  else
+    echo 'Building Coinboot plugin with Legacy OpenCl stack'
+    AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
+  fi
   # The DKMS package is installed explictily to purge it without wiping the dependcies.
   AMDGPU_DKMS_PACKAGE='amdgpu-dkms'
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
@@ -55,13 +66,12 @@ run: |
   # Let's cache the downloaded archive and the decompressed
   # archive on the build host - time saving once more.
   # Download is only allowed with this referer!
-  if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_PRO_ARCHIVE" ]; then
+  if ! [ -f "$AMDGPU_CACHE_PATH"/"$AMDGPU_INSTALL_PACKAGE" ]; then
     wget --progress=bar:force \
        https://repo.radeon.com/amdgpu-install/21.40.2/ubuntu/focal/"$AMDGPU_INSTALL_PACKAGE" -P $AMDGPU_CACHE_PATH
   else
     echo "$AMDGPU_INSTALL_PACKAGE is already in build cache."
   fi
-
 
   if ! [ -f "$DEBIRF_ROOT/tmp/$AMDGPU_INSTALL_PACKAGE" ]; then
    cp -r "$AMDGPU_CACHE_PATH/$AMDGPU_INSTALL_PACKAGE" /tmp/
@@ -93,12 +103,7 @@ run: |
 
   sudo chmod 755 /usr/bin/update-initramfs
 
-  # FIXME: /opt/amdgpu-pro/lib/x86_64-linux-gnu/libOpenCL.so.1 missing when installing
-  # $AMDGPU_DKMS_PACKAGE and $AMDGPU_OPENCL_PACKAGES at once.
-  # sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES $AMDGPU_DKMS_PACKAGE
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
-
-  #sudo apt-mark hold $AMDGPU_OPENCL_PACKAGES
 
   sudo apt-get install --yes $AMDGPU_DKMS_PACKAGE
 
@@ -111,7 +116,6 @@ run: |
   # The module amdgpu.ko requires amd_iommu_v2.ko which comes with the linux-modules-extra-
   sudo apt-get download "$EXTRA_MODULES_PACKAGE"
 
-  # FIXME: Remove the hardwired deb file.
   # dpkg-deb -x needs a full path!
   sudo dpkg -x $PWD/$EXTRA_MODULES_PACKAGE_FILE /tmp/
   sudo rm -rf $PWD/$EXTRA_MODULES_PACKAGE_FILE
@@ -124,7 +128,7 @@ run: |
 
   sudo cp -Rv /lib/firmware /tmp/
 
-  sudo apt-get purge $PACKAGES --yes
+  sudo -getapt-get purge $PACKAGES --yes
 
   # Additional packages which can be removed to save space.
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
