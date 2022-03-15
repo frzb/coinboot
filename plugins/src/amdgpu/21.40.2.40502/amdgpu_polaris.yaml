@@ -128,7 +128,7 @@ run: |
 
   sudo cp -Rv /lib/firmware /tmp/
 
-  sudo -getapt-get purge $PACKAGES --yes
+  sudo apt-get purge $PACKAGES --yes
 
   # Additional packages which can be removed to save space.
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
