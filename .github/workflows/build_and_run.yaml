@@ -45,7 +45,7 @@ jobs:
         run: |
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
-          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           ls -la "${GOPATH}"/bin
           env
           github-release --version
