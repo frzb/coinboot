@@ -52,10 +52,12 @@ run: |
     AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
   fi
   # The DKMS package is installed explictily to purge it without wiping the dependcies.
-  AMDGPU_DKMS_PACKAGE='amdgpu-dkms'
+  AMDGPU_DKMS_PACKAGE=amdgpu-dkms
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
   EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
   EXTRA_MODULES_PACKAGE_FILE=$(apt-cache show $EXTRA_MODULES_PACKAGE | grep -oP $EXTRA_MODULES_PACKAGE.*deb)
+  UPSTREAM_FIRMWARE_ARCHIVE=linux-firmware-20211216.tar.gz
+  UPSTREAM_FIRMWARE=false
 
   sudo apt-get install $PACKAGES --yes
 
@@ -79,6 +81,21 @@ run: |
     echo "$AMDGPU_INSTALL_PACKAGE is already copied to the chroot."
   fi
 
+  if [ "UPSTREAM_FIRMWARE" = "true" ]; then
+    if ! [ -f "$AMDGPU_CACHE_PATH"/"$UPSTREAM_FIRMWARE_ARCHIVE" ]; then
+      wget --progress=bar:force \
+         https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/$UPSTREAM_FIRMWARE_ARCHIVE -P $AMDGPU_CACHE_PATH
+    else
+      echo "$UPSTREAM_FIRMWARE_ARCHIVE is already in build cache."
+    fi
+
+    if ! [ -f "$DEBIRF_ROOT/tmp/$UPSTREAM_FIRMWARE_ARCHIVE" ]; then
+     cp -r "$AMDGPU_CACHE_PATH/$UPSTREAM_FIRMWARE_ARCHIVE" /tmp/
+    else
+      echo "$UPSTREAM_FIRMWARE_ARCHIVE is already copied to the chroot."
+    fi
+  fi
+
   # The amdgpu-pro-install script is not running properly non-interactive
   # it uses 'apt-get install' and asks for (Y/n).
   # So we install the packages on our own.
@@ -91,9 +108,6 @@ run: |
   sudo  sed -i 's/^#deb /deb /' /etc/apt/sources.list.d/amdgpu-proprietary.list
 
   sudo apt-get update
-
-
-  # TODO mock update-initramfs called by /var/lib/dpkg/info/amdgpu-dkms.postinst
 
   sudo tee /usr/bin/update-initramfs << EOF
   #!/usr/bin/bash
