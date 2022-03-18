@@ -11,27 +11,22 @@
 # You have to agree to the license of the packaged software to use it.
 
 plugin: AMDGPU Polaris
-archive_name: amdgpu_polaris
-version: 21.50.2.50002
+archive_name: amdgpu_polaris_legacy_opencl
+version: 21.50.2
 description:  AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for Legacy OpenCL 1.2
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
-source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50-2
+source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
   set -e
 
-  # ------ Tunable variables ------
-  # Specfiy AMD Radeon GPU series codename
-  # As quoted string with whitespace as delimiter e.g.
-  # 'tonga fuji polaris' or 'all' to include all available firmware,
-  # approx. 59 MB uncompressed.
-  # https://wikil.gentoo.org/wiki/AMDGPU#Known_firmware_blobs
-  # --- Legacy OpenCL stack (supports hardware older than Vega 10) ---
-  # R9 300 series: tonga, fuji
+  sudo apt update
+
+  # Specfiy AMD Radeon GPU series codename.
   # RX 400/500 series: polaris
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
-  GPU_CODENAME='tonga polaris'
+  GPU_CODENAME='polaris'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
   # ------ Tunable variables end ------
