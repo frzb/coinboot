@@ -79,7 +79,7 @@ jobs:
           SUITE: "focal"
         shell: bash
         run: |
-          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
       - name: Download build artifact
@@ -96,7 +96,7 @@ jobs:
         run: |
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
-          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           export RELEASE_TAG=$(date +%Y%m%d)
           # actions/checkout@v2 with depth 0 is not pulling tags.
           # To avoid a full pull we just pull the tags.
@@ -122,7 +122,7 @@ jobs:
         run: |
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
-          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"
+          export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           github-release -v delete -t $PRE_RELEASE_TAG
           git config --global user.email "build@coinboot.io"
           git config --global user.name "Github Actions"
