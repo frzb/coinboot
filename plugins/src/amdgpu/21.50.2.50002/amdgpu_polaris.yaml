@@ -19,8 +19,7 @@ source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-
 run: |
   set -e
 
-  sudo apt-get update
-
+  # ------ Tunable variables ------
   # Specfiy AMD Radeon GPU series codename
   # As quoted string with whitespace as delimiter e.g.
   # 'tonga fuji polaris' or 'all' to include all available firmware,
@@ -33,31 +32,23 @@ run: |
   # RX Vega series: vega
   # RX 5000/6000 series: navi
   GPU_CODENAME='tonga polaris'
+  # Use upstream GPU firmware from kernel.org: true or false
+  UPSTREAM_FIRMWARE=false
+  # ------ Tunable variables end ------
+
+  sudo apt-get update
+
   AMDGPU_INSTALL_PACKAGE=amdgpu-install_21.50.2.50002-1_all.deb
   if [ ! -z $DEBIRF_KERNEL ]; then
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
   PACKAGES="wget linux-headers-$KERNEL_RELEASE"
-  if [[ $GPU_CODENAME =~ vega|navi ]]; then
-    if [[ $GPU_CODENAME =~ tonga|fuji|polaris ]]; then
-    echo 'Attention: Using Legacy and ROCr OpenCL at same time is not possible!'
-    echo 'Plugin build script is stopped now.'
-      exit 1
-    else
-      echo 'Building Coinboot plugin with ROCr OpenCl stack'
-      AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime libnuma1'
-    fi
-  else
-    echo 'Building Coinboot plugin with Legacy OpenCl stack'
-    AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
-  fi
   # The DKMS package is installed explictily to purge it without wiping the dependcies.
   AMDGPU_DKMS_PACKAGE=amdgpu-dkms
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
   EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
   EXTRA_MODULES_PACKAGE_FILE=$(apt-cache show $EXTRA_MODULES_PACKAGE | grep -oP $EXTRA_MODULES_PACKAGE.*deb)
   UPSTREAM_FIRMWARE_ARCHIVE=linux-firmware-20211216.tar.gz
-  UPSTREAM_FIRMWARE=false
 
   sudo apt-get install $PACKAGES --yes
 
@@ -116,6 +107,20 @@ run: |
   EOF
 
   sudo chmod 755 /usr/bin/update-initramfs
+
+  if [[ $GPU_CODENAME =~ vega|navi ]]; then
+    if [[ $GPU_CODENAME =~ tonga|fuji|polaris ]]; then
+    echo 'Attention: Using Legacy and ROCr OpenCL at same time is not possible!'
+    echo 'Plugin build script is stopped now.'
+      exit 1
+    else
+      echo 'Building Coinboot plugin with ROCr OpenCl stack'
+      AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime libnuma1'
+    fi
+  else
+    echo 'Building Coinboot plugin with Legacy OpenCl stack'
+    AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
+  fi
 
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
 
