@@ -21,7 +21,10 @@ run: |
 
   sudo apt update
 
+  # ------ Tunable variables ----------
   # Specfiy AMD Radeon GPU series codename.
+  # --- Legacy OpenCL stack ---
+  # R9 R300 series: tonga
   # RX 400/500 series: polaris
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
