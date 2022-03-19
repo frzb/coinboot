@@ -58,8 +58,8 @@ jobs:
           git push --set-upstream origin $PRE_RELEASE_TAG
           github-release release --pre-release --tag $PRE_RELEASE_TAG --name $PRE_RELEASE_TAG
           # Use GNU parallel to add some delay for waiting that the release is created
-          parallel --verbose --retries 20 --delay 20 github-release release info --tag $PRE_RELEASE_TAG
           set -x
+          parallel --verbose --retries 20 --delay 5 ::: "github-release release info --tag $PRE_RELEASE_TAG"
           find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release upload --tag $PRE_RELEASE_TAG -n $2 -f $1 -l $2' sh
 
   verify_and_release:
