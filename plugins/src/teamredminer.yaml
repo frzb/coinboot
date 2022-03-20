@@ -50,10 +50,9 @@ run: |
   After=network-online.target
 
   [Service]
-  EnvironmentFile=/etc/environment
-  ExecStartPre=/usr/bin/bash -c '/usr/bin/systemctl set-environment ARGS=\"${TEAMREDMINER_ARGS}\"'
-  ExecStartPre=/usr/bin/env
-  ExecStart=/usr/local/bin/teamredminer $ARGS
+  # Load the environment variables and replace the shell with a process by exec
+  # By that we circumvent the limited capabilities of shell expansion by systemd
+  ExecStart=/bin/sh -c '. /etc/environment && exec /usr/local/bin/teamredminer $TEAMREDMINER_ARGS'
   Restart=on-failure
 
   [Install]
