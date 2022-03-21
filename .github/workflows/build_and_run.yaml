@@ -97,7 +97,7 @@ jobs:
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
-          export RELEASE_TAG=$(date +%Y%m%d)
+          export RELEASE_TAG=$(date +%y.%m.%d)
           # actions/checkout@v2 with depth 0 is not pulling tags.
           # To avoid a full pull we just pull the tags.
           git pull --tags origin
