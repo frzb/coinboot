@@ -171,5 +171,3 @@ run: |
 
   # Remove mocked update-initramfs
   sudo rm -v /usr/bin/update-initramfs
-
-sudo rm -v /usr/bin/update-initramfs
