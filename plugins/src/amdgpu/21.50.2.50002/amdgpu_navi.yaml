@@ -108,8 +108,8 @@ run: |
 
   if [[ $GPU_CODENAME =~ vega|navi ]]; then
     if [[ $GPU_CODENAME =~ tonga|fuji|polaris ]]; then
-    echo 'Attention: Using Legacy and ROCr OpenCL at same time is not possible!'
-    echo 'Plugin build script is stopped now.'
+      echo 'Attention: Using Legacy and ROCr OpenCL at same time is not possible!'
+      echo 'Plugin build script is stopped now.'
       exit 1
     else
       echo 'Building Coinboot plugin with ROCr OpenCl stack'
