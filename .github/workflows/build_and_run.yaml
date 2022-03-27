@@ -18,6 +18,7 @@ jobs:
           SUITE: ${{ matrix.suite }}
         run: ./debirf/build_and_run_images
         # if: github.ref == 'refs/heads//aster'
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -34,8 +35,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: debirf/build
+
       - name: Setup Golang for github-release
         uses: actions/setup-go@v1
+
       - name: Create pre-release
         env:
           GITHUB_USER: "frzb"
@@ -73,6 +76,7 @@ jobs:
         shell: bash
         # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash
         run: ./setup_coinboot_requirements
+
       - name: Run Coinboot server and boot workers
         env:
           KERNEL: "5.11.0-46-generic"
@@ -82,12 +86,15 @@ jobs:
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
+
       - name: Download build artifact
         uses: actions/download-artifact@v2
         with:
           path: debirf/build
-      - name: Create release from pre-release on main
-        if: github.ref == 'refs/heads/main'
+
+      - name: Create release on main or develop
+        # Release on develop keeps the type pre-release
+        if: github.ref == 'refs/heads/main' || 'refs/heads/develop'
         env:
           GITHUB_USER: "frzb"
           GITHUB_REPO: "coinboot"
@@ -97,7 +104,11 @@ jobs:
           go get github.com/aktau/github-release
           export PATH=$PATH:"${GOPATH}"/bin
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
-          export RELEASE_TAG=$(date +%y.%m.%d)
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            export RELEASE_TAG=$(date +%y.%m.%d)
+          else
+            export RELEASE_TAG=$(date +%y.%m.%d)-dev
+          fi
           # actions/checkout@v2 with depth 0 is not pulling tags.
           # To avoid a full pull we just pull the tags.
           git pull --tags origin
@@ -109,10 +120,15 @@ jobs:
           git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
           git push --quiet --set-upstream origin $RELEASE_TAG
           git push origin :refs/tags/"${PRE_RELEASE_TAG}"
-          github-release -v release --tag $RELEASE_TAG --name $RELEASE_TAG
+          if [ "${GITHUB_REF##*/}" = "main" ]; then
+            github-release -v release --tag $RELEASE_TAG --name $RELEASE_TAG
+          else
+            github-release -v release --pre-release --tag $RELEASE_TAG --name $RELEASE_TAG
+          fi
           # Use GNU parallel to add some delay for waiting that the release is created
           parallel --verbose --retries 20 --delay 5 ::: "github-release info --tag $PRE_RELEASE_TAG"
           find ./debirf/build/artifact -name coinboot-* -type f -execdir sh -c "readlink -f {} && basename {}" \; | xargs -n 2 sh -c 'github-release -v upload --tag $RELEASE_TAG -n $2 -f $1 -l $2' sh
+
       - name: Remove pre-release if not on main or failing
         # Only remove pre-release on main, else make a release.
         if: github.ref != 'refs/heads/main' || ${{ failure() }}
