@@ -135,6 +135,8 @@ def main(arguments):
         archive_name = arguments["<plugin_name>"] + ".tar.gz"
 
         create_tar_archive(archive_name, files_for_plugin_archive)
+        
+        print("------------------------------------")
 
         print("------------------------------------")
 
