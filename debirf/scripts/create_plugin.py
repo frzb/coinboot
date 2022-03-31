@@ -72,7 +72,7 @@ def find(path_to_scan):
             yield entry.path
 
 
-def create_tar_archive(files_for_plugin_archive):
+def create_tar_archive(archive_name, files_for_plugin_archive):
     """Create tar archive form a list of file"""
     tar = tarfile.open(archive_name, "w:gz")
     for path in files_for_plugin_archive:
@@ -121,9 +121,9 @@ def main(arguments):
 
         files_for_plugin_archive.append(FINAL_DPKG_STATUS)
 
-        create_tar_archive(files_for_plugin_archive)
-
         archive_name = arguments["<plugin_name>"] + ".tar.gz"
+
+        create_tar_archive(archive_name, files_for_plugin_archive)
 
         print("Created Coinboot Plugin:", archive_name)
 
