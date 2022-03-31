@@ -29,6 +29,7 @@ Options:
 """
 
 from os import scandir
+import os
 import tarfile
 import re
 from subprocess import call
@@ -57,6 +58,7 @@ EXCLUDE = (
     ".wget-hsts",
     r".*\.cache",
 )
+
 
 def find(path_to_scan):
     """Returns generator object with results similar to a Unix find command run without options
