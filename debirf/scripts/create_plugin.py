@@ -73,25 +73,26 @@ def find(path_to_scan):
 
 
 def create_tar_archive(archive_name, files_for_plugin_archive):
-    """Create tar archive form a list of file"""
+    """Create tar archive form a list of files"""
     tar = tarfile.open(archive_name, "w:gz")
     for path in files_for_plugin_archive:
         # If a file was deleted which was in the lower directory
         # a whiteout file is created in the upper directory.
         # So we don't can look at the upper director to track the
-        # deletion of such files. Else we look if the file is there
-        # at the merged directory with 'os.path.exists()'.
+        # deletion of such files.
+        # Else we look if the file is present at the merged directory
+        # with 'os.path.exists()'.
         if os.path.exists(path):
             # We have to specfiy explictly the file name in
             # the archive to get an absolute path wit a leading '/'
-            tar.add(path, arcname=path)
+            # Attention: directories are added recursively be default
+            tar.add(path, recursive=False, arcname=path)
         else:
             print("Whiteout file from lower dir:", path)
     tar.close()
 
 
 def main(arguments):
-    # print(arguments)
     if arguments["start"]:
         call(["cp", "-v", DPKG_STATUS, INITIAL_DPKG_STATUS])
     elif arguments["finish"]:
@@ -109,8 +110,7 @@ def main(arguments):
         )
 
         files_for_plugin_archive = []
-        # Use set to remove duplicates from list
-        for path in set(list(find(PLUGIN_DIR))):
+        for path in list(find(PLUGIN_DIR)):
             cleaned_path = re.sub(PLUGIN_DIR, "", path)
             # FIXME: Switch to re.match() against path without PLUGIN_DIR prefix
             if any(re.findall(pattern, cleaned_path) for pattern in EXCLUDE):
