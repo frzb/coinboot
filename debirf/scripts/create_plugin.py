@@ -110,20 +110,33 @@ def main(arguments):
         )
 
         files_for_plugin_archive = []
+        excluded = []
+        included = []
+
         for path in list(find(PLUGIN_DIR)):
             cleaned_path = re.sub(PLUGIN_DIR, "", path)
             # FIXME: Switch to re.match() against path without PLUGIN_DIR prefix
             if any(re.findall(pattern, cleaned_path) for pattern in EXCLUDE):
-                print("Excluded:", cleaned_path)
+                # print("Excluded:", cleaned_path)
+                excluded.append(cleaned_path)
             else:
-                print("Included:", cleaned_path)
                 files_for_plugin_archive.append(cleaned_path)
+                included.append(cleaned_path)
+
+        for entry in excluded:
+            print("Excluded:", entry)
+        print("------------------------------------")
+        for entry in included:
+            print("Included:", entry)
+        print("------------------------------------")
 
         files_for_plugin_archive.append(FINAL_DPKG_STATUS)
 
         archive_name = arguments["<plugin_name>"] + ".tar.gz"
 
         create_tar_archive(archive_name, files_for_plugin_archive)
+        
+        print("------------------------------------")
 
         print("Created Coinboot Plugin:", archive_name)
 
