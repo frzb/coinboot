@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright (C) 2018, 2021 Gunter Miegel coinboot.io
+# Copyright (C) 2018, 2021-2022 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 #
@@ -28,7 +28,7 @@ Options:
 
 """
 
-import os
+from os import scandir
 import tarfile
 import re
 from subprocess import call
@@ -55,19 +55,19 @@ EXCLUDE = (
     "/var/log",
     ".*__pycache__.*",
     ".wget-hsts",
-    ".*\.cache",
+    r".*\.cache",
 )
 
-
-def find(path_to_walk):
-    """Return results similar to the Unix find command run without options
-    i.e. traverse a directory tree and return all the file paths
+def find(path_to_scan):
+    """Returns generator object with results similar to a Unix find command run without options
+    traversing recursive a directory tree and returning all file paths
     """
-    return [
-        os.path.join(path, file)
-        for (path, dirs, files) in os.walk(path_to_walk)
-        for file in files
-    ]
+    for entry in scandir(path_to_scan):
+        if entry.is_dir(follow_symlinks=False):
+            yield entry.path
+            yield from find(entry.path)
+        else:
+            yield entry.path
 
 
 def main(arguments):
@@ -90,7 +90,7 @@ def main(arguments):
 
         files_for_plugin_archive = []
 
-        for path in find(PLUGIN_DIR):
+        for path in list(find(PLUGIN_DIR)):
             cleaned_path = re.sub(PLUGIN_DIR, "", path)
             # FIXME: Switch to re.match() against path without PLUGIN_DIR prefix
             if any(re.findall(pattern, cleaned_path) for pattern in EXCLUDE):
@@ -100,7 +100,6 @@ def main(arguments):
                 files_for_plugin_archive.append(cleaned_path)
 
         files_for_plugin_archive.append(FINAL_DPKG_STATUS)
-
 
         archive_name = arguments["<plugin_name>"] + ".tar.gz"
 
@@ -119,7 +118,6 @@ def main(arguments):
                 print("Whiteout file from lower dir:", path)
         tar.close()
         print("Created Coinboot Plugin:", archive_name)
-
 
 
 if __name__ == "__main__":
