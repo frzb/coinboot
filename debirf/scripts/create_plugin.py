@@ -109,8 +109,8 @@ def main(arguments):
         )
 
         files_for_plugin_archive = []
-
-        for path in list(find(PLUGIN_DIR)):
+        # Use set to remove duplicates from list
+        for path in set(list(find(PLUGIN_DIR))):
             cleaned_path = re.sub(PLUGIN_DIR, "", path)
             # FIXME: Switch to re.match() against path without PLUGIN_DIR prefix
             if any(re.findall(pattern, cleaned_path) for pattern in EXCLUDE):
