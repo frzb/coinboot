@@ -380,7 +380,7 @@ else
   # FIXME: Move this stuff to Python.
   curl -s http://$HTTP_SERVER/plugins/ | grep -v -Fe '[' -e ']' | cut -f 4 -d'"' | while read plugin; do
     echo "Downloading and extracting plugin: $plugin"
-    wget  http://$HTTP_SERVER/plugins/$plugin -O - | tar -Pxzvf --no-overwrite-dir -
+    wget  http://$HTTP_SERVER/plugins/$plugin -O - | tar ---no-overwrite -dirPxzvf -
     /usr/local/bin/dpkg_status.py --new /tmp/dpkg_status --old /var/lib/dpkg/status --union > /tmp/status_$plugin
     mv -v /tmp/status_$plugin /var/lib/dpkg/status
     echo '----------------------------'
