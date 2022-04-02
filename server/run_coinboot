@@ -128,6 +128,32 @@ build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
 
+create_test_plugin() {
+  pushd .
+
+  cd ../plugins/
+
+  src/test-plugin.yaml <<-'EOF'
+  ---
+  plugin: Test plugin
+  archive_name: coinboot-test-plugin
+  version: v0.0.1
+  description: Test plugin for verification
+  maintainer: Gunter Miegel <gunter.miegel@coinboot.io>
+  source: https://github.com/frzb/coinboot
+  run: |
+      sudo mkdir /home/ubuntu/test_dir
+      echo 'This is a test' | sudo tee -a /home/ubuntu/test_dir/file1
+      sudo chown -R ubuntu:ubuntu /home/ubuntu/test_dir
+  EOF
+
+  ./coinbootmaker -p test-plugin.yaml
+
+  cp -v build/coinboot_test-plugin* enable/
+
+  popd
+  }
+
 up_docker_compose() {
   docker-compose up -d
   sleep 30
@@ -201,7 +227,7 @@ verify_and_shutdown_over_ssh() {
   done
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && ls -la /home/ubuntu/*"; do
     echo 'Waiting for SSH login to succeed...'
   sleep 10
   done
@@ -270,6 +296,8 @@ export $(grep -v '^#' ./conf/environment/* | xargs)
 # Config syntax check fails because the build environment on Ubuntu focal is
 # running dnsmasq 2.80 which is lacking "dhcp-ignore-clid", this feature was introduced with 2.81
 # check_dnsmasq_config
+
+create_test_plugin
 
 build_docker_image
 
