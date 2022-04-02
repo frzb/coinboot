@@ -146,6 +146,7 @@ create_test_plugin() {
       echo 'This is a test' | sudo tee -a /home/ubuntu/test_dir/file1
       sudo chown -R ubuntu:ubuntu /home/ubuntu/test_dir
   EOF
+}
 
   ./coinbootmaker -p test-plugin.yaml
 
