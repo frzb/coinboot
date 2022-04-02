@@ -136,7 +136,7 @@ create_test_plugin() {
   src/test-plugin.yaml <<-'EOF'
   ---
   plugin: Test plugin
-  archive_name: coinboot-test-plugin
+  archive_name: test-plugin
   version: v0.0.1
   description: Test plugin for verification
   maintainer: Gunter Miegel <gunter.miegel@coinboot.io>
