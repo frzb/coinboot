@@ -94,7 +94,7 @@ jobs:
 
       - name: Create release on main or develop
         # Release on develop keeps the type pre-release
-        if: github.ref == ( 'refs/heads/main' || 'refs/heads/develop' )
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         env:
           GITHUB_USER: "frzb"
           GITHUB_REPO: "coinboot"
@@ -114,7 +114,6 @@ jobs:
           git pull --tags origin
           git config --global user.email "build@coinboot.io"
           git config --global user.name "Github Actions"
-          git tag -d $PRE_RELEASE_TAG
           git tag $RELEASE_TAG
           git remote rm origin
           git remote add origin https://"${GITHUB_TOKEN}"@github.com/"${GITHUB_USER}"/"${GITHUB_REPO}".git
