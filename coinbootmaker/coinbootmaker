@@ -138,7 +138,7 @@ cd $LOWER/rootfs
 # archive is messed up.
 # We just extract the nested initramfs archive
 file $CACHE_DIR/$INITRAMFS
-zstdcat $CACHstDIR/$INITRAMFS | sudo cpio -idvm "rootfs.czst"
+zstdcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.czst"
 ls -la
 zstdcat rootfs.czst | sudo cpio -idm
 
