@@ -133,7 +133,7 @@ create_test_plugin() {
 
   cd ../plugins/
 
-  src/test-plugin.yaml <<EOF
+  cat << EOF > src/test-plugin.yaml
 ---
 plugin: Test plugin
 archive_name: test-plugin
