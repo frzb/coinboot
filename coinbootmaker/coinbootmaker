@@ -59,6 +59,7 @@ done
 
 shift $((OPTIND -1))
 
+env 
 
 WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'

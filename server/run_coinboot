@@ -127,6 +127,7 @@ build_docker_image() {
 }
 
 create_test_plugin() {
+  export $RELEASE
   pushd .
 
   cd ../plugins/
