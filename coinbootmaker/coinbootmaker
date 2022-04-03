@@ -143,7 +143,7 @@ ls -la
 zstdcat rootfs.czst | sudo cpio -idm
 
 # The nested initramfs archive can be removed now
-sudo rm -v rootfs.cgz
+sudo rm -v rootfs.czst
 
 # Adapt nameserver settings.
 # resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
