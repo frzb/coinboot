@@ -64,12 +64,9 @@ WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
 CACHE_DIR=$(readlink -f ./cache)
 GITHUB_REPO=frzb/coinboot
-RELEASE=latest
 ## initramfs and kernel vmlinuz ##
-# RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
-
-
+RELEASE="${RELEASE:-latest}"
 
 if [ $RELEASE = latest ]; then
   RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
