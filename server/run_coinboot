@@ -149,7 +149,10 @@ EOF
 
   ./coinbootmaker -p test-plugin.yaml
 
-  cp -v build/coinboot_test-plugin* enable/
+  pwd
+  ls -la
+
+  cp -v build/coinboot_test-plugin* ./enable/
 
   popd
   }
