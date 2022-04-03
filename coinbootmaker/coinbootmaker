@@ -138,8 +138,9 @@ cd $LOWER/rootfs
 # archive is messed up.
 # We just extract the nested initramfs archive
 file $CACHE_DIR/$INITRAMFS
-zcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.cgz"
-zcat rootfs.cgz | sudo cpio -idm
+zstdcat $CACHstDIR/$INITRAMFS | sudo cpio -idvm "rootfs.czst"
+ls -la
+zstdcat rootfs.czst | sudo cpio -idm
 
 # The nested initramfs archive can be removed now
 sudo rm -v rootfs.cgz
