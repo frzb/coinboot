@@ -136,6 +136,7 @@ cd $LOWER/rootfs
 # We have to use 'sudo' for 'cpio' else the ownership of the files in the
 # archive is messed up.
 # We just extract the nested initramfs archive
+file $CACHE_DIR/$INITRAMFS
 zcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.cgz"
 zcat rootfs.cgz | sudo cpio -idm
 
