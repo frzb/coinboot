@@ -1,8 +1,7 @@
 #!/bin/bash
 set -Eeo pipefail
-set -x
 
-# Copyright (C) 2018 - 2021 Gunter Miegel coinboot.io
+# Copyright (C) 2018 - 2022 Gunter Miegel coinboot.io
 #
 # This file is part of Coinboot.
 # This software may be modified and distributed under the terms
@@ -17,22 +16,27 @@ display_help() {
   echo
   echo 'Packaged Coinboot pluings are written to the ./builds directory'
   echo
-  echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin name> <path to initramfs>]'
+  echo 'Usage: coinbootmaker [-i] [-h] [-l] [-p <plugin build script path>]'
   echo
-  echo '-i              Interactive mode - opens a shell in the build environment'
-  echo '-p <file name>  Plugin to build'
-  echo '-l              List plugins available to build'
-  echo '-h              Display this help'
+  echo '-i                             Interactive mode - opens a shell in the build environment'
+  echo '-p <plugin build script path>  Plugin to build'
+  echo '-l                             List plugins available to build'
+  echo '-h                             Display this help'
   echo
 }
 
 list_plugins() {
+  echo
+  echo 'Available plugin build scripts'
+  echo
   pushd . > /dev/null
   cd src
-  echo
-  find * -type f -print
-  echo
+  find . -type f  ! -wholename '*\/upstream*' -name "*.yaml" -printf '%P\n'
   popd  > /dev/null
+  echo
+  echo 'Usage: ./coinbootmaker -p <plugin build script path>'
+  echo
+
 }
 
 while getopts "ip:lh" opt; do
@@ -59,34 +63,30 @@ done
 
 shift $((OPTIND -1))
 
-env
-
 WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
 CACHE_DIR=$(readlink -f ./cache)
 GITHUB_REPO=frzb/coinboot
+RELEASE=latest
 ## initramfs and kernel vmlinuz ##
+# RELEASE is set via an environment variable under ./conf/environment
 # If the value is 'latest' we determine the latest release, else we use the set value.
-RELEASE="${RELEASE:-latest}"
 
 if [ $RELEASE = latest ]; then
   RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
   sleep 5
-  while ! TAG=$(echo $RESPONSE | jq -r  '[ .[].name | select(test("^pre.*") | not) ] | sort | last'); do
+  while ! TAG=$(echo $RESPONSE | jq -r '[ .[].name | select(test("^pre.*") | not) ] | sort | last'  ); do
     echo "Calling the Github API has failed, repeat ..."
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
     done
-  echo "Coinbootmaker is using the latest (default) Coinboot release: $TAG"
-else
-  TAG=$RELEASE
-  echo "Coinbootmaker is using Coinboot release: $TAG"
+  echo "Using latest Coinboot rootfs: $TAG"
 fi
 
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
 
 if [ -z $KERNEL ]; then
-  KERNEL=5.4.0-58-generic
+  KERNEL=5.11.0-46-generic
 fi
 INITRAMFS=coinboot-initramfs-$KERNEL
 
@@ -95,33 +95,44 @@ $WGET $DOWNLOAD_URL/$INITRAMFS -P $CACHE_DIR
 fi
 
 BASEDIR=$PWD
-#INITRAMFS=$(readlink -f $1)
 LOWER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/lower
 UPPER=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/upper
 WORKING_DIRECTORY=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/working_dir
 MERGED=/tmp/$(basename $INITRAMFS)_extracted_by_coinbootmaker/merged
 
-while sudo runc list | grep coinbootmaker | grep running; do
+# Initial Cleanup
+
+while sudo runc list | grep coinbootmaker | grep -q running; do
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sudo runc kill coinbootmaker KILL
   sleep 1
 done
 
-while sudo runc list | grep coinbootmaker | grep stopped; do
+while sudo runc list | grep coinbootmaker | grep -q stopped; do
   echo 'Waiting for Coinbootmaker container to be cleaned up ...'
   sudo runc delete coinbootmaker
   sleep 1
 done
 
-  sudo runc delete coinbootmaker || true
-  sudo ip link delete cbm-host || true
-  sudo ip netns delete coinbootmaker || true
-  if mountpoint $MERGED; then
-    sudo umount $MERGED
-  fi
-  sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+while sudo ip link | grep -q cbm-host; do
+  echo 'Waiting for Coinbootmaker network interface to be cleaned up ...'
+  sudo ip link delete cbm-host
   sleep 1
+done
 
+while sudo ip netns | grep -q coinbootmaker; do
+  echo 'Waiting for Coinbootmaker network namespace to be cleaned up ...'
+  sudo ip netns delete coinbootmaker
+  sleep 1
+done
+
+if mountpoint -q $MERGED; then
+  sudo umount $MERGED
+fi
+
+sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+
+# End of initial Cleanup
 
 sudo mkdir -p $UPPER $LOWER $WORKING_DIRECTORY $MERGED
 # We create our own TMPFS.
@@ -138,22 +149,20 @@ cd $LOWER/rootfs
 # We have to use 'sudo' for 'cpio' else the ownership of the files in the
 # archive is messed up.
 # We just extract the nested initramfs archive
-file $CACHE_DIR/$INITRAMFS
-zstdcat $CACHE_DIR/$INITRAMFS | sudo cpio -idvm "rootfs.czst"
-ls -la
-zstdcat rootfs.czst | sudo cpio -idm
+zstd -d $CACHE_DIR/$INITRAMFS -c | sudo cpio -idm --quiet "rootfs.czst"
+zstd -d rootfs.czst -c | sudo cpio -idm --quiet
 
 # The nested initramfs archive can be removed now
-sudo rm -v rootfs.czst
+sudo rm rootfs.czst
 
 # Adapt nameserver settings.
 # resolv.conf is a symling to the systemd stub resolver which we have to delete beforehand.
 sudo rm etc/resolv.conf
-sudo tee etc/resolv.conf << EOF
+sudo tee etc/resolv.conf << EOF 1> /dev/null
 nameserver 1.1.1.1
 EOF
 
-sudo tee etc/hosts << EOF
+sudo tee etc/hosts << EOF 1> /dev/null
 127.0.1.1 coinbootmaker
 EOF
 
@@ -166,7 +175,7 @@ cd $LOWER
 # So we omit the jq limbo and the dependency to jq.
 # We use the same set of capabilities as Docker by default does.
 #https://github.com/moby/moby/blob/master/oci/defaults.go#L14-L30
-sudo tee ./config.json << EOF
+sudo tee ./config.json << EOF 1> /dev/null
 {
         "ociVersion": "1.0.0",
         "process": {
@@ -443,7 +452,7 @@ sudo runc run -d coinbootmaker
 
 # This commands can only be executed if the container is already running.
 # So let's wait until it is ready.
-while ! sudo runc list | grep coinbootmaker; do
+while ! sudo runc list | grep -q coinbootmaker; do
   echo 'Waiting for Coinbootmaker container...'
   sleep 1
 done
@@ -468,7 +477,7 @@ fi
 
 # Cleanup
 sudo runc kill coinbootmaker KILL
-while ! sudo runc list | grep coinbootmaker | grep stopped; do
+while ! sudo runc list | grep coinbootmaker | grep -q stopped; do
   echo 'Waiting for Coinbootmaker container to be stopped ...'
   sleep 1
 done
@@ -478,7 +487,7 @@ sudo runc delete coinbootmaker
 sudo ip link delete cbm-host
 sudo ip netns delete coinbootmaker
 
-echo "Cleaning up directories"
+echo "Cleaning up temporary working directories ..."
 cd $BASEDIR
-sudo umount -v $MERGED
-sudo rm -rf $UPPER $LOWER $WORKING_DIRECTORY $MERGED
+sudo umount --quiet $MERGED
+sudo rm -rf $BASEDIR/plugin $UPPER $LOWER $WORKING_DIRECTORY $MERGED
