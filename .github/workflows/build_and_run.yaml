@@ -77,10 +77,6 @@ jobs:
         # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash
         run: ./setup_coinboot_requirements
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
 
       - name: Run Coinboot server and boot workers
         env:
@@ -91,6 +87,11 @@ jobs:
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN_ID}"-"${GITHUB_RUN_ATTEMPT}"
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
       - name: Download build artifact
         uses: actions/download-artifact@v2
