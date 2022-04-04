@@ -88,10 +88,10 @@ jobs:
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
+      #  with:
+      #    limit-access-to-actor: true
 
       - name: Download build artifact
         uses: actions/download-artifact@v2
