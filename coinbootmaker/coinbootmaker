@@ -59,7 +59,7 @@ done
 
 shift $((OPTIND -1))
 
-env 
+env
 
 WGET='wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0'
 CURL='curl --max-time 5 --retry-max-time 20 --retry 999'
@@ -77,7 +77,10 @@ if [ $RELEASE = latest ]; then
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
       sleep 5
     done
-  echo "Using latest coinboot-debirf release: $TAG"
+  echo "Coinbootmaker is using the latest (default) Coinboot release: $TAG"
+else
+  TAG=$RELEASE
+  echo "Coinbootmaker is using Coinboot release: $TAG"
 fi
 
 DOWNLOAD_URL=https://github.com/${GITHUB_REPO}/releases/download/${TAG}
