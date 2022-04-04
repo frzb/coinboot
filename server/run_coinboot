@@ -127,7 +127,7 @@ build_docker_image() {
 }
 
 create_test_plugin() {
-  export $RELEASE
+  echo 'RELEASE is set to :' $RELEASE
   pushd .
 
   cd ../plugins/
@@ -293,7 +293,7 @@ fi
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
-export $(grep -v '^#' ./conf/environment/* | xargs)
+#export $(grep -v '^#' ./conf/environment/* | xargs)
 
 # Config syntax check fails because the build environment on Ubuntu focal is
 # running dnsmasq 2.80 which is lacking "dhcp-ignore-clid", this feature was introduced with 2.81
