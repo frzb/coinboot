@@ -183,7 +183,7 @@ wait_for_server_to_be_ready() {
 }
 
 cleanup_virsh_domains() {
-  # Domains with UEFI need to be deleted with the additional parameter --vram
+  # Domains with UEFI need to be deleted with the additional parameter --nvram
   for DOMAIN in $(sudo virsh list --all --name); do
     if [[ $DOMAIN == *"uefi"* ]]; then
       sudo virsh undefine --nvram $DOMAIN
