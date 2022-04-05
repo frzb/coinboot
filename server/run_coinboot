@@ -230,7 +230,7 @@ verify_and_shutdown_over_ssh() {
   done
 
   # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && [[ $(stat --format '%U':'%G' /home/ubuntu/test_dir/file1) = 'ubuntu:ubuntu' ]] && [[ $(stat --format '%U':'%G' /home/ubuntu/test_dir/file1) = 'ubuntu:ubuntu' ]]"; do
+  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP 'cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && [[ \$(stat --format "%U":"%G" /home/ubuntu/test_dir/file1) = "ubuntu:ubuntu" ]] && [[ \$(stat --format "%U":"%G" /home/ubuntu/test_dir/file1) = "ubuntu:ubuntu" ]]'; do
     echo 'Waiting for SSH login to succeed...'
     sleep 10
   done
