@@ -81,7 +81,7 @@ jobs:
         with:
           ruby-version: 3.1
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-          working-directory: server
+          working-directory: server/test
 
       - name: Set up Coinboot requirements
         run: ./setup_coinboot_requirements
