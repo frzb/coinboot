@@ -70,13 +70,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-      - name: Set up Coinboot requirements
-        shell: bash
-        # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash
-        run: ./setup_coinboot_requirements
 
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          path: debirf/build
+
+      - name: Set up Coinboot requirements
+        run: ./setup_coinboot_requirements
 
       - name: Run Coinboot server and boot workers
         env:
@@ -93,10 +94,6 @@ jobs:
       #  with:
       #    limit-access-to-actor: true
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v2
-        with:
-          path: debirf/build
 
       - name: Create release on main or develop
         # Release on develop keeps the type pre-release

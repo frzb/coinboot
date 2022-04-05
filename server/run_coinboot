@@ -155,7 +155,7 @@ EOF
   cp -v build/coinboot_test-plugin* enabled/
 
   popd
-  }
+}
 
 up_docker_compose() {
   docker-compose up -d
