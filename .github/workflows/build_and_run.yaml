@@ -76,6 +76,13 @@ jobs:
         with:
           path: debirf/build
 
+      - name: Setup Ruby and InSpec/Cinc-Auditor 
+      - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.1
+        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+        working-dir server
+
       - name: Set up Coinboot requirements
         run: ./setup_coinboot_requirements
 
