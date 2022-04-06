@@ -229,11 +229,14 @@ verify_and_shutdown_over_ssh() {
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
   done
 
-  # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP 'cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl && [[ \$(stat --format "%U":"%G" /home/ubuntu/test_dir/file1) = "ubuntu:ubuntu" ]] && [[ \$(stat --format "%U":"%G" /home/ubuntu/test_dir/file1) = "ubuntu:ubuntu" ]]'; do
-    echo 'Waiting for SSH login to succeed...'
-    sleep 10
-  done
+  #while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP; do
+  #   echo 'Waiting for SSH login to succeed...'
+  #  sleep 10
+  #done
+
+  #  FIXME: RELEASE does not expanse to date string when 'latest' is specified
+  #sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP
+  cinc-auditor exec test/coinboot_node_spec.rb --user ubuntu --password ubuntu -t ssh://"${MACHINE_IP}"
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh destroy $DOMAIN
