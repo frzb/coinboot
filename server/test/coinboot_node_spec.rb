@@ -6,10 +6,9 @@ control 'coinboot-plugin-endpoint' do
 
   describe http('http://192.168.1.2/plugins/') do
     its('status') { should cmp 200 }
-    its('body') { should cmp 'test-plugin' }
+    its('body') { should include 'coinboot_test-plugin_v0.0.1' }
   end
 end
-
 control 'coinboot-plugin' do
   impact 1.0
   title 'Coinboot node plugin file structure'
