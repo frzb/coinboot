@@ -1,8 +1,19 @@
 # Please always use the cookstyle linter
+control 'coinboot-plugin-endpoint' do
+  impact 1.0
+  title 'Coinboot server plugin HTTP endpoint'
+  desc 'Verify the Coinboot server plugin HTTP endpoint is available'
+
+  describe http('http://192.168.1.2/plugins') do
+    its('status') { should cmp 200 }
+    its('body') { should cmp 'test-plugin' }
+  end
+end
+
 control 'coinboot-plugin' do
   impact 1.0
-  title 'Coinboot node tests'
-  desc 'Baseline testing for Coinbot node functionality'
+  title 'Coinboot node plugin file structure'
+  desc 'Verify plugin file structure on the Coinboot worker node'
 
   describe directory('/home/ubuntu/test_dir') do
     its('owner') { should eq 'ubuntu' }
