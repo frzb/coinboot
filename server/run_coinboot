@@ -316,10 +316,10 @@ cleanup_virsh_domains
 
 run_with_libvirt_bios
 
-verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
+#verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_BIOS
 
-run_with_libvirt_uefi
+#run_with_libvirt_uefi
 
-verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
+#verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
 
-cleanup_virsh_domains
+#cleanup_virsh_domains
