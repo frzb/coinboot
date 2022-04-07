@@ -86,10 +86,11 @@ jobs:
       - name: Set up Coinboot requirements
         run: ./setup_coinboot_requirements
 
-     #- name: Setup tmate session
-     #  uses: mxschmitt/action-tmate@v3
-     #  with:
-     #    limit-access-to-actor: true
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: Run Coinboot server and boot workers
         env:
           KERNEL: "5.11.0-46-generic"
