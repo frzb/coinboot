@@ -4,7 +4,7 @@ control 'coinboot-plugin-endpoint' do
   title 'Coinboot server plugin HTTP endpoint'
   desc 'Verify the Coinboot server plugin HTTP endpoint is available'
 
-  describe http('http://192.168.1.2/plugins') do
+  describe http('http://192.168.1.2/plugins/') do
     its('status') { should cmp 200 }
     its('body') { should cmp 'test-plugin' }
   end
