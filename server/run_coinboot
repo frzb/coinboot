@@ -237,6 +237,8 @@ verify_and_shutdown_over_ssh() {
   #  FIXME: RELEASE does not expanse to date string when 'latest' is specified
   #sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP
   pwd 
+  cd test
+  pwd
   bundle exec cinc-auditor exec coinboot_node_spec.rb --user ubuntu --password ubuntu -t ssh://"${MACHINE_IP}"
 
   DOMAIN=$(sudo virsh list --name)
