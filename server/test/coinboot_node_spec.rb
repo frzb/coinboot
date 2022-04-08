@@ -19,7 +19,7 @@ control 'coinboot-plugin' do
     its('group') { should eq 'ubuntu' }
   end
 
-  describe file('/home/ubuntu/test_dir/file') do
+  describe file('/home/ubuntu/test_dir/file1') do
     its('owner') { should eq 'ubuntu' }
     its('group') { should eq 'ubuntu' }
     its('content') { should match 'This is a test' }
