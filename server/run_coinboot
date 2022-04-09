@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e -o pipefail
-set -x
 
 # Copyright (C) 2019-2020 Gunter Miegel coinboot.io
 #
@@ -236,13 +235,10 @@ verify_and_shutdown_over_ssh() {
 
   #  FIXME: RELEASE does not expanse to date string when 'latest' is specified
   #sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP
-  pwd
-  sleep 10
+  pushd .
   cd ./test
-  sleep 10
-  pwd
-  sleep 10
   bundle exec cinc-auditor exec coinboot_node_spec.rb --user ubuntu --password ubuntu -t ssh://"${MACHINE_IP}"
+  popd 
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh destroy $DOMAIN
