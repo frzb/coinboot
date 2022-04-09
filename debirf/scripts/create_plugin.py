@@ -138,6 +138,8 @@ def main(arguments):
         
         print("------------------------------------")
 
+        print("------------------------------------")
+
         print("Created Coinboot Plugin:", archive_name)
 
 

@@ -70,11 +70,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Download build artifacts
+
+      - name: Download build artifact
         uses: actions/download-artifact@v2
+        with:
+          path: debirf/build
+
+      - name: Setup Ruby and InSpec/Cinc-Auditor
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          working-directory: server/test
+
       - name: Set up Coinboot requirements
-        shell: bash
-        # run: https://raw.githubusercontent.com/frzb/coinboot/"${GITHUB_REF##*/}"/setup_coinboot_requirements | bash
         run: ./setup_coinboot_requirements
 
       - name: Run Coinboot server and boot workers
@@ -87,10 +96,10 @@ jobs:
           export RELEASE=$PRE_RELEASE_TAG
           ./server/run_coinboot
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v2
-        with:
-          path: debirf/build
+          #- name: Setup tmate session
+          #  uses: mxschmitt/action-tmate@v3
+          #  with:
+          #    limit-access-to-actor: true
 
       - name: Create release on main or develop
         # Release on develop keeps the type pre-release

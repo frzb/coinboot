@@ -18,8 +18,6 @@ set -e -o pipefail
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-export RELEASE=$RELEASE_TAG
-export VERSION='0.98 Beta'
 MACHINE_IP='192.168.1.10'
 COINBOOT_SERVER_IP=192.168.1.2/24
 MACHINE_MAC_ADDRESS_BIOS='52:54:04:b9:ab:45'
@@ -128,6 +126,36 @@ build_docker_image() {
   docker build -t coinboot/coinboot:latest ./docker/
 }
 
+create_test_plugin() {
+  echo 'RELEASE is set to :' $RELEASE
+  pushd .
+
+  cd ../plugins/
+
+  cat << EOF > src/test-plugin.yaml
+---
+plugin: Test plugin
+archive_name: test-plugin
+version: v0.0.1
+description: Test plugin for verification
+maintainer: Gunter Miegel <gunter.miegel@coinboot.io>
+source: https://github.com/frzb/coinboot
+run: |
+    sudo mkdir /home/ubuntu/test_dir
+    echo 'This is a test' | sudo tee -a /home/ubuntu/test_dir/file1
+    sudo chown -R ubuntu:ubuntu /home/ubuntu/test_dir
+EOF
+
+  ./coinbootmaker -p test-plugin.yaml
+
+  pwd
+  ls -la
+
+  cp -v build/coinboot_test-plugin* enabled/
+
+  popd
+}
+
 up_docker_compose() {
   docker-compose up -d
   sleep 30
@@ -155,7 +183,7 @@ wait_for_server_to_be_ready() {
 }
 
 cleanup_virsh_domains() {
-  # Domains with UEFI need to be deleted with the additional parameter --vram
+  # Domains with UEFI need to be deleted with the additional parameter --nvram
   for DOMAIN in $(sudo virsh list --all --name); do
     if [[ $DOMAIN == *"uefi"* ]]; then
       sudo virsh undefine --nvram $DOMAIN
@@ -200,11 +228,17 @@ verify_and_shutdown_over_ssh() {
     echo "Waiting $COUNTER second(s) for Coinboot machine to listen on port 22/SSH ..."
   done
 
-  # FIXME: RELEASE does not expanse to date string when 'latest' is specified
-  while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP "cat /etc/motd && lsb_release -a && uname -a && df -m && free -m && zramctl"; do
-    echo 'Waiting for SSH login to succeed...'
-  sleep 10
-  done
+  #while ! sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP; do
+  #   echo 'Waiting for SSH login to succeed...'
+  #  sleep 10
+  #done
+
+  #  FIXME: RELEASE does not expanse to date string when 'latest' is specified
+  #sshpass -p ubuntu ssh -o StrictHostKeyChecking=no -l ubuntu -p 22 $MACHINE_IP
+  pushd .
+  cd ./test
+  bundle exec cinc-auditor exec coinboot_node_spec.rb --user ubuntu --password ubuntu -t ssh://"${MACHINE_IP}"
+  popd 
 
   DOMAIN=$(sudo virsh list --name)
   sudo virsh destroy $DOMAIN
@@ -215,7 +249,7 @@ verify_and_shutdown_over_ssh() {
 
 sudo apt-get update
 
-sudo apt-get  install --yes --no-install-recommends bridge-utils dnsmasq jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf
+sudo apt-get  install --yes --no-install-recommends bridge-utils dnsmasq jq sshpass libvirt-daemon-system: virtinst qemu-system-x86 ipxe-qemu ovmf zstd
 
 # Enable the execution of virsh without root access
 # mostly used for local debugging and just for Vagrant.
@@ -265,11 +299,13 @@ fi
 
 # We also need to load the environment before calling docker-compose:
 # https://github.com/docker/compose/issues/3435
-export $(grep -v '^#' ./conf/environment/* | xargs)
+#export $(grep -v '^#' ./conf/environment/* | xargs)
 
 # Config syntax check fails because the build environment on Ubuntu focal is
 # running dnsmasq 2.80 which is lacking "dhcp-ignore-clid", this feature was introduced with 2.81
 # check_dnsmasq_config
+
+create_test_plugin
 
 build_docker_image
 
@@ -288,4 +324,3 @@ run_with_libvirt_uefi
 verify_and_shutdown_over_ssh $MACHINE_MAC_ADDRESS_UEFI
 
 cleanup_virsh_domains
-
