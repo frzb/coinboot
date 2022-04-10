@@ -41,21 +41,22 @@ FINAL_DPKG_STATUS = "/tmp/dpkg_status"
 PLUGIN_DIR = "/mnt/plugin/rootfs"
 
 EXCLUDE = (
+    ".*__pycache__.*",
+    ".wget-hsts",
+    "/boot",
     "/dev/",
     "/proc/",
     "/run/",
     "/sys/",
     "/tmp/",
-    "/usr/src",
     "/usr/include",
     "/usr/share/dbus-1/system-services",
+    "/usr/src",
     "/vagrant",
     "/var/cache",
     "/var/lib/apt/lists",
     "/var/lib/dpkg/[^info]",
     "/var/log",
-    ".*__pycache__.*",
-    ".wget-hsts",
     r".*\.cache",
 )
 
@@ -135,8 +136,6 @@ def main(arguments):
         archive_name = arguments["<plugin_name>"] + ".tar.gz"
 
         create_tar_archive(archive_name, files_for_plugin_archive)
-        
-        print("------------------------------------")
 
         print("------------------------------------")
 
