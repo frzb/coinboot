@@ -106,18 +106,15 @@ run: |
 
   sudo chmod 755 /usr/bin/update-initramfs
 
+  # Using both OpenCL stacks is possible
   if [[ $GPU_CODENAME =~ tonga|fuji|polaris ]]; then
-    if [[ $GPU_CODENAME =~ vega|navi ]]; then
-      echo 'Attention: Legacy and ROCr OpenCL at same time is not possible!'
-      echo 'Plugin build script is stopped now.'
-      exit 1
-    else
-      echo 'Building Coinboot plugin with Legacy OpenCl stack'
-      AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
-    fi
-  else
+    echo 'Building Coinboot plugin with Legacy OpenCl stack'
+    AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
+  fi
+
+  if [[ $GPU_CODENAME =~ vega|navi ]]; then
     echo 'Building Coinboot plugin with ROCr OpenCl stack'
-    AMDGPU_OPENCL_PACKAGES='rocm-opencl-runtime libnuma1'
+    AMDGPU_OPENCL_PACKAGES="$AMDGPU_OPENCL_PACKAGES rocm-opencl-runtime libnuma1"
   fi
 
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
