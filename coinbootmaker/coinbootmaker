@@ -169,6 +169,8 @@ sudo tee etc/hosts << EOF 1> /dev/null
 127.0.1.1 coinbootmaker
 EOF
 
+[ -d $BASEDIR/cache/apt ] || mkdir $BASEDIR/cache/apt
+
 cd $LOWER
 # Generate container spec file config.json
 # We have to manipulate the config.json created by 'runc spec'.
@@ -383,6 +385,15 @@ sudo tee ./config.json << EOF 1> /dev/null
                         "options": [
                                 "bind",
                                 "ro"
+                        ]
+                },
+                {
+                        "destination": "/var/cache/apt",
+                        "type": "none",
+                        "source": "$BASEDIR/cache/apt",
+                        "options": [
+                                "bind",
+                                "rw"
                         ]
                 }
         ],
