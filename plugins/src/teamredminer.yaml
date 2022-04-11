@@ -51,8 +51,9 @@ run: |
 
   [Service]
   # Load the environment variables and replace the shell with a process by exec
+  # Expand all variables beforehand with calling eval
   # By that we circumvent the limited capabilities of shell expansion by systemd
-  ExecStart=/bin/sh -c '. /etc/environment && exec /usr/local/bin/teamredminer $TEAMREDMINER_ARGS'
+  ExecStart=/bin/sh -c '. /etc/environment && eval "exec /usr/local/bin/teamredminer $TEAMREDMINER_ARGS"'
   Restart=on-failure
 
   [Install]
