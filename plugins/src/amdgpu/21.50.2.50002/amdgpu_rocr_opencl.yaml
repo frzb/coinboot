@@ -10,10 +10,10 @@
 # an other license with different terms and conditions.
 # You have to agree to the license of the packaged software to use it.
 
-plugin: AMDGPU Polaris
-archive_name: amdgpu_polaris_legacy_opencl
+plugin: AMDGPU ROCr OpenCL
+archive_name: amdgpu_rocr_opencl
 version: 21.50.2
-description:  AMD Polaris GPU (RX500/RX400 family) firmware and driver with support for Legacy OpenCL 1.2
+description: AMD RX Vega RX 56/64 and RX 5000/6000 driver with support for ROCr OpenCL 2.0
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
@@ -29,7 +29,7 @@ run: |
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
-  GPU_CODENAME='polaris'
+  GPU_CODENAME='vega navi'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
   # ------ Tunable variables end ------
@@ -146,7 +146,7 @@ run: |
 
   # Additional packages which can be removed to save space.
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
-  sudo apt autoremove --purge --yes
+  sudo apt autoremove --purge  --yes
 
   dpkg -l|grep opencl
 

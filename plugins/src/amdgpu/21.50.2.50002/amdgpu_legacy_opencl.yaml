@@ -10,10 +10,10 @@
 # an other license with different terms and conditions.
 # You have to agree to the license of the packaged software to use it.
 
-plugin: AMDGPU Navi
-archive_name: amdgpu_navi_rocr_opencl
+plugin: AMDGPU Legacy OpenCL
+archive_name: amdgpu_legacy_opencl
 version: 21.50.2
-description: AMD RX Vega RX 56/64 firmware and driver with support for ROCr OpenCL 2.0
+description: AMD Polaris (RX500/RX400) and Tonga (R9 R300) driver with support for Legacy OpenCL 1.2
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
@@ -29,7 +29,7 @@ run: |
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
-  GPU_CODENAME='navi'
+  GPU_CODENAME='tonga polaris'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
   # ------ Tunable variables end ------
