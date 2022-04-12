@@ -75,7 +75,7 @@ RELEASE=${RELEASE:-latest}
 if [ $RELEASE = latest ]; then
   RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
   sleep 5
-  while ! TAG=$(echo $RESPONSE | jq -r  '[ .[].name | select(test("^pre.*") | not) ] | sort | last'); do
+  while ! TAG=$(echo $RESPONSE | jq -r '[ .[].name | select(test("^pre.*") | not) ] | sort | last'  ); do
     echo "Calling the Github API has failed, repeat ..."
     RESPONSE=$($CURL --silent "https://api.github.com/repos/${GITHUB_REPO}/tags")
     sleep 5
@@ -168,6 +168,8 @@ EOF
 sudo tee etc/hosts << EOF 1> /dev/null
 127.0.1.1 coinbootmaker
 EOF
+
+[ -d $BASEDIR/cache/apt ] || mkdir $BASEDIR/cache/apt
 
 cd $LOWER
 # Generate container spec file config.json
@@ -383,6 +385,15 @@ sudo tee ./config.json << EOF 1> /dev/null
                         "options": [
                                 "bind",
                                 "ro"
+                        ]
+                },
+                {
+                        "destination": "/var/cache/apt",
+                        "type": "none",
+                        "source": "$BASEDIR/cache/apt",
+                        "options": [
+                                "bind",
+                                "rw"
                         ]
                 }
         ],

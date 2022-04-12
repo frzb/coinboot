@@ -12,12 +12,12 @@
 
 plugin: Team Red Miner
 archive_name: teamredminer
-version: v0.8.3
+version: v0.9.4.2
 description: This is an optimized miner for AMD GPUs created by todxx and kerney666
 maintainer: Gunter Miegel <gunter.miegel@coinbboot.io>
 source: https://github.com/todxx/teamredminer
 run: |
-  TEAMREDMINER_RELEASE=v0.8.3
+  TEAMREDMINER_RELEASE=v0.9.4.2
   TEAMREDMINER_ARCHIVE=teamredminer-$TEAMREDMINER_RELEASE-linux.tgz
   TEAMREDMINER_URL=https://github.com/todxx/teamredminer/releases/download/$TEAMREDMINER_RELEASE/$TEAMREDMINER_ARCHIVE
   WGET='wget'
@@ -46,22 +46,14 @@ run: |
   # TODO: Configure API for monitoring
   cat <<'EOF' > "/etc/systemd/system/teamredminer.service"
   [Unit]
-  Description=teamredminer Ethereum Minining Software
+  Description=teamredminer AMD GPU optimized mining software
   After=network-online.target
 
-
   [Service]
-  EnvironmentFile=/etc/environment
-  ExecStart=/usr/local/bin/teamredminer -a ethash \
-  -o stratum+tcp://us1.ethermine.org:4444 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  -o stratum+tcp://eu1.ethermine.org:4444 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  -o stratum+tcp://eu1.ethermine.org:14444 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  -o stratum+tcp://asia1.ethermine.org:4444 \
-  -u ${ETHEREUM_ADDRESS}.%H \
-  --api_listen=127.0.0.1:4028
+  # Load the environment variables and replace the shell with a process by exec
+  # Expand all variables beforehand with calling eval
+  # By that we circumvent the limited capabilities of shell expansion by systemd
+  ExecStart=/bin/sh -c '. /etc/environment && eval "exec /usr/local/bin/teamredminer $TEAMREDMINER_ARGS"'
   Restart=on-failure
 
   [Install]
