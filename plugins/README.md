@@ -20,7 +20,7 @@ For more information how to boot your machines with Coinboot visit: https://coin
 
 ## Requirements
 
-* Coinboot with kernel `5.4.0-58-generic`
+* Coinboot with kernel `5.11.0-46-generic`
 
 ### If you want to build plugins on your own: 
 
@@ -42,7 +42,7 @@ into the `plugins` directory of your Coinboot setup.
 To build Coinboot plugins on your own use `coinbootmaker`.
 
 ```
-Usage: coinbootmaker [-i] [-l] [-h] [-p <plugin name> <path to initramfs>]
+Usage: coinbootmaker [-i] [-l] [-h] [-p <plugin name>]
 
 -i              Interactive mode - opens a shell in the build environment
 -p <file name>  Plugin to build
@@ -53,20 +53,23 @@ Usage: coinbootmaker [-i] [-l] [-h] [-p <plugin name> <path to initramfs>]
 For example:
 
 ```
-$ ./coinbootmaker -p ethminer /tmp/coinboot-initramfs-4.15.0-43-generic  
+$ ./coinbootmaker -p ethminer
 ```
 
-`coinbootmaker` takes a path to a Coinboot-Initramfs to create an environment for building the plugins  
+`coinbootmaker` uses a Coinboot RootFS release to create an environment for building the plugins  
 by converting the given Initramfs into a Container image and run it.  
 The plugin creation script located at `src` is executed in that `coinbootmaker` container and the resulting  
-plugin archive is written to the `build` directory.
+plugin archive is written to the `build` directory. 
+#### Setting a Release
+You can specify the used Coinboot RootFS be setting the `RELEASE` enviroment variable.  
+The default value is `RELEASE=latetst` and will pulll the latest release of the Coinboot RootFS.  
 
 ### Run `coinbootmaker` interactivly (`-i`)
 
 For developing and debugging 
 
 ```
-$ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic 
+$ ./coinbootmaker -i
 ```
 
 * You are entering the build environment
@@ -77,7 +80,7 @@ $ ./coinbootmaker -i /tmp/coinboot-initramfs-4.15.0-43-generic
 
 * When your are done: Execute `$ create_plugin.py finish <name-of-your-plugin>`
 
-* Place the created plugin archive into `./plugins` on the host where you run the Coinboot Docker container
+* Place the created plugin archive into the directory `./plugins/enabled` on the host where you run the Coinboot Docker container
 
 Up on the next boot the changes your made in your plugin are ready to be used on your Coinboot machines!
 
@@ -98,5 +101,5 @@ gm@coinboot.io
 
 ## Contribution
 
-Fork this repo. 
+To contribute your own plugins fork this repo. 
 Make a pull request to this repo. 
