@@ -13,7 +13,7 @@
 plugin: AMDGPU ROCr OpenCL
 archive_name: amdgpu_rocr_opencl
 version: 21.50.2
-description: AMD RX Vega RX 56/64 and RX 5000/6000 driver with support for ROCr OpenCL 2.0
+description: AMD RX Vega RX 56/64, RX 5000/6000, BC-250 driver with support for ROCr OpenCL 2.0
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
@@ -29,7 +29,8 @@ run: |
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
-  GPU_CODENAME='vega navi'
+  # BC-250 series: cyan_skillfish
+  GPU_CODENAME='vega navi cyan_skillfish'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
   # ------ Tunable variables end ------
@@ -41,7 +42,7 @@ run: |
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
   PACKAGES="wget linux-headers-$KERNEL_RELEASE"
-  # The DKMS package is installed explictily to purge it without wiping the dependcies.
+  # The DKMS package is installed explicitly to purge it without wiping the dependencies.
   AMDGPU_DKMS_PACKAGE=amdgpu-dkms
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
   EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
@@ -112,9 +113,12 @@ run: |
     AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
   fi
 
-  if [[ $GPU_CODENAME =~ vega|navi ]]; then
+  if [[ $GPU_CODENAME =~ vega|navi|cyan_skillfish ]]; then
     echo 'Building Coinboot plugin with ROCr OpenCl stack'
     AMDGPU_OPENCL_PACKAGES="$AMDGPU_OPENCL_PACKAGES rocm-opencl-runtime libnuma1"
+  else
+    echo 'No OpenCL stack could be determined please verify GPU_CODENAME'
+    exit 1
   fi
 
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
