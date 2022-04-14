@@ -10,10 +10,10 @@
 # an other license with different terms and conditions.
 # You have to agree to the license of the packaged software to use it.
 
-plugin: AMDGPU ROCr OpenCL
-archive_name: amdgpu_rocr_opencl
+plugin: AMDGPU ROCr OpenCL B-250
+archive_name: amdgpu_rocr_opencl_b-250
 version: 21.50.2
-description: AMD RX Vega RX 56/64, RX 5000/6000 with support for ROCr OpenCL 2.0
+description: AMD BC-250 driver with support for ROCr OpenCL 2.0
 maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
@@ -30,7 +30,7 @@ run: |
   # RX Vega series: vega
   # RX 5000/6000 series: navi
   # BC-250 series: cyan_skillfish
-  GPU_CODENAME='vega navi'
+  GPU_CODENAME='cyan_skillfish'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
   # ------ Tunable variables end ------
