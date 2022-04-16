@@ -202,6 +202,10 @@ Basically a Coinboot plugin is just set of file system changes that is applied a
 
 Coinboot plugins can be created with the helper tool called [`coinbootmaker`](./coinbootmaker).
 
+
+## [FAQ](FAQ.md)
+
+
 ## License
 
 GNU GPLv3 
