@@ -19,8 +19,6 @@ source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-
 run: |
   set -e
 
-  sudo apt update
-
   # ------ Tunable variables ----------
   # Specfiy AMD Radeon GPU series codename.
   # --- Legacy OpenCL stack ---
@@ -150,7 +148,7 @@ run: |
 
   # Additional packages which can be removed to save space.
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
-  sudo apt autoremove --purge  --yes
+  sudo apt autoremove --purge --yes
 
   dpkg -l|grep opencl
 
