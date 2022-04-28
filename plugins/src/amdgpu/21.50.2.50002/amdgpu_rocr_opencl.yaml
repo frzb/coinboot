@@ -18,7 +18,6 @@ maintainer: Gunter Miegel <gunter.miegel@coiboot.io>
 source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-21-50
 run: |
   set -e
-  set -x
 
   # ------ Tunable variables ----------
   # Specfiy AMD Radeon GPU series codename.
