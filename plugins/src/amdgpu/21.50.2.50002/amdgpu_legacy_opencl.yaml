@@ -19,8 +19,6 @@ source: https://www.amd.com/en/support/kb/release-notes/rn-amdgpu-unified-linux-
 run: |
   set -e
 
-  sudo apt update
-
   # ------ Tunable variables ----------
   # Specfiy AMD Radeon GPU series codename.
   # --- Legacy OpenCL stack ---
@@ -29,6 +27,7 @@ run: |
   # --- ROCr OpenCL stack (support since Vega 10) ---
   # RX Vega series: vega
   # RX 5000/6000 series: navi
+  # BC-250 series: cyan_skillfish
   GPU_CODENAME='tonga polaris'
   # Use upstream GPU firmware from kernel.org: true or false
   UPSTREAM_FIRMWARE=false
@@ -41,7 +40,7 @@ run: |
     KERNEL_RELEASE=$DEBIRF_KERNEL
   fi
   PACKAGES="wget linux-headers-$KERNEL_RELEASE"
-  # The DKMS package is installed explictily to purge it without wiping the dependcies.
+  # The DKMS package is installed explicitly to purge it without wiping the dependencies.
   AMDGPU_DKMS_PACKAGE=amdgpu-dkms
   AMDGPU_CACHE_PATH=/mnt/cache/amdgpu
   EXTRA_MODULES_PACKAGE="linux-modules-extra-$KERNEL_RELEASE"
@@ -112,9 +111,25 @@ run: |
     AMDGPU_OPENCL_PACKAGES='clinfo-amdgpu-pro opencl-orca-amdgpu-pro-icd'
   fi
 
-  if [[ $GPU_CODENAME =~ vega|navi ]]; then
+  if [[ $GPU_CODENAME =~ vega|navi|cyan_skillfish ]]; then
     echo 'Building Coinboot plugin with ROCr OpenCl stack'
-    AMDGPU_OPENCL_PACKAGES="$AMDGPU_OPENCL_PACKAGES rocm-opencl-runtime libnuma1"
+    AMDGPU_OPENCL_PACKAGES="$AMDGPU_OPENCL_PACKAGES ./rocm-opencl_2.0.0.50002-72_coinboot_amd64.deb libnuma1"
+    # Dependencies pull in more package then we need for just running our OpenCL payloads.
+    # So wee need to adapt the dependencies of the rocm-opencl package.
+    # Orignal rocm-opencl dependencies: rocm-ocl-icd, libelf-dev, comgr, hsa-rocr-dev, rocm-core
+    # Minimized rocm-opencl dependencies: rocm-ocl-icd, comgr, hsa-rocr, rocm-core
+    cd /tmp
+    apt-get download rocm-opencl
+    dpkg-deb -x /tmp/rocm-opencl*.deb rocm-opencl
+    dpkg-deb --control /tmp/rocm-opencl*.deb rocm-opencl/DEBIAN
+    sed -i 's/Depends:.*/Depends: rocm-ocl-icd, rocm-core, hsa-rocr, comgr/' /tmp/rocm-opencl/DEBIAN/control
+    cat /tmp/rocm-opencl/DEBIAN/control
+    dpkg -b rocm-opencl rocm-opencl_2.0.0.50002-72_coinboot_amd64.deb
+  fi
+
+  if [ -z $AMDGPU_OPENCL_PACKAGES ]; then
+    echo 'No OpenCL stack could be determined please verify GPU_CODENAME'
+    exit 1
   fi
 
   sudo apt-get install --yes $AMDGPU_OPENCL_PACKAGES
@@ -148,7 +163,7 @@ run: |
   sudo apt-get purge --yes --allow-remove-essential ^gcc-9 grub-common dialog
   sudo apt autoremove --purge --yes
 
-  dpkg -l|grep opencl
+  dpkg -l|grep -P 'o.*cl'
 
   sudo cp -v /tmp/amd*.ko /lib/modules/"$KERNEL_RELEASE"/updates/dkms/
 

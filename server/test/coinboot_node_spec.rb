@@ -44,7 +44,7 @@ control 'coinboot-distribution' do
 
   describe command('lsb_release -d') do
     its('exit_status') { should eq 0 }
-    its('stdout') { should include 'Description:	Ubuntu 20.04.4 LTS' }
+    its('stdout') { should include 'Description:	Ubuntu 20.04.5 LTS' }
   end
 end
 
