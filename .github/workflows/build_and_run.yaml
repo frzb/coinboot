@@ -7,8 +7,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - kernel: "5.11.0-46-generic"
-            suite: "focal"
+          - kernel: "5.15.0-48-generic"
+            suite: "jammy"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -75,8 +75,8 @@ jobs:
         run: ./setup_coinboot_requirements
       - name: Run Coinboot server and boot workers
         env:
-          KERNEL: "5.11.0-46-generic"
-          SUITE: "focal"
+          KERNEL: "5.15.0-48-generic"
+          SUITE: "jammy"
         shell: bash
         run: |
           export PRE_RELEASE_TAG=pre-release-"${GITHUB_RUN__ID}"

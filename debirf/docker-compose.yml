@@ -4,7 +4,7 @@ version: '3'
 services:
   coinboot:
     container_name: coinboot-debirf
-    image: ubuntu:20.04
+    image: ubuntu:22.04
     volumes:
       - ./:/mnt
     command: /bin/bash /mnt/create_rootfs_and_kernel
