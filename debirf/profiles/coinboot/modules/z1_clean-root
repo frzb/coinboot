@@ -19,7 +19,7 @@ set -x
 
 # Additional packages which can be removed to save space.
 #debirf_exec apt-get purge --yes linux-headers-* libgcc1 gcc cpp-5 libgcc-5-dev cpp-6 cpp-8 libc6-dev gcc-8 libgcc-8-dev file libmagic1
-debirf_exec apt-get purge --yes  ^gcc-9 cpp libmagic1 libicu66 | grep -v 'is not installed, so not removed'
+debirf_exec apt-get purge --yes  ^gcc-9 ^gcc-11 cpp libmagic1 libicu66 | grep -v 'is not installed, so not removed'
 
 # Do the autoremove dance
 debirf_exec apt-get --yes --purge autoremove | grep -v 'is not installed, so not removed'
