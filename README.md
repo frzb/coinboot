@@ -1,6 +1,13 @@
 ![Logo of Coinboot](img/coinboot.png)
 
-**Message from the Maintainer: Due to some priority changes in my life I am not able to put as much effort in here as needed. Some things might be broken. For 2021 a major rehaul is planned and prepared in the background. Helping hands are always welcome.**
+### Message from the Maintainer 
+With the [Merge](https://ethereum.org/en/roadmap/merge/) the Ethereum Mainnet switched to proof-of-stake at the 15th of September 2022 and the main use case for Coinboot went obsolete.   
+This is a good thing because in saves 99,95% of the energy consumption. On the other site this stalls the small stream of income by freelancing for integration and support of Coinboot that enables me to develop and move Coinboot forward in a professional way.    
+
+Therefore I have to retire my work on this project for now.  
+
+Coinboot was deployed to over 35,000 nodes with 60,000 GPUs in data centers globally.  
+What stays is my deep confidence that [immutable infrastructure](https://glossary.cncf.io/immutable-infrastructure/) is the currently superior and most secure approach how IT infrastructure could be operated. I hope I can put some of my ideas on this topic into Coinboot in the future.
 
 ## Coinboot ![Build Status](https://github.com/frzb/coinboot/workflows/build/badge.svg?branch=master)
 
